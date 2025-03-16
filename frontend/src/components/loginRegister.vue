@@ -1,10 +1,13 @@
 <template>
+<!--Komponent służący jako formularz logowania/rejestracji-->
+
     <div v-if="props.isVisible" class="fixed inset-0 flex items-center justify-center z-50">
-        <div class="absolute inset-0 bg-black opacity-70 transition delay-500 duration-1000" @click="closeModal"></div>
+        <div class="absolute inset-0  bg-black/70" @click="closeModal"></div>
   
-        <div class="bg-primary text-white rounded-lg w-96 relative z-10 border-2 border-accent p-12">
-  
-            <div v-if="activeView === 'login'">
+        <div class="bg-primary text-white rounded-lg w-96 relative z-10 border-2 border-accent p-12 animate-jump-in">
+
+          <!--Formularz logowania-->
+            <div v-if="activeView === 'login'" class=" animate-fade animate-duration-1000">
                 <h2 class="text-2xl font-bold mb-8 text-center">Zaloguj się</h2>
                 
                 <div class="flex mb-5 gap-2">
@@ -65,7 +68,8 @@
             </div>
   
            
-            <div v-if="activeView === 'register'">
+            <!--Formularz rejestracji-->
+            <div v-if="activeView === 'register'" class=" animate-fade animate-duration-1000">
                 <h2 class="text-2xl font-bold mb-8 text-center">Zarejestruj się</h2>
   
                 
@@ -150,11 +154,14 @@
   <script setup>
   import { ref, defineProps, defineEmits, watch } from 'vue';
   
+  
   const props = defineProps({
+  //Prop odpowiedzialny za to czy komponent jest wyświetlany
   isVisible: {
     type: Boolean,
     default: false
   },
+  //Przy pomocy tego można zmieniać, który formularz jest wyświetlany jako pierwszy, domyślnie jest to logowanie
   initialView: {
     type: String,
     default: 'login',
@@ -162,10 +169,14 @@
   }
   });
   
+  //Aktualnie działa tylko close
   const emit = defineEmits(['close', 'login', 'register']);
-  
+
+
+  //Zmienna wskazująca na to, który formularz jest wyświetlany
   const activeView = ref(props.initialView);
   
+  //Dane formularzy
   const loginData = ref({
   username: '',
   password: ''
@@ -189,10 +200,12 @@
   activeView.value = newValue;
   });
   
+
+  //Funkcja do zamykania komponentu
   const closeModal = () => {
-  emit('close');
+    emit('close');
   
-  
+  //Dane są z powrotem ustawiane na puste
   loginData.value = {
     username: '',
     password: ''
@@ -205,4 +218,7 @@
     confirmPassword: ''
   };
   };
+  
   </script>
+
+
