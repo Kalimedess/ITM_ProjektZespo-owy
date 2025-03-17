@@ -28,8 +28,8 @@ var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 if (!context.Users.Any())
 {
     
-    context.Users.Add(new User { Name = "JanKowalski", Email = "jan@example.com", Password = "jankowalski123" });
-    context.Users.Add(new User { Name = "AnnaNowak", Email = "anna@example.com", Password = "annanowak987" });
+    context.Users.Add(new User { Name = "JanKowalski", Email = "jan@example.com", Password = BCrypt.Net.BCrypt.HashPassword("jankowalski123") });
+    context.Users.Add(new User { Name = "AnnaNowak", Email = "anna@example.com", Password = BCrypt.Net.BCrypt.HashPassword("annanowak987") });
 
     context.SaveChanges();
     Console.WriteLine("Dodano użytkowników do bazy SQLite!");

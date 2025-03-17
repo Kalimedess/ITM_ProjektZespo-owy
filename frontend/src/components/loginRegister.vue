@@ -27,7 +27,7 @@
                     </button>
                 </div>
                 <div class="w-100 h-0.5 mb-5 bg-accent"></div>
-                <form>
+                <form @submit.prevent="handleLogin">
                     
                     <div class="mb-4">
                         <input 
@@ -153,7 +153,7 @@
   
   <script setup>
   import { ref, defineProps, defineEmits, watch } from 'vue';
-  
+  import axios from 'axios';
   
   const props = defineProps({
   //Prop odpowiedzialny za to czy komponent jest wyświetlany
@@ -219,6 +219,23 @@
   };
   };
   
+  // Funkcja do obsługi logowania
+const handleLogin = async () => {
+  try {
+    const response = await axios.post('http://localhost:5023/api/auth/login', {
+      username: loginData.value.username, // Zakładam, że username to email
+      password: loginData.value.password
+    });
+
+    if (response.data.success) {
+      console.log('✅ Zalogowano pomyślnie');
+      emit('login', response.data);
+      closeModal();
+    }
+  } catch (error) {
+    console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
+  }
+};
   </script>
 
 

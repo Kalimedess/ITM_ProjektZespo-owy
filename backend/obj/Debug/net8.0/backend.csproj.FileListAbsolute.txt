@@ -7,6 +7,7 @@ D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\backend.pdb
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Azure.Core.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Azure.Identity.dll
+D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\BCrypt.Net-Next.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Humanizer.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.AspNetCore.Razor.Language.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
