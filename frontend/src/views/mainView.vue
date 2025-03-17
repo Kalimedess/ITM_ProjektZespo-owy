@@ -11,9 +11,9 @@
         
         <!--Odnośniki do social medi-->
         <div class="flex flex-row justify-around items-center gap-3 mr-5">
-          <a href="https://www.linkedin.com/company/itm-ltd/about/" target="_blank"><font-awesome-icon :icon="faLinkedin" class="h-10 text-white hover:text-accent transition-all duration-300"/></a>
-          <a href="https://www.youtube.com/channel/UCMA8NVly_eqK114A6-fkjTw" target="_blank"><font-awesome-icon :icon="faYoutube" class="h-10 text-white hover:text-accent transition-all duration-300"/></a>
-          <a href="https://www.facebook.com/itm.olsztyn" target="_blank"><font-awesome-icon :icon="faFacebook" class="h-10 text-white  hover:text-accent transition-all duration-300" /></a>
+          <a href="https://www.linkedin.com/company/itm-ltd/about/" target="_blank"><font-awesome-icon :icon="faLinkedin" class="h-8 text-white hover:text-accent transition-all duration-300"/></a>
+          <a href="https://www.youtube.com/channel/UCMA8NVly_eqK114A6-fkjTw" target="_blank"><font-awesome-icon :icon="faYoutube" class="h-8 text-white hover:text-accent transition-all duration-300"/></a>
+          <a href="https://www.facebook.com/itm.olsztyn" target="_blank"><font-awesome-icon :icon="faFacebook" class="h-8 text-white  hover:text-accent transition-all duration-300" /></a>
         </div>
       </nav>
       
