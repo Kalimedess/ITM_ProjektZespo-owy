@@ -89,7 +89,7 @@
                     </button>
                 </div>
                 <div class="w-100 h-0.5 mb-5 bg-accent"></div>
-                <form>
+                <form @submit.prevent = "handleRegister">
                     
                     <div class="mb-4">
                         <input 
@@ -236,6 +236,25 @@ const handleLogin = async () => {
     console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
   }
 };
+
+  //Funkcja do obsługi rejesracji
+  const handleRegister = async () => {
+    try {
+      const response = await axios.post('http://localhost:5023/api/auth/register', {
+        username: registerData.value.username,
+        email: registerData.value.email,
+        password: registerData.value.password
+      });
+
+      if(response.data.success) {
+        console.log('!✅ Zarejestrowano pomyślnie!');
+        emit('register', response.data);
+        closeModal();
+      }
+    } catch(error) {
+      console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
+    }
+  };
   </script>
 
 

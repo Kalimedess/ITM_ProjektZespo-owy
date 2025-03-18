@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
+using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
+var emailSettings = builder.Configuration.GetSection("EmailSettings").Get<EmailSettings>();
+builder.Services.AddSingleton(emailSettings);
 builder.Services.AddControllers();
+builder.Services.AddScoped<EmailService>();
+
 
 var app = builder.Build();
 
