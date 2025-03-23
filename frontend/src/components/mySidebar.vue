@@ -1,19 +1,39 @@
 <template>
-    <aside class="w-64 h-container bg-secondary text-white flex flex-col  rounded-r-md border-t-2 border-r-2 border-solid border-lgray-accent">
+    <aside 
+    class="h-container bg-secondary text-white flex flex-col  rounded-r-md border-t-2 border-r-2 border-solid border-lgray-accent"
+            :class="isSideBarOpen ? 'w-64' : 'w-16' ">
        
-        <div class="py-6 text-center">
-            <h1 class="text-xl font-bold text-white font-nasalization">DIGITAL WARS</h1>
+        <div class="py-6  flex flex-row justify-between items-center px-4">
+            <div></div>
+            <h1 v-if="isSideBarOpen" class="text-xl font-bold text-white font-nasalization">DIGITAL WARS</h1>
+            <div>
+                <button @click="isSideBarOpen = !isSideBarOpen">
+                    <font-awesome-icon :icon="isSideBarOpen ? faArrowLeft : faArrowRight" class="h-4" />
+                </button>
+            </div>
         </div>
         
         <nav class="flex-1 px-2 py-2">
             <ul class="space-y-2 ">
+
+                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
+                    <RouterLink 
+                        to="/admin"
+                        class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
+                    >
+                        <font-awesome-icon :icon="faHouse" class="h-4 text-accent"/>
+                        <span v-if="isSideBarOpen">Home</span>
+                    </RouterLink>
+                </li>
                 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-                    @click="isDropdownOpen = !isDropdownOpen">
+                    @click="isDropdownOpen = !isDropdownOpen"
+                    v-if="isSideBarOpen">
                     <div class="flex justify-between items-center px-4 py-3 rounded-md"  >
                     <div>
                         <font-awesome-icon :icon="faGamepad" class="h-4 mr-2 text-accent"/>
-                        Gry w Sesji
+                        <span>Gry w Sesji</span>
                     </div>
                     <div v-if="isDropdownOpen">
                         <font-awesome-icon :icon="faArrowUp" class="h-4 "/> 
@@ -44,22 +64,12 @@
 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
                     <RouterLink 
-                        to="/admin"
-                        class="flex items-center gap-4 px-4 py-3 rounded-md"
-                    >
-                        <font-awesome-icon :icon="faHouse" class="h-4 text-accent"/>
-                        <p>Home</p>
-                    </RouterLink>
-                </li>
-                
-               
-                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
-                    <RouterLink 
                         to="/admin/statistics"
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
                     >
                         <font-awesome-icon :icon="faChartLine" class="h-4 text-accent"/>
-                        <p>Statystyki Gier</p>
+                        <span v-if="isSideBarOpen">Statystyki Gier</span>
                     </RouterLink>
                 </li>
                 
@@ -67,18 +77,20 @@
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
                     <RouterLink
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
                     >
                         <font-awesome-icon :icon="faPenToSquare" class="h-4 text-accent"/>
-                        <p>Edycja kart decyzji</p>
+                        <span v-if="isSideBarOpen">Edycja kart decyzji</span>
                     </RouterLink>
                 </li>
 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
                     <RouterLink 
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
                     >
                         <font-awesome-icon :icon="faPenToSquare" class="h-4 text-accent"/>
-                        <p>Edycja planszy</p>
+                        <span v-if="isSideBarOpen">Edycja planszy</span>
                     </RouterLink>
                 </li>
 
@@ -86,18 +98,20 @@
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
                     <RouterLink 
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
                     >
                         <font-awesome-icon :icon="faFile" class="h-4 text-accent"/>
-                         <p>Ściąga mistrza gry</p>
+                         <span v-if="isSideBarOpen">Ściąga mistrza gry</span>
                     </RouterLink>
                 </li>
 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
                     <RouterLink 
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
                     >
                         <font-awesome-icon :icon="faFileSignature" class="h-4 text-accent"/>
-                        <p>Licencje</p>
+                        <span v-if="isSideBarOpen">Licencje</span>
                     </RouterLink>
                 </li>
             </ul>
@@ -106,9 +120,10 @@
 </template>
 
 <script setup>
-    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse} from '@fortawesome/free-solid-svg-icons'
+    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight} from '@fortawesome/free-solid-svg-icons'
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
 
     const isDropdownOpen = ref(false)
+    const isSideBarOpen = ref(true);    
 </script>

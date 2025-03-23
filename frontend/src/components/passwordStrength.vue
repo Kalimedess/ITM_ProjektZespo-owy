@@ -113,10 +113,4 @@
     }
   });
   
-  // Emituj event z informacją czy hasło spełnia wszystkie wymagania
-  const isValid = computed(() => {
-    const valid = Object.values(requirements.value).every(req => req);
-    emit('validation-change', valid);
-    return valid;
-  });
   </script>

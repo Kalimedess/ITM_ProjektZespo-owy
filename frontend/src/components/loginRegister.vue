@@ -111,6 +111,10 @@
                   <p>Podane hasła się nie zgadzają ❗</p>
                 </div>
 
+                <div class="text-red-500 mt-2 mb-2" v-show="!passwordValid">
+                  <p>Hasło nie spełnia wymagań ❗</p>
+                </div>
+
                 <div class="w-100 h-0.5 mb-5 bg-accent"></div>
                 <form @submit.prevent = "handleRegister">
                     
@@ -158,8 +162,7 @@
 
                     <div class="mb-4">
                       <passwordStrength
-                      :password="registerData.password"
-                      @validation-change="handlePasswordValidation"
+                      :password="registerData.password" 
                       />
                   </div>
                     
@@ -182,7 +185,7 @@
                         </button>
                     </div>
 
-                    <div v-show="!passwordValid" class="mb-5">
+                    <div class="mb-5">
                       <ul class="list-disc text-left text-white pl-5">
                         <li :class="{ 'text-green-500': passwordRequirements.length, 'text-gray-500': !passwordRequirements.length }">
                           Co najmniej 8 znaków
@@ -252,7 +255,7 @@
 
   const errorLogin = ref(false);
   const errorPasswordsNotMatch = ref(false);
-  const passwordValid = ref(false);
+  const passwordValid = ref(true);
 
 
   //Zmienne obsługujące widoczność haseł
@@ -260,10 +263,6 @@
   const showRegisterPassword = ref(false);
   const showRegisterConfirmPassword = ref(false);
 
-  const handlePasswordValidation = (isValid) => {
-    passwordValid.value = isValid;
-  };
-  
   //Dane Logowania
   const loginData = ref({
   email: '',
@@ -313,6 +312,7 @@
   showRegisterConfirmPassword.value = false;
   errorLogin.value = false;
   errorPasswordsNotMatch.value = false;
+  passwordValid.value = true;
   };
 
   //Funkcja sprawdzająca czy hasło spełnia wymagania
@@ -352,12 +352,18 @@
   //Funkcja do obsługi rejesracji
   const handleRegister = async () => {
 
-    if(registerData.value.password !== registerData.value.confirmPassword) {
+    passwordValid.true
+    errorPasswordsNotMatch.value = registerData.value.password !== registerData.value.confirmPassword;
+
+    if(errorPasswordsNotMatch.value) {
+      passwordValid.value = true;
       toast.error("Hasła się nie zgadzają !");
       errorPasswordsNotMatch.value = true;
       return;
     }
 
+    const req = passwordRequirements.value;
+    passwordValid.value = req.length && req.uppercase && req.lowercase && req.digit && req.special;
 
     if(!passwordValid.value) {   
       toast.error("Podane hasło nie spełnia wymagań !", {
@@ -384,11 +390,12 @@
       }
     } catch(error) {
       console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
-      toast.error("Wystąpił błąd !, spróbuj ponownie",{
+      toast.error("Wystąpił błąd ! spróbuj ponownie",{
         position: "top-center",
       });
     }
   };
+
 </script>
 
 
