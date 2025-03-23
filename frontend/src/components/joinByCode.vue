@@ -3,6 +3,14 @@
             <div class="absolute inset-0  bg-black/70" @click="closeModal"></div>
 
             <div class="flex flex-col justify-start items-center bg-primary text-white rounded-lg w-96 relative z-10 border-2 border-accent p-12 animate-jump-in">
+
+
+                <button 
+                    @click="closeModal" 
+                    class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center"
+                >
+                    <font-awesome-icon :icon="faXmark" class="h-5 text-white  hover:text-accent transition-all duration-100" />
+                </button>
                 
                 <div class=" animate-fade">
                     <h2 class="text-2xl font-bold mb-8 text-center">Wprowadź kod i dołącz do gry 🎮</h2>
@@ -33,6 +41,7 @@
 <script setup>
 
     import { defineProps,ref,defineEmits } from 'vue';
+    import {faXmark} from '@fortawesome/free-solid-svg-icons'
 
     const props = defineProps({
 
