@@ -88,6 +88,7 @@
                     <RouterLink 
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
                         :class="isSideBarOpen ? '': 'justify-center' "
+                        to="/admin/editBoard"
                     >
                         <font-awesome-icon :icon="faPenToSquare" class="h-4 text-accent"/>
                         <span v-if="isSideBarOpen">Edycja planszy</span>
