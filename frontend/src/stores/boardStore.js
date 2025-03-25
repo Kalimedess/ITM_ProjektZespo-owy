@@ -40,9 +40,6 @@ export const useBoardStore = defineStore('board', {
                 const response = await api.get('/boards');
                 this.boards = response.data;
 
-                if (this.boards.length > 0 && !this.currentBoardId) {
-                    this.currentBoardId = this.boards[0].id
-                }
 
                 return this.boards;
             } catch (error) {
@@ -93,8 +90,6 @@ export const useBoardStore = defineStore('board', {
                 //Przygotowanie danych planszy
                 const newBoard = {
                     name: boardData.name,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
                     config: {
                         ...boardData.config,
                         rows: rows,
@@ -131,7 +126,7 @@ export const useBoardStore = defineStore('board', {
         },
 
         // Funkcja do aktualizowania parametrów planszy
-        async updateBoard(boardId, config) {
+        async updateBoard(boardId, boardData) {
             try {
                 this.isLoading = true;
                 this.error = null;
@@ -143,8 +138,8 @@ export const useBoardStore = defineStore('board', {
 
                 const updatedBoard = {
                     ...this.boards[boardToUpdateIndex],
-                    config: { ...this.boards[boardToUpdateIndex].config, ...config },
-                    updatedAt: new Date().toISOString()
+                    name: boardData.name || this.boards[boardToUpdateIndex].name,
+                    config: { ...this.boards[boardToUpdateIndex].config, ...(boardData.config || {}) },
                 };
 
                 const response = await api.put(`/boards/${boardId}`, updatedBoard);
