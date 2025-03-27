@@ -98,6 +98,7 @@
 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
                     <RouterLink 
+                        to="/admin/cheatSheet"
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
                         :class="isSideBarOpen ? '': 'justify-center' "
                     >
