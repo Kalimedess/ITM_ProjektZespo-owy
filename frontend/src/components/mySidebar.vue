@@ -62,16 +62,49 @@
                     </div>
                 </li>
 
-                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
-                    <RouterLink 
-                        to="/admin/statistics"
-                        class="flex items-center gap-4 px-4 py-3 rounded-md"
-                        :class="isSideBarOpen ? '': 'justify-center' "
-                    >
-                        <font-awesome-icon :icon="faChartLine" class="h-4 text-accent"/>
-                        <span v-if="isSideBarOpen">Statystyki Gier</span>
-                    </RouterLink>
-                </li>
+                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
+            @click="isStatsDropdownOpen = !isStatsDropdownOpen">
+          <div class="flex justify-between items-center px-4 py-3 rounded-md">
+            <div>
+              <font-awesome-icon :icon="faChartLine" class="h-4 mr-2 text-accent" />
+              Statystyki Gier
+            </div>
+            <div v-if="isStatsDropdownOpen">
+              <font-awesome-icon :icon="faArrowUp" class="h-4" />
+            </div>
+            <div v-else>
+              <font-awesome-icon :icon="faArrowDown" class="h-4" />
+            </div>
+          </div>
+
+                <div v-show="isStatsDropdownOpen" class="flex flex-col py-1 space-y-1">
+            <RouterLink 
+              :to="{ path: '/admin/statistics', query: { stat: 'positions' } }"
+              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+              @click.stop>
+              Wynik końcowy
+            </RouterLink>
+          
+            <RouterLink 
+              :to="{ path: '/admin/statistics', query: { stat: 'bits' } }"
+              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+              @click.stop>
+              Zużycie Bitów
+            </RouterLink>            
+            <RouterLink 
+              :to="{ path: '/admin/statistics', query: { stat: 'results' } }"
+              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+              @click.stop>
+              Sukcesy vs Porażki
+            </RouterLink>
+            <RouterLink 
+              :to="{ path: '/admin/statistics', query: { stat: 'deviation' } }"
+              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+              @click.stop>
+              Odchylenie standardowe
+            </RouterLink>
+          </div>
+          </li>
                 
                 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
@@ -128,4 +161,5 @@
 
     const isDropdownOpen = ref(false)
     const isSideBarOpen = ref(true);    
+    const isStatsDropdownOpen = ref(false)
 </script>
