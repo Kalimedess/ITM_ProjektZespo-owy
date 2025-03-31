@@ -78,6 +78,7 @@
                     <RouterLink
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
                         :class="isSideBarOpen ? '': 'justify-center' "
+                        to="/admin/editCards"
                     >
                         <font-awesome-icon :icon="faPenToSquare" class="h-4 text-accent"/>
                         <span v-if="isSideBarOpen">Edycja kart decyzji</span>
@@ -111,6 +112,7 @@
                     <RouterLink 
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
                         :class="isSideBarOpen ? '': 'justify-center' "
+                        to="/"
                     >
                         <font-awesome-icon :icon="faFileSignature" class="h-4 text-accent"/>
                         <span v-if="isSideBarOpen">Licencje</span>

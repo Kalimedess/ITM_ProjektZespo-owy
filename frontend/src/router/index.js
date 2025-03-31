@@ -5,6 +5,7 @@ import homeAdmin from '@/views/homeAdminView.vue'
 import statisticsView from '@/views/adminStatistics.vue'
 import editBoardView from '@/views/editBoardView.vue'
 import cheatSheetView from '@/views/cheatSheetView.vue'
+import editCardsView from '@/views/editCardsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +39,11 @@ const router = createRouter({
           path:'cheatSheet',
           name:'cheat-sheet',
           component: cheatSheetView
+        },
+        {
+          path:'editCards',
+          name:'edit-cards',
+          component: editCardsView
         }
       ]
     }
