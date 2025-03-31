@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -10,9 +11,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250331204515_AddLiensesToUsers")]
+    partial class AddLiensesToUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.3");
@@ -76,9 +79,6 @@ namespace backend.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DecisionBaseCost")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DecisionDeck")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("DecisionLongDesc")
@@ -186,9 +186,6 @@ namespace backend.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Board_id")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DecisionDeck")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Game_Token")

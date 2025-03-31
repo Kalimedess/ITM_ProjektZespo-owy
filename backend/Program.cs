@@ -30,15 +30,30 @@ app.MapControllers();
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-// Dodaj użytkownika tylko jeśli baza jest pusta
-if (!context.Users.Any())
+var users = new List<User>
 {
+    new User { Name = "JanKowalski", Email = "jan@example.com", Password = BCrypt.Net.BCrypt.HashPassword("jankowalski123"), EmailConfirmed = true, LicensesOwned = 255 },
+    new User { Name = "AnnaNowak", Email = "anna@example.com", Password = BCrypt.Net.BCrypt.HashPassword("annanowak987"), EmailConfirmed = true, LicensesOwned = 255 }
+};
+foreach (var newUser in users)
+{
+    var existingUser = context.Users.FirstOrDefault(u => u.Email == newUser.Email);
     
-    context.Users.Add(new User { Name = "JanKowalski", Email = "jan@example.com", Password = BCrypt.Net.BCrypt.HashPassword("jankowalski123") });
-    context.Users.Add(new User { Name = "AnnaNowak", Email = "anna@example.com", Password = BCrypt.Net.BCrypt.HashPassword("annanowak987") });
-
-    context.SaveChanges();
-    Console.WriteLine("Dodano użytkowników do bazy SQLite!");
+    if (existingUser != null)
+    {
+        // Aktualizacja danych użytkownika
+        existingUser.Name = newUser.Name;
+        existingUser.Password = newUser.Password;
+        existingUser.EmailConfirmed = newUser.EmailConfirmed;
+        existingUser.LicensesOwned = newUser.LicensesOwned;
+    }
+    else
+    {
+        // Dodanie nowego użytkownika
+        context.Users.Add(newUser);
+    }
 }
+context.SaveChanges();
+Console.WriteLine("Zaktualizowano / dodano użytkowników do bazy SQLite!");
 
 app.Run();

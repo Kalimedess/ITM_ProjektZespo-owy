@@ -8,5 +8,8 @@ namespace backend.Data
         public string Password { get; set; } = string.Empty;
         public bool EmailConfirmed { get; set; } = false;
         public string? ConfirmationToken { get; set; }
+        public int LicensesOwned { get; set; }
+        public int LicensesUsed { get; set; }
+
     }
 }
