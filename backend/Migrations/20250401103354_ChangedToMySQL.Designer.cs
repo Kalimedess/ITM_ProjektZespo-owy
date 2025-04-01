@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250401103354_ChangedToMySQL")]
+    partial class ChangedToMySQL
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,72 +201,69 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Data.Game", b =>
                 {
-                    b.Property<int>("GameId")
+                    b.Property<int>("Game_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Game_id"));
 
-                    b.Property<int>("BoardId")
+                    b.Property<int>("Board_id")
                         .HasColumnType("int");
 
                     b.Property<int>("DecisionDeck")
                         .HasColumnType("int");
 
-                    b.Property<string>("GameDesc")
+                    b.Property<string>("Game_desc")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("GameLongDesc")
+                    b.Property<string>("Game_long_desc")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("GameId");
+                    b.HasKey("Game_id");
 
                     b.ToTable("Games");
                 });
 
             modelBuilder.Entity("backend.Data.GameBoard", b =>
                 {
-                    b.Property<int>("GameBoardId")
+                    b.Property<int>("GameBoard_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameBoardId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameBoard_id"));
 
-                    b.Property<int>("GameId")
+                    b.Property<int>("Game_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("PozX")
+                    b.Property<int>("Poz_X")
                         .HasColumnType("int");
 
-                    b.Property<int>("PozY")
+                    b.Property<int>("Poz_Y")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProcessId")
+                    b.Property<int>("Process_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("SubboardId")
+                    b.Property<int>("Subboard_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeamId")
+                    b.Property<int>("Team_id")
                         .HasColumnType("int");
 
-                    b.HasKey("GameBoardId");
+                    b.HasKey("GameBoard_id");
 
                     b.ToTable("GameBoards");
                 });
 
             modelBuilder.Entity("backend.Data.GameLog", b =>
                 {
-                    b.Property<int>("GameLogId")
+                    b.Property<int>("GameLog_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLogId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLog_id"));
 
                     b.Property<int>("Cost")
                         .HasColumnType("int");
@@ -271,127 +271,127 @@ namespace backend.Migrations
                     b.Property<DateTime>("Data")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("DecisionId")
+                    b.Property<int>("Decision_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("GameId")
+                    b.Property<int>("Game_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("ItemId")
+                    b.Property<int>("Item_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int>("Status_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeamId")
+                    b.Property<int>("Team_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("feedbackId")
+                    b.Property<int>("feedback_id")
                         .HasColumnType("int");
 
-                    b.HasKey("GameLogId");
+                    b.HasKey("GameLog_id");
 
                     b.ToTable("GameLogs");
                 });
 
             modelBuilder.Entity("backend.Data.GameLogMove", b =>
                 {
-                    b.Property<int>("GameLogMoveId")
+                    b.Property<int>("GameLogMove_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLogMoveId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLogMove_id"));
 
-                    b.Property<int>("BoardId")
+                    b.Property<int>("Board_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("MoveX")
+                    b.Property<int>("Move_X")
                         .HasColumnType("int");
 
-                    b.Property<int>("MoveY")
+                    b.Property<int>("Move_Y")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProcessId")
+                    b.Property<int>("Process_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("SubBoard")
+                    b.Property<int>("Sub_board")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeamId")
+                    b.Property<int>("Team_id")
                         .HasColumnType("int");
 
-                    b.HasKey("GameLogMoveId");
+                    b.HasKey("GameLogMove_id");
 
                     b.ToTable("GameLogMoves");
                 });
 
             modelBuilder.Entity("backend.Data.GameLogSpec", b =>
                 {
-                    b.Property<int>("GameLogSpecId")
+                    b.Property<int>("GameLogSpec_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLogSpecId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLogSpec_id"));
 
-                    b.Property<int>("BoostX")
+                    b.Property<int>("Boost_X")
                         .HasColumnType("int");
 
-                    b.Property<int>("BoostY")
+                    b.Property<int>("Boost_Y")
                         .HasColumnType("int");
 
-                    b.Property<int>("GameLogId")
+                    b.Property<int>("GameLog_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("MoveX")
+                    b.Property<int>("Move_X")
                         .HasColumnType("int");
 
-                    b.Property<int>("MoveY")
+                    b.Property<int>("Move_Y")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProcessId")
+                    b.Property<int>("Process_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("SubboardId")
+                    b.Property<int>("Subboard_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeamId")
+                    b.Property<int>("Team_id")
                         .HasColumnType("int");
 
-                    b.HasKey("GameLogSpecId");
+                    b.HasKey("GameLogSpec_id");
 
                     b.ToTable("GameLogSpecs");
                 });
 
             modelBuilder.Entity("backend.Data.GameProcess", b =>
                 {
-                    b.Property<int>("ProcessId")
+                    b.Property<int>("Process_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ProcessId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Process_id"));
 
-                    b.Property<string>("ProcessDesc")
+                    b.Property<string>("ProcessLong_desc")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ProcessLongDesc")
+                    b.Property<string>("Process_desc")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("ProcessId");
+                    b.HasKey("Process_id");
 
                     b.ToTable("Processes");
                 });
 
             modelBuilder.Entity("backend.Data.Item", b =>
                 {
-                    b.Property<int>("ItemsId")
+                    b.Property<int>("Items_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ItemsId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Items_id"));
 
-                    b.Property<int>("CardId")
+                    b.Property<int>("Card_id")
                         .HasColumnType("int");
 
                     b.Property<string>("HardwareLongDesc")
@@ -405,7 +405,7 @@ namespace backend.Migrations
                     b.Property<int>("ItemsBaseCost")
                         .HasColumnType("int");
 
-                    b.HasKey("ItemsId");
+                    b.HasKey("Items_id");
 
                     b.ToTable("Items");
                 });
@@ -431,31 +431,31 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Data.Team", b =>
                 {
-                    b.Property<int>("TeamId")
+                    b.Property<int>("Team_id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("TeamId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Team_id"));
 
-                    b.Property<int>("GameId")
+                    b.Property<int>("Game_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeamBud")
+                    b.Property<string>("Team_Token")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Team_bud")
                         .HasColumnType("int");
 
-                    b.Property<string>("TeamLeader")
+                    b.Property<string>("Team_leader")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TeamName")
+                    b.Property<string>("Team_name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TeamToken")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("TeamId");
+                    b.HasKey("Team_id");
 
                     b.ToTable("Teams");
                 });

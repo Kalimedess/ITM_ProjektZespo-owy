@@ -2,11 +2,11 @@ namespace backend.Data
 {
     public class Game
     {
-        public int Game_id { get; set; }
-        public string Game_desc { get; set; } = string.Empty;
-        public string Game_long_desc { get; set; } = string.Empty;
-        public int Board_id { get; set; }
-        public string Game_Token { get; set; } = string.Empty;
+        public int GameId { get; set; }
+        public string GameDesc { get; set; } = string.Empty;
+        public string GameLongDesc { get; set; } = string.Empty;
+        public int BoardId { get; set; }
         public int DecisionDeck { get; set; }
+        public int UserId { get; set; }
     }
 }

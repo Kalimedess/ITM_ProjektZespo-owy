@@ -2,12 +2,12 @@ namespace backend.Data
 {
     public class GameBoard
     {
-        public int GameBoard_id { get; set; }
-        public int Team_id { get; set; }
-        public int Game_id { get; set; }
-        public int Process_id{ get; set; }
-        public int Poz_X { get; set; }
-        public int Poz_Y { get; set; }
-        public int Subboard_id { get; set; }
+        public int GameBoardId { get; set; }
+        public int TeamId { get; set; }
+        public int GameId { get; set; }
+        public int ProcessId{ get; set; }
+        public int PozX { get; set; }
+        public int PozY { get; set; }
+        public int SubboardId { get; set; }
     }
 }

@@ -2,9 +2,9 @@ namespace backend.Data
 {
     public class GameProcess
     {
-        public int Process_id { get; set; }
-        public string Process_desc { get; set; } = string.Empty;
-        public string ProcessLong_desc { get; set; } = string.Empty;
+        public int ProcessId { get; set; }
+        public string ProcessDesc { get; set; } = string.Empty;
+        public string ProcessLongDesc { get; set; } = string.Empty;
     }
 }
 

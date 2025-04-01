@@ -37,7 +37,7 @@ namespace backend.Controllers {
                 return BadRequest("Username and password are required.");
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == request.Username);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Username || u.Name == request.Username);
 
             if(user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password)) {
                 return Unauthorized("Invalid credentials");

@@ -4,7 +4,13 @@ namespace backend.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        private readonly IConfiguration _configuration;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration configuration) 
+            : base(options) 
+        {
+            _configuration = configuration;
+        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Board> Boards { get; set; }
@@ -32,38 +38,45 @@ namespace backend.Data
                 .HasKey(de => de.CardEnablerId);
 
             modelBuilder.Entity<Game>()
-                .HasKey(ga => ga.Game_id);
+                .HasKey(ga => ga.GameId);
 
             modelBuilder.Entity<GameBoard>()
-                .HasKey(gb => gb.GameBoard_id);
+                .HasKey(gb => gb.GameBoardId);
 
             modelBuilder.Entity<GameLog>()
-                .HasKey(gl => gl.GameLog_id);
+                .HasKey(gl => gl.GameLogId);
 
             modelBuilder.Entity<GameLogMove>()
-                .HasKey(gm => gm.GameLogMove_id);
+                .HasKey(gm => gm.GameLogMoveId);
 
             modelBuilder.Entity<GameLogSpec>()
-                .HasKey(gs => gs.GameLogSpec_id);
+                .HasKey(gs => gs.GameLogSpecId);
 
             modelBuilder.Entity<GameProcess>()
-                .HasKey(gp => gp.Process_id);
+                .HasKey(gp => gp.ProcessId);
 
             modelBuilder.Entity<Item>()
-                .HasKey(it => it.Items_id);
+                .HasKey(it => it.ItemsId);
 
             modelBuilder.Entity<Team>()
-                .HasKey(tm => tm.Team_id);
+                .HasKey(tm => tm.TeamId);
 
             base.OnModelCreating(modelBuilder);
         }
 
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlite("Data Source=mydatabase.db");
-            }
-        }
+{
+    if (!optionsBuilder.IsConfigured)
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    }
+}
     }
 }
