@@ -4,6 +4,7 @@ namespace backend.Data
     {
         public int DecisionCostId { get; set; }
         public int DecisionId { get; set; }
+        public Decision Decision { get; set; }
         public int DecisionCostWeight { get; set; }
     }
 }

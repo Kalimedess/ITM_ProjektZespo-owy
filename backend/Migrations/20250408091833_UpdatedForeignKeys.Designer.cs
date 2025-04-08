@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250408091833_UpdatedForeignKeys")]
+    partial class UpdatedForeignKeys
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -127,9 +130,6 @@ namespace backend.Migrations
 
                     b.HasKey("DecisionCostId");
 
-                    b.HasIndex("DecisionId")
-                        .IsUnique();
-
                     b.ToTable("DecisionCosts");
                 });
 
@@ -201,7 +201,7 @@ namespace backend.Migrations
 
                     b.HasKey("DeckId");
 
-                    b.ToTable("Decks");
+                    b.ToTable("Deck");
                 });
 
             modelBuilder.Entity("backend.Data.Feedback", b =>
@@ -466,8 +466,8 @@ namespace backend.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<double>("ItemsBaseCost")
-                        .HasColumnType("double");
+                    b.Property<int>("ItemsBaseCost")
+                        .HasColumnType("int");
 
                     b.HasKey("ItemsId");
 
@@ -581,17 +581,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Deck");
-                });
-
-            modelBuilder.Entity("backend.Data.DecisionCost", b =>
-                {
-                    b.HasOne("backend.Data.Decision", "Decision")
-                        .WithOne()
-                        .HasForeignKey("backend.Data.DecisionCost", "DecisionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Decision");
                 });
 
             modelBuilder.Entity("backend.Data.DecisionWeight", b =>
