@@ -304,8 +304,8 @@
   import { faPlus, faPenToSquare, faTrash, faSave } from '@fortawesome/free-solid-svg-icons';
   import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
   import { useToast } from 'vue-toastification';
-  import { useBoardStore } from '../stores/boardStore';
-  import myBoard from '@/components/myBoard.vue';
+  import { useBoardStore } from '@/stores/boardStore';
+  import myBoard from '@/components/game/gameBoard.vue';
   
   // Zmienne stanu UI
   const selectedBoardId = ref(''); // ID wybranej planszy w trybie edycji
