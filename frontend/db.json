@@ -30,35 +30,7 @@
           "#FFA500",
           "#FF0000"
         ],
-        "margin": 40,
-        "name": "Plansza podstawowa",
-        "config": {
-          "labelsUp": [
-            "Podstawowa kordynacja",
-            "Standaryzacja procesów",
-            "Zintegrowane działania",
-            "Pełna integracja strategiczna"
-          ],
-          "labelsRight": [
-            "Nowicjusz",
-            "Naśladowca",
-            "Innowator",
-            "Lider cyfrowy"
-          ],
-          "descriptionDown": "Poziom integracji wew/zew",
-          "descriptionLeft": "Zawansowanie Cyfrowe",
-          "rows": 8,
-          "cols": 8,
-          "borderColor": "#595959",
-          "cellColor": "#fefae0",
-          "borderColors": [
-            "#008000",
-            "#FFFF00",
-            "#FFA500",
-            "#FF0000"
-          ],
-          "margin": 40
-        }
+        "margin": 40
       }
     },
     {
@@ -106,12 +78,14 @@
           "Analiza",
           "Planowanie",
           "Implementacja",
-          "Kontrola"
+          "Kontrola",
+          "test"
         ],
         "labelsRight": [
           "Strategia",
           "Taktyka",
-          "Operacje"
+          "Operacje",
+          "test"
         ],
         "descriptionDown": "Etapy zarządzania",
         "descriptionLeft": "Poziomy zarządzania",
@@ -125,36 +99,7 @@
           "#f39c12",
           "#e74c3c"
         ],
-        "margin": 40,
-        "name": "Mapa strategiczna",
-        "config": {
-          "labelsUp": [
-            "Analiza",
-            "Planowanie",
-            "Implementacja",
-            "Kontrola",
-            "test"
-          ],
-          "labelsRight": [
-            "Strategia",
-            "Taktyka",
-            "Operacje",
-            "test"
-          ],
-          "descriptionDown": "Etapy zarządzania",
-          "descriptionLeft": "Poziomy zarządzania",
-          "rows": 6,
-          "cols": 8,
-          "borderColor": "#444444",
-          "cellColor": "#e0f7fa",
-          "borderColors": [
-            "#1abc9c",
-            "#3498db",
-            "#f39c12",
-            "#e74c3c"
-          ],
-          "margin": 40
-        }
+        "margin": 40
       }
     }
   ]

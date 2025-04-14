@@ -51,8 +51,8 @@
 <script setup>
 import { ref, defineProps, defineEmits, watch } from 'vue';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
-import LoginForm from './LoginForm.vue';
-import RegisterForm from './RegisterForm.vue';
+import LoginForm from '@/components/auth/loginForm.vue';
+import RegisterForm from '@/components/auth/registerForm.vue';
 
 const props = defineProps({
   isVisible: {
