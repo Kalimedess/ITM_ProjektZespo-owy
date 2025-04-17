@@ -6,6 +6,7 @@ import statisticsView from '@/views/admin/adminStatistics.vue'
 import editBoardView from '@/views/admin/editBoardView.vue'
 import cheatSheetView from '@/views/admin/cheatSheetView.vue'
 import editCardsView from '@/views/admin/editCardsView.vue'
+import adminGameDashboardView from '@/views/game/adminGameDashboardView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,11 @@ const router = createRouter({
           component: editCardsView
         }
       ]
+    },
+    { 
+      path: '/admin/game',
+      name: 'admin-game-dashboard',
+      component: adminGameDashboardView,
     }
   ]
 })
