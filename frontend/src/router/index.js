@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import mainView from '@/views/mainView.vue'
-import adminDashboardView from '@/views/adminDashboardView.vue'
-import homeAdmin from '@/views/homeAdminView.vue'
-import statisticsView from '@/views/adminStatistics.vue'
-import editBoardView from '@/views/editBoardView.vue'
-import cheatSheetView from '@/views/cheatSheetView.vue'
-import editCardsView from '@/views/editCardsView.vue'
+import mainView from '@/views/landing/mainView.vue'
+import adminDashboardView from '@/views/admin/adminDashboardView.vue'
+import homeAdmin from '@/views/admin/homeAdminView.vue'
+import statisticsView from '@/views/admin/adminStatistics.vue'
+import editBoardView from '@/views/admin/editBoardView.vue'
+import cheatSheetView from '@/views/admin/cheatSheetView.vue'
+import editCardsView from '@/views/admin/editCardsView.vue'
+import adminGameDashboardView from '@/views/game/adminGameDashboardView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,11 @@ const router = createRouter({
           component: editCardsView
         }
       ]
+    },
+    { 
+      path: '/admin/game',
+      name: 'admin-game-dashboard',
+      component: adminGameDashboardView,
     }
   ]
 })

@@ -2,10 +2,10 @@
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 
-import PlayerPosition from '@/components/PlayerPositionChart.vue'
-import BitsUsage from '@/components/BitsUsage.vue'
-import DecisionSuccessChart from '@/components/DecisionSuccessChart.vue'
-import StandardDeviationChart from '@/components/StandardDeviationChart.vue'
+import PlayerPosition from '@/components/charts/PlayerPositionChart.vue'
+import BitsUsage from '@/components/charts/BitsUsage.vue'
+import DecisionSuccessChart from '@/components/charts/DecisionSuccessChart.vue'
+import StandardDeviationChart from '@/components/charts/StandardDeviationChart.vue'
 
 const route = useRoute()
 

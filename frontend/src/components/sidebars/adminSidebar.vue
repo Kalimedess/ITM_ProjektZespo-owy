@@ -1,6 +1,6 @@
 <template>
     <aside 
-    class="h-container bg-secondary text-white flex flex-col  rounded-r-md border-t-2 border-r-2 border-solid border-lgray-accent"
+    class="h-container bg-secondary text-white flex flex-col  rounded-r-md border-t-2 border-r-2 border-b-2 border-solid border-lgray-accent"
             :class="isSideBarOpen ? 'w-64' : 'w-16' ">
        
         <div class="py-6  flex flex-row justify-between items-center px-4">
@@ -23,7 +23,7 @@
                         :class="isSideBarOpen ? '': 'justify-center' "
                     >
                         <font-awesome-icon :icon="faHouse" class="h-4 text-accent"/>
-                        <span v-if="isSideBarOpen">Home</span>
+                        <span v-if="isSideBarOpen">Strona Główna</span>
                     </RouterLink>
                 </li>
                 

@@ -9,7 +9,7 @@
 <script setup>
   import { ref, computed, onMounted, onUnmounted, watch } from "vue";
   import * as d3 from "d3";
-  import { useBoardStore } from '../stores/boardStore';
+  import { useBoardStore } from '../../stores/boardStore';
   import { useToast } from 'vue-toastification';
 
   // Props dla trybu podglądu
