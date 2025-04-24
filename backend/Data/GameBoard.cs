@@ -6,10 +6,11 @@ namespace backend.Data
         public Team Team { get; set; }
         public int GameId { get; set; }
         public Game Game { get; set; }
-        public int ProcessId{ get; set; }
+        public int GameProcessId{ get; set; }
         public GameProcess GameProcess { get; set; }
         public int PozX { get; set; }
         public int PozY { get; set; }
-        public int SubboardId { get; set; }
+        public int BoardId { get; set; }
+        public Board Board { get; set; }
     }
 }

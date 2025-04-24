@@ -9,16 +9,15 @@ namespace backend.Initializers{
             context.Database.Migrate();
 
             DeckInitializer.Initialize(context);
+            CardInitializer.Initialize(context);
             DecisionInitializer.Initialize(context);
             BoardInitializer.Initialize(context);
             UsersInitializer.Initialize(context);
-            
             ItemInitializer.Initialize(context);
-            ItemCostInitializer.Initialize(context);
             DecisionWeightInitializer.Initialize(context);
-            DecisionCostInitializer.Initialize(context);
             FeedbackInitializer.Initialize(context);
-
+            DecisionEnablerInitializer.Initialize(context);
+            
         }
     }
 

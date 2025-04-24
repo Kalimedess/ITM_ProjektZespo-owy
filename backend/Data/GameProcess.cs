@@ -5,7 +5,7 @@ namespace backend.Data
 {
     public class GameProcess
     {
-        public int ProcessId { get; set; }
+        public int GameProcessId { get; set; }
         [MaxLength(100)]
         public string ProcessDesc { get; set; } = string.Empty;
         [Column(TypeName = "TEXT")]

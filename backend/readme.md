@@ -22,15 +22,21 @@ Następnie sprawdź czy dotnet-ef został zainstalowany:
 
 ### Tworzenie bazy danych
 
-Wchodząc na serwer MySQL utwór nową Bazę Danych o nazwie 'DigitalWars'
-
+Stwórz migrację bazy danych:
+    `dotnet ef migrations add DatabaseCreatedByNazwaGit `
 Następnie stwórz wszystkie tabele poleceniem:
     `dotnet ef database update`
-Jeżeli nie zadziała stwórz migrację i spróbuj ponownie
-    `dotnet ef migrations add DatabaseCreatedByNazwaGit `
 
 Wszysko powinno teraz działać
 
+### UWAGA !! 
+
+Jeżeli będzie jakiś problem z Bazą Dancyh, użyj polecenia:
+    `dotnet ef database drop`
+i stwórz ponownie Bazę Danych
 
 
 
+## Schemat Bazy Danych
+
+![Baza Danych](digitalwars.png)

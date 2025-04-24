@@ -4,7 +4,7 @@ namespace backend.Data
 {
     public class User
     {
-        public int Id { get; set; }
+        public int UserId { get; set; }
         [MaxLength(50)]
         public string Name { get; set; } = string.Empty;
         [MaxLength(50)]

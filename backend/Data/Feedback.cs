@@ -6,11 +6,14 @@ namespace backend.Data
     public class Feedback
     {
         public int FeedbackId { get; set; }
-        public int DecisionId { get; set; }
-        public Decision Decision { get; set; }
-        [MaxLength(2)]
-        public string Status { get; set; } = string.Empty;
+        public int CardId { get; set; }
+        public Card Card { get; set; }
+        public bool Status { get; set; }
         [Column(TypeName = "TEXT")]
         public string LongDescription { get; set; } = string.Empty;
+        public int DeckId { get; set; }
+        public Deck Deck { get; set; }
+        [Column(TypeName = "BLOB")]
+        public int? FeedbackPDF { get; set; }
     }
 }

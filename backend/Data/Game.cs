@@ -7,7 +7,6 @@ namespace backend.Data
         public int GameId { get; set; }
         [MaxLength(50)]
         public string GameDesc { get; set; } = string.Empty;
-        [MaxLength(255)]
         public string GameLongDesc { get; set; } = string.Empty;
         public int BoardId { get; set; }
         public Board Board { get; set; }

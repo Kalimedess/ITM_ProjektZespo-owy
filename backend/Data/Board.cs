@@ -5,7 +5,9 @@ namespace backend.Data
 {
     public class Board
     {
-        public int Id { get; set; }
+        public int BoardId { get; set; }
+        public int? UserId { get; set; }
+        public User? User { get; set;}
         [MaxLength(50)]
         public string Name { get; set; } = string.Empty;
         [Column(TypeName = "TEXT")]

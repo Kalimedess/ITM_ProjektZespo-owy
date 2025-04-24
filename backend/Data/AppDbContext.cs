@@ -17,25 +17,24 @@ namespace backend.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<Deck> Decks { get; set; }
+        public DbSet<Card> Cards { get; set; }
         public DbSet<Decision> Decisions { get; set; }
-        public DbSet<DecisionCost> DecisionCosts { get; set;}
         public DbSet<DecisionEnabler> DecisionEnablers { get; set; }
         public DbSet<DecisionWeight> DecisionWeights { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<GameBoard> GameBoards { get; set; }
         public DbSet<GameLog> GameLogs { get; set; }
-        public DbSet<GameLogMove> GameLogMoves { get; set; }
         public DbSet<GameLogSpec> GameLogSpecs { get; set; }
         public DbSet<Item> Items { get; set; }
-        public DbSet<ItemsCost> ItemsCosts { get; set; }
         public DbSet<GameProcess> GameProcess { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
             // Klucze Główne
             modelBuilder.Entity<User>()
-                .HasKey(u => u.Id);
+                .HasKey(u => u.UserId);
 
             modelBuilder.Entity<Decision>()
                 .HasKey(d => d.DecisionId);
@@ -44,7 +43,7 @@ namespace backend.Data
                 .HasKey(dw => dw.DecisionWeightId);
 
             modelBuilder.Entity<DecisionEnabler>()
-                .HasKey(de => de.CardEnablerId);
+                .HasKey(de => de.DecisionEnablerId);
 
             modelBuilder.Entity<Game>()
                 .HasKey(ga => ga.GameId);
@@ -55,14 +54,11 @@ namespace backend.Data
             modelBuilder.Entity<GameLog>()
                 .HasKey(gl => new { gl.GameId, gl.TeamId });
 
-            modelBuilder.Entity<GameLogMove>()
-                .HasKey(gm => gm.GameLogMoveId);
-
             modelBuilder.Entity<GameLogSpec>()
                 .HasKey(gs => gs.GameLogSpecId);
 
             modelBuilder.Entity<GameProcess>()
-                .HasKey(gp => gp.ProcessId);
+                .HasKey(gp => gp.GameProcessId);
 
             modelBuilder.Entity<Item>()
                 .HasKey(it => it.ItemsId);
@@ -70,9 +66,35 @@ namespace backend.Data
             modelBuilder.Entity<Team>()
                 .HasKey(tm => tm.TeamId);
 
+            modelBuilder.Entity<Card>()
+                .HasKey(c => new {c.CardId, c.DeckId });
+            modelBuilder.Entity<Card>()
+                .HasAlternateKey(c => c.CardId);
+
             base.OnModelCreating(modelBuilder);
 
     // Klucze Obce
+        //Deck
+            modelBuilder.Entity<Deck>()
+                .HasOne(d => d.User)
+                .WithOne()
+                .HasForeignKey<Deck>(d => d.UserId);
+        //Cards
+            modelBuilder.Entity<Card>()
+                .HasOne(c => c.Deck)
+                .WithMany()
+                .HasForeignKey(c => c.DeckId);
+            modelBuilder.Entity<Card>()
+                .HasMany(c => c.DecisionEnablers)
+                .WithOne(de => de.Card)
+                .HasForeignKey(de => de.CardId)
+                .HasPrincipalKey(c => c.CardId);
+            modelBuilder.Entity<Card>()
+                .HasMany(c => c.DecisionEnablerOfThis)
+                .WithOne(de => de.CardEnabler)
+                .HasForeignKey(de => de.EnablerId)
+                .HasPrincipalKey(c => c.CardId);
+
         //Games
             modelBuilder.Entity<Game>()
                 .HasOne(g => g.User)
@@ -100,14 +122,9 @@ namespace backend.Data
                 .HasForeignKey(gl => gl.TeamId);
 
             modelBuilder.Entity<GameLog>()
-                .HasOne(gl => gl.Decision)
+                .HasOne(gl => gl.Card)
                 .WithMany()
-                .HasForeignKey(gl => gl.DecisionId);
-
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gl => gl.Item)
-                .WithMany()
-                .HasForeignKey(gl => gl.ItemId);
+                .HasForeignKey(gl => new {gl.CardId, gl.DeckId} );
 
             modelBuilder.Entity<GameLog>()
                 .HasOne(gl => gl.Feedback)
@@ -118,31 +135,20 @@ namespace backend.Data
                 .HasOne(d => d.Deck)
                 .WithMany()
                 .HasForeignKey(d => d.DeckId);
+            modelBuilder.Entity<Decision>()
+                .HasOne(d => d.Card)
+                .WithMany()
+                .HasForeignKey(d => new { d.CardId, d.DeckId });
         //DecisionWeights
             modelBuilder.Entity<DecisionWeight>()
-                .HasOne(dw => dw.Decision)
-                .WithOne()
-                .HasForeignKey<DecisionWeight>(dw => dw.DecisionId);
-        //DecisionCost
-            modelBuilder.Entity<DecisionCost>()
-                .HasOne(dc => dc.Decision)
-                .WithOne()
-                .HasForeignKey<DecisionCost>(dc => dc.DecisionId);
-        //GameLogMove
-            modelBuilder.Entity<GameLogMove>()
-                .HasOne(glm => glm.GameProcess)
-                .WithOne()
-                .HasForeignKey<GameLogMove>(glm => glm.ProcessId);
-
-            modelBuilder.Entity<GameLogMove>()
-                .HasOne(glm => glm.Board)
+                .HasOne(dw => dw.Card)
                 .WithMany()
-                .HasForeignKey(glm => glm.BoardId);
-
-            modelBuilder.Entity<GameLogMove>()
-                .HasOne(glm => glm.Team)
+                .HasForeignKey(dw => dw.CardId)
+                .HasPrincipalKey(c => c.CardId);
+            modelBuilder.Entity<DecisionWeight>()
+                .HasOne(dw => dw.Board)
                 .WithOne()
-                .HasForeignKey<GameLogMove>(glm => glm.TeamId);
+                .HasForeignKey<DecisionWeight>(dw => dw.BoardId);
         //GameLogSpec
             modelBuilder.Entity<GameLogSpec>()
                 .HasOne(gls => gls.GameLog)
@@ -150,14 +156,20 @@ namespace backend.Data
                 .HasForeignKey(gls => new { gls.GameLogId, gls.TeamId });
 
             modelBuilder.Entity<GameLogSpec>()
-                .HasOne(gls => gls.GameProcess)
-                .WithMany()
-                .HasForeignKey(gls => gls.ProcessId);
-            
-            modelBuilder.Entity<GameLogSpec>()
                 .HasOne(gls => gls.Team)
                 .WithMany()
                 .HasForeignKey(gls => gls.TeamId);
+
+            modelBuilder.Entity<GameLogSpec>()
+                .HasOne(gls => gls.Board)
+                .WithMany()
+                .HasForeignKey(gls => gls.BoardId);
+
+            modelBuilder.Entity<GameLogSpec>()
+                .HasOne(gls => gls.GameProcess)
+                .WithMany()
+                .HasForeignKey(gls => gls.GameProcessId);
+
         //GameBoard
             modelBuilder.Entity<GameBoard>()
                 .HasOne(gb => gb.Team)
@@ -172,22 +184,47 @@ namespace backend.Data
             modelBuilder.Entity<GameBoard>()
                 .HasOne(gb => gb.GameProcess)
                 .WithMany()
-                .HasForeignKey(gb => gb.ProcessId);
+                .HasForeignKey(gb => gb.GameProcessId);
+            
+            modelBuilder.Entity<GameBoard>()
+                .HasOne(gb => gb.Board)
+                .WithMany()
+                .HasForeignKey(gb => gb.BoardId);
         //Team
             modelBuilder.Entity<Team>()
                 .HasOne(t => t.Game)
                 .WithMany()
                 .HasForeignKey(t => t.GameId);
-        //ItemCost
-            modelBuilder.Entity<ItemsCost>()
-                .HasOne(ic => ic.Item)
-                .WithOne()
-                .HasForeignKey<ItemsCost>(ic => ic.ItemsId);
         //Feedback
             modelBuilder.Entity<Feedback>()
-                .HasOne(fb => fb.Decision)
+                .HasOne(fb => fb.Card)
                 .WithOne()
-                .HasForeignKey<Feedback>(fb => fb.DecisionId);
+                .HasForeignKey<Feedback>(fb => new {fb.CardId, fb.DeckId});
+
+        // Board
+            modelBuilder.Entity<Board>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserId);
+
+        //Item
+            modelBuilder.Entity<Item>()
+                .HasOne(i => i.Card)
+                .WithMany()
+                .HasForeignKey(i => new { i.CardId, i.DeckId });
+
+    //Inne
+            modelBuilder.Entity<Card>()
+                .Property(c => c.CardType)
+                .HasConversion<string>();
+            modelBuilder.Entity<DecisionWeight>()
+                .HasIndex(dw => dw.BoardId)
+                .IsUnique(false);
+            modelBuilder.Entity<Feedback>()
+                .HasIndex(f => new { f.CardId, f.DeckId })
+                .IsUnique(false);
+
+        
         }
 
 
