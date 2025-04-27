@@ -25,251 +25,44 @@
             </h1>
   
             <!-- Dropdown do wyboru planszy - widoczny tylko w trybie edycji -->
-            <div v-if="activeView === 'edit' && boardStore.boards.length > 0" class="mt-4 w-full">
-              <label for="board-select" class="block mb-1">Wybierz planszę do edycji</label>
-              <div class="flex items-center gap-2">
-                <select 
-                  id="board-select"
-                  v-model="selectedBoardId"
-                  class="w-full px-3 py-2 border-2 border-lgray-accent rounded-md bg-tertiary text-white"
-                  @change="loadSelectedBoard">
-                  <option value="" disabled>Wybierz planszę</option>
-                  <option v-for="board in boardStore.boards" :key="board.id" :value="board.id">
-                    {{ board.name }}
-                  </option>
-                </select>
-                <!-- Przycisk usuwania - pojawia się tylko gdy plansza jest wybrana -->
-                <button 
-                  v-if="selectedBoardId"
-                  @click="deleteBoard"
-                  class="p-2 hover:bg-red-100 rounded" 
-                  title="Usuń wybraną planszę">
-                  <font-awesome-icon :icon="faTrash" class="h-4 text-red-500"/>
-                </button>
-              </div>
-            </div>
-  
+            <boardSelector 
+              v-model="selectedBoardId"
+              @load="loadSelectedBoard"
+              @delete="deleteBoard"
+            />
+            
+            <!--Informacja o nazwie planszy i ilości kolumn oraz rzędów-->
             <form>
-              <!-- Pole nazwy planszy -->
-              <div class="mt-8 mb-5">
-                <label for="board-name" class="block mb-1">Nazwa planszy</label>
-                <input 
-                  id="board-name"
-                  v-model="formData.name"
-                  type="text" 
-                  class="w-full px-3 py-2 border-2 border-lgray-accent rounded-md bg-transparent"
-                  placeholder="Wprowadź nazwę planszy"
-                  @input="updatePreview" />
-              </div>
-  
-              <!-- Informacje o wymiarach planszy (wyliczane automatycznie) -->
-              <div class="flex flex-row w-full items-center justify-center gap-5 mt-8 mb-5">
-                <div class="border-2 border-lgray-accent py-2 px-2 rounded-md w-60 text-center">
-                  <span>Kolumny: {{ formData.config.labelsUp.length * 2 }}</span>
-                </div>
-                <div class="border-2 border-lgray-accent py-2 px-2 rounded-md w-60 text-center">
-                  <span>Rzędy: {{ formData.config.labelsRight.length * 2 }}</span>
-                </div>
-              </div>
+              <boardInfo 
+                v-model:name="formData.name"
+                :cols="formData.config.labelsUp.length * 2"
+                :rows="formData.config.labelsRight.length * 2"
+                @update="updatePreview"
+              />
               
               <!-- Sekcja wyboru kolorów podstawowych -->
-              <div class="flex flex-row w-full items-center justify-center gap-5 mt-8 mb-5">
-                <!-- Kolor wypełnienia komórki -->
-                <div class="border-2 border-lgray-accent py-2 px-2 rounded-md w-60 text-center">
-                  <label for="cell-color" class="block mb-1">Kolor komórki</label>
-                  <input 
-                    id="cell-color"
-                    v-model="formData.config.cellColor"
-                    type="color" 
-                    class="w-12 h-10 border rounded mx-auto" 
-                    @input="updatePreview" />
-                  <div class="text-sm mt-2">{{ formData.config.cellColor }}</div>
-                </div>
-  
-                <!-- Kolor obramowania komórki -->
-                <div class="border-2 border-lgray-accent py-2 px-2 rounded-md w-60 text-center">
-                  <label for="border-color" class="block mb-1">Kolor obramowania komórki</label>
-                  <input 
-                    id="border-color"
-                    v-model="formData.config.borderColor"
-                    type="color" 
-                    class="w-12 h-10 border rounded mx-auto" 
-                    @input="updatePreview" />
-                  <div class="text-sm mt-2">{{ formData.config.borderColor }}</div>
-                </div>
-              </div>
+              <boardColorSettings 
+                v-model:cellColor="formData.config.cellColor"
+                v-model:borderColor="formData.config.borderColor"
+                v-model:borderColors="formData.config.borderColors"
+                @update="updatePreview"
+              />
               
               <!-- Sekcja zarządzania etykietami (górne i prawe) -->
-              <div class="flex flex-row w-full gap-5 mt-8 mb-5">
-                <!-- Etykiety górne - wpływają na liczbę kolumn -->
-                <div class="flex-1">
-                  <label class="block mb-1">Etykiety górne</label>
-                  
-                  <!-- Lista istniejących etykiet górnych -->
-                  <div class="border-2 border-lgray-accent px-2 py-2 rounded-md mb-3">
-                    <div class="flex flex-col gap-2">
-                      <div 
-                        v-for="(label, index) in formData.config.labelsUp" 
-                        :key="index" 
-                        class="flex items-center border rounded p-2">
-                        <input 
-                          type="text" 
-                          v-model="formData.config.labelsUp[index]" 
-                          class="flex-1 bg-transparent border-none focus:outline-none"
-                          @input="updatePreview" />
-                        <!-- Przycisk usuwania etykiety (niedostępny gdy jest tylko jedna) -->
-                        <button 
-                          type="button" 
-                          @click="removeLabelUp(index)" 
-                          class="ml-auto p-1 text-red-500 hover:bg-red-100 rounded"
-                          :disabled="formData.config.labelsUp.length <= 1"
-                          title="Usuń etykietę">
-                          <font-awesome-icon :icon="faTrash" class="h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Formularz dodawania nowej etykiety górnej -->
-                  <div class="flex items-center gap-2">
-                    <input 
-                      type="text" 
-                      v-model="newLabelUp" 
-                      class="flex-1 px-3 py-2 border-2 border-lgray-accent rounded-md bg-transparent"
-                      placeholder="Nowa etykieta" />
-                    <button 
-                      type="button" 
-                      @click="addLabelUp" 
-                      class="px-2 py-2 rounded-md border-2 border-lgray-accent hover:border-accent transition-colors duration-300">
-                      <font-awesome-icon :icon="faPlus" class="h-4 text-accent" />
-                      Dodaj
-                    </button>
-                  </div>
-                </div>
-                
-                <!-- Etykiety prawe - wpływają na liczbę rzędów -->
-                <div class="flex-1">
-                  <label class="block mb-1">Etykiety prawe</label>
-                  
-                  <!-- Lista istniejących etykiet prawych -->
-                  <div class="border-2 border-lgray-accent px-2 py-2 rounded-md mb-3">
-                    <div class="flex flex-col gap-2">
-                      <div 
-                        v-for="(label, index) in formData.config.labelsRight" 
-                        :key="index" 
-                        class="flex items-center border rounded p-2">
-                        <input 
-                          type="text" 
-                          v-model="formData.config.labelsRight[index]" 
-                          class="flex-1 bg-transparent border-none focus:outline-none"
-                          @input="updatePreview" />
-                        <!-- Przycisk usuwania etykiety (niedostępny gdy jest tylko jedna) -->
-                        <button 
-                          type="button" 
-                          @click="removeLabelRight(index)" 
-                          class="ml-auto p-1 text-red-500 hover:bg-red-100 rounded"
-                          :disabled="formData.config.labelsRight.length <= 1"
-                          title="Usuń etykietę">
-                          <font-awesome-icon :icon="faTrash" class="h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Formularz dodawania nowej etykiety prawej -->
-                  <div class="flex items-center gap-2">
-                    <input 
-                      type="text" 
-                      v-model="newLabelRight" 
-                      class="flex-1 px-3 py-2 border-2 border-lgray-accent rounded-md bg-transparent"
-                      placeholder="Nowa etykieta" />
-                    <button 
-                      type="button" 
-                      @click="addLabelRight" 
-                      class="px-2 py-2 rounded-md border-2 border-lgray-accent hover:border-accent transition-colors duration-300">
-                      <font-awesome-icon :icon="faPlus" class="h-4 text-accent" />
-                      Dodaj
-                    </button>
-                  </div>
-                </div>
-              </div>
+                <boardLabelsEditors 
+                  v-model:labelsUp="formData.config.labelsUp"
+                  v-model:labelsRight="formData.config.labelsRight"
+                  @update="updatePreview"
+                />
               
               <!-- Sekcja opisów osi planszy -->
-              <div class="flex flex-row w-full gap-5 mb-5">
-                <!-- Opis dolny (pod planszą) -->
-                <div class="flex-1">
-                  <label for="description-down" class="block mb-1">Opis dolny</label>
-                  <input 
-                    id="description-down"
-                    type="text" 
-                    v-model="formData.config.descriptionDown" 
-                    class="w-full px-3 py-2 border-2 border-lgray-accent rounded-md bg-transparent"
-                    placeholder="Wprowadź opis dolny"
-                    @input="updatePreview" />
-                </div>
-                
-                <!-- Opis lewy (po lewej stronie planszy) -->
-                <div class="flex-1">
-                  <label for="description-left" class="block mb-1">Opis z lewej strony</label>
-                  <input 
-                    id="description-left"
-                    type="text" 
-                    v-model="formData.config.descriptionLeft" 
-                    class="w-full px-3 py-2 border-2 border-lgray-accent rounded-md bg-transparent"
-                    placeholder="Wprowadź opis z lewej strony"
-                    @input="updatePreview" />
-                </div>
-              </div>
+              <boardDescriptions 
+                v-model:descriptionDown="formData.config.descriptionDown"
+                v-model:descriptionLeft="formData.config.descriptionLeft"
+                @update="updatePreview"
+              />
   
-              <!-- Sekcja kolorów stref na planszy -->
-              <div class="mb-4 mt-8">
-                <label class="block mb-1">Kolory granic planszy</label>
-                
-                <!-- Lista istniejących kolorów stref -->
-                <div class="border-2 border-lgray-accent px-2 py-2 rounded-md mb-3">
-                  <div class="grid grid-cols-4 gap-2">
-                    <div 
-                      v-for="(color, index) in formData.config.borderColors" 
-                      :key="index" 
-                      class="flex items-center border rounded p-1">
-                      <!-- Podgląd koloru -->
-                      <div 
-                        class="w-8 h-8 rounded-sm mr-1" 
-                        :style="{ backgroundColor: color }"></div>
-                      <!-- Selektor koloru -->
-                      <input 
-                        type="color" 
-                        v-model="formData.config.borderColors[index]" 
-                        class="w-8 h-8"
-                        @input="updatePreview" />
-                      <!-- Przycisk usuwania koloru (niedostępny gdy jest tylko jeden) -->
-                      <button 
-                        type="button" 
-                        @click="removeColor(index)" 
-                        class="ml-auto p-1 text-red-500 hover:bg-red-100 rounded"
-                        :disabled="formData.config.borderColors.length <= 1">
-                        <font-awesome-icon :icon="faTrash" class="h-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Formularz dodawania nowego koloru -->
-                <div class="flex items-center justify-center gap-2">
-                  <input 
-                    type="color" 
-                    v-model="newColor" 
-                    class="w-10 h-10" />
-                  <button 
-                    type="button" 
-                    @click="addColor" 
-                    class="px-2 py-2 rounded-md border-2 border-lgray-accent hover:border-accent transition-colors duration-300">
-                    <font-awesome-icon :icon="faPlus" class="h-4 text-accent" />
-                    Dodaj kolor
-                  </button>
-                </div>
-              </div>
-  
+              
               <!-- Przycisk zapisywania planszy - zmienia tekst zależnie od trybu -->
               <button 
                 type="button" 
@@ -306,17 +99,17 @@
   import { useToast } from 'vue-toastification';
   import { useBoardStore } from '@/stores/boardStore';
   import myBoard from '@/components/game/gameBoard.vue';
+  import boardSelector from '@/components/editBoard/boardSelector.vue';
+  import boardInfo from '@/components/editBoard/boardInfo.vue';
+  import boardColorSettings from '@/components/editBoard/boardColorSettings.vue';
+  import boardLabelsEditors from '@/components/editBoard/boardLabelsEditors.vue';
+  import boardDescriptions from '@/components/editBoard/boardDescriptions.vue';
   
   // Zmienne stanu UI
   const selectedBoardId = ref(''); // ID wybranej planszy w trybie edycji
   const activeView = ref('add');   // Aktualny tryb widoku (add/edit)
   const toast = useToast();        // System powiadomień
   const boardStore = useBoardStore(); // Store z danymi plansz
-  
-  // Pola dla nowych elementów
-  const newColor = ref('#000000');     // Domyślny kolor dla nowego wpisu
-  const newLabelUp = ref('');          // Wartość pola dla nowej etykiety górnej
-  const newLabelRight = ref('');       // Wartość pola dla nowej etykiety prawej
   
   // Licznik wymuszający przeładowanie komponentu podglądu po zmianach
   // Zwiększanie tej wartości powoduje odświeżenie widoku planszy
@@ -401,64 +194,7 @@
       borderColor: formData.config.borderColor
     };
   });
-  
-  // Dodaje nową etykietę górną
-  const addLabelUp = () => {
-    if (newLabelUp.value.trim()) {
-      formData.config.labelsUp.push(newLabelUp.value);
-      newLabelUp.value = ''; // Czyszczenie pola po dodaniu
-      updatePreview();
-    } else {
-      toast.warning("Etykieta nie może być pusta!");
-    }
-  };
-  
-  // Usuwa etykietę górną o podanym indeksie
-  const removeLabelUp = (index) => {
-    if (formData.config.labelsUp.length > 1) {
-      formData.config.labelsUp.splice(index, 1);
-      updatePreview();
-    } else {
-      toast.warning("Musi istnieć co najmniej jedna etykieta górna!");
-    }
-  };
-  
-  // Dodaje nową etykietę prawą
-  const addLabelRight = () => {
-    if (newLabelRight.value.trim()) {
-      formData.config.labelsRight.push(newLabelRight.value);
-      newLabelRight.value = ''; // Czyszczenie pola po dodaniu
-      updatePreview();
-    } else {
-      toast.warning("Etykieta nie może być pusta!");
-    }
-  };
-  
-  // Usuwa etykietę prawą o podanym indeksie
-  const removeLabelRight = (index) => {
-    if (formData.config.labelsRight.length > 1) {
-      formData.config.labelsRight.splice(index, 1);
-      updatePreview();
-    } else {
-      toast.warning("Musi istnieć co najmniej jedna etykieta prawa!");
-    }
-  };
-  
-  // Dodaje nowy kolor do listy
-  const addColor = () => {
-    formData.config.borderColors.push(newColor.value);
-    updatePreview(); 
-  };
-  
-  // Usuwa kolor o podanym indeksie
-  const removeColor = (index) => {
-    if (formData.config.borderColors.length > 1) {
-      formData.config.borderColors.splice(index, 1);
-      updatePreview();
-    } else {
-      toast.warning("Musi istnieć co najmniej jeden kolor granicy!");
-    }
-  };
+
   
   // Sprawdza i ewentualnie wypełnia domyślne wartości opisów
   const validateDescriptions = () => {

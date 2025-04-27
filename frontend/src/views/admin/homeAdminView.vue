@@ -22,10 +22,10 @@
 </template>
 
 <script setup>
-    import gameCard from '@/components/gameCard.vue'
-    import createGame from '@/components/createGame.vue';
-    import homeAdminButtons from '@/components/homeAdminButtons.vue';
-    import CreateGame from '@/components/createGame.vue';
+    import gameCard from '@/components/game/gameCard.vue'
+    import createGame from '@/components/game/createGame.vue';
+    import homeAdminButtons from '@/components/admin/homeAdminButtons.vue';
+    import CreateGame from '@/components/game/createGame.vue';
     import { ref} from 'vue';
 
     const showCreateGame = ref(false);
