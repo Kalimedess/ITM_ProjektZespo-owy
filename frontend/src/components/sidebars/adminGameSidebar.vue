@@ -28,13 +28,50 @@
                 </li>
                 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-                    @click="isDropdownOpen = !isDropdownOpen"
-                    v-if="isSideBarOpen">
-                    <div class="flex justify-between items-center px-4 py-3 rounded-md"  >
+                        @click="isGameStatsDropdownOpen = !isGameStatsDropdownOpen">
+                    <div class="flex justify-between items-center px-4 py-3 rounded-md">
                         <div>
-                            <font-awesome-icon :icon="faGamepad" class="h-4 mr-2 text-accent"/>
-                            <span>Statystyki</span>
+                            <font-awesome-icon :icon="faChartLine" class="h-4 mr-2 text-accent" />
+                            Statystyki Gry
                         </div>
+                        <div v-if="isGameStatsDropdownOpen">
+                            <font-awesome-icon :icon="faArrowUp" class="h-4" />
+                        </div>
+                        <div v-else>
+                            <font-awesome-icon :icon="faArrowDown" class="h-4" />
+                        </div>
+                    </div>
+
+                    <div v-show="isGameStatsDropdownOpen" class="flex flex-col py-1 space-y-1">
+                        <RouterLink 
+                            :to="{ path: '/admin/game', query: { stat: 'positions' } }"
+                            class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+                            @click.stop>
+                            Pozycje końcowe
+                        </RouterLink>
+
+                        <RouterLink 
+                            :to="{ path: '/admin/game', query: { stat: 'success' } }"
+                            class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+                            @click.stop>
+                            Skuteczność decyzji
+                        </RouterLink>
+
+                        <RouterLink 
+                            :to="{ path: '/admin/game', query: { stat: 'bits' } }"
+                            class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+                            @click.stop>
+                            Zużycie Bitów
+                        </RouterLink>
+
+                       
+
+                        <RouterLink 
+                            :to="{ path: '/admin/game', query: { stat: 'progress' } }"
+                            class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+                            @click.stop>
+                            Ranking drużyn na przestrzeni rund
+                        </RouterLink>
                     </div>
                 </li>
 
@@ -164,4 +201,5 @@
     const isDropdownOpen = ref(false)
     const isSideBarOpen = ref(true);    
     const isStatsDropdownOpen = ref(false)
+    const isGameStatsDropdownOpen = ref(false)
 </script>

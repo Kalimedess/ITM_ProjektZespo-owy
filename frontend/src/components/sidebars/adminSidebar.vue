@@ -77,26 +77,20 @@
             </div>
           </div>
 
-                <div v-show="isStatsDropdownOpen" class="flex flex-col py-1 space-y-1">
-            <RouterLink 
-              :to="{ path: '/admin/statistics', query: { stat: 'positions' } }"
-              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-              @click.stop>
-              Wynik końcowy
-            </RouterLink>
-          
-            <RouterLink 
-              :to="{ path: '/admin/statistics', query: { stat: 'bits' } }"
-              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-              @click.stop>
-              Zużycie Bitów
-            </RouterLink>            
+                <div v-show="isStatsDropdownOpen" class="flex flex-col py-1 space-y-1">          
+                     
             <RouterLink 
               :to="{ path: '/admin/statistics', query: { stat: 'results' } }"
               class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
               @click.stop>
-              Sukcesy vs Porażki
+              Skuteczność Decyzji
             </RouterLink>
+            <RouterLink 
+              :to="{ path: '/admin/statistics', query: { stat: 'bits' } }"
+              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+              @click.stop>
+              Średnie Zużycie Bitów na grę
+            </RouterLink>   
             <RouterLink 
               :to="{ path: '/admin/statistics', query: { stat: 'deviation' } }"
               class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
