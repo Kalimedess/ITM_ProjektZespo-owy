@@ -10,6 +10,7 @@
                     v-for="game in games"
                     :key="game.id"
                     :game="game"
+                    :color="getGameColor(game.id)"
                 />
             </div>
         </div>
@@ -30,41 +31,61 @@
 
     const showCreateGame = ref(false);
 
-    const games = [{
-        id:1,
-        name: "Gra 1",
-        color: "red",
-        bits:400,
-        round:5,
-    },
-    {
-        id:2,
-        name: "Gra 2",
-        color: "blue",
-        bits:200,
-        round:3,
-    },
-    {
-        id:3,
-        name: "Gra 3",
-        color: "green",
-        bits:100,
-        round:1,
-    },
-    {
-        id:4,
-        name: "Gra 4",
-        color: "yellow",
-        bits:300,
-        round:2,
-    },
-    {
-        id:5,
-        name: "Gra 5",
-        color: "purple",
-        bits:500,
-        round:4,
-    }];
+    const getGameColor = (gameId) => {
+        
+        const colors = [
+            '#E53E3E',
+            '#3182CE',
+            '#38A169',
+            '#D69E2E',
+            '#805AD5',
+            '#D53F8C',
+            '#DD6B20',
+            '#319795',
+            '#5A67D8',
+        ];
+
+        return colors[gameId - 1 % 9];
+    }
+
+    const games = [
+  {
+    id: 1,
+    name: "Gra 1",
+    bits: 400,
+    round: 5,
+  },
+  {
+    id: 2,
+    name: "Gra 2",
+    bits: 200,
+    round: 3,
+  },
+  {
+    id: 3,
+    name: "Gra 3",
+    bits: 100,
+    round: 1,
+  },
+  {
+    id: 4,
+    name: "Gra 4",
+    bits: 300,
+    round: 2,
+  },
+  {
+    id: 5,
+    name: "Gra 5",
+    bits: 500,
+    round: 4,
+  },
+  {
+    id: 6,
+    name: "Gra 6",
+    bits: 7800,
+    round: 42,
+  },
+];
 
 
 
