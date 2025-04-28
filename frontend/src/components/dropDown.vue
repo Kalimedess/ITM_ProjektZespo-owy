@@ -5,7 +5,7 @@
         class="text-white flex flex-row justify-between items-center border-2 border-lgray-accent rounded-md px-2 py-2 mt-5 cursor-pointer"
       >
         <div>
-          {{ selectedCard ? `#${selectedCard.id} ${selectedCard.title}` : 'Wybierz kartę do edycji' }}
+            {{ selectedCard ? `#${selectedCard.id} ${selectedCard.title}` : `Wybierz ${props.name} do edycji` }}
         </div>
         <div class="text-center">
           <font-awesome-icon :icon="isOpen ? faArrowUp : faArrowDown" class="h-3" />
@@ -41,6 +41,10 @@
     modelValue: {
       type: Number,
       default: null
+    },
+    name: {
+      type:String,
+      required:true
     }
   });
   
