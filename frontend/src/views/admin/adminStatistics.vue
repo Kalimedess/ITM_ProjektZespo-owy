@@ -2,38 +2,27 @@
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 
-import PlayerPosition from '@/components/charts/PlayerPositionChart.vue'
-import BitsUsage from '@/components/charts/BitsUsage.vue'
-import DecisionSuccessChart from '@/components/charts/DecisionSuccessChart.vue'
+import BitsUsage from '@/components/charts/AverageBitsUsage.vue'
+import DecisionSuccessChart from '@/components/charts/DecisionSuccessByTeamChart.vue'
 import StandardDeviationChart from '@/components/charts/StandardDeviationChart.vue'
 
 const route = useRoute()
 
 const selectedStat = computed(() => route.query.stat || 'positions')
 
-const playerPosition = [
-  { name: 'Marcin', position: 8 },
-  { name: 'Łukasz', position: 6 },
-  { name: 'Szymon', position: 2 },
-  { name: 'Bartosz', position: 5 },
-  { name: 'Paweł', position: 7 }
+
+const avgBitsUsageByTeam = [
+  { team: 'Gra 1', avgBits: 18.5 },
+  { team: 'Gra 2', avgBits: 22 },
+  { team: 'Gra 3', avgBits: 19.1 }
 ]
 
 
-
-const bitsData = [
-    { round: '1', bits: 12 },
-    { round: '2', bits: 18 },
-    { round: '3', bits: 8 },
-    { round: '4', bits: 24 },
-    { round: '5', bits: 15 }
-  ]
-
-
-const decisionStats = {
-  success: 14,
-  failure: 6
-}
+const decisionSuccessByTeam = [
+  { team: 'Gra 1', success: 110, failure: 40 },
+  { team: 'Gra 2', success: 85, failure: 65 },
+  { team: 'Gra 3', success: 90, failure: 60 }
+]
 
 const stddevData = [
   { game: 1, positions: 3.2, bits: 4.7 },
@@ -49,15 +38,11 @@ const stddevData = [
   <div class="p-8">
     <h2 class="text-2xl font-bold mb-6 text-white">Statystyki gry</h2>
 
-    <div v-if="selectedStat === 'positions'">
-      <PlayerPosition :data="playerPosition" />
-    </div>
-
-    <div v-else-if="selectedStat === 'bits'">
-      <BitsUsage :data="bitsData" />
+    <div v-if="selectedStat === 'bits'">
+      <BitsUsage :data="avgBitsUsageByTeam" />
     </div>
     <div v-else-if="selectedStat === 'results'">
-      <DecisionSuccessChart :data="decisionStats" />
+      <DecisionSuccessChart :data="decisionSuccessByTeam" />
     </div>
     <div v-else-if="selectedStat === 'deviation'">
       <StandardDeviationChart :data="stddevData" />

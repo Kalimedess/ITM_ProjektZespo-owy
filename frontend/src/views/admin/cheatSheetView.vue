@@ -11,12 +11,20 @@
     />
 
     <!-- Przycisk otwierający PDF -->
-    <div class="mt-4">
+    <div class="mt-4 mb-4 flex gap-4">
       <button
         @click="openPDF"
         class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
       >
         Otwórz instrukcję PDF
+      </button>
+
+      <!-- Nowy przycisk otwierający PDF w nowej karcie -->
+      <button
+        @click="openPDFInNewTab"
+        class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+      >
+        Otwórz w nowej karcie
       </button>
     </div>
 
@@ -24,7 +32,7 @@
     <div v-for="(window, index) in pdfWindows" :key="index" class="mt-6 w-[80%] h-[500px] border border-gray-500 rounded-md relative">
       <button
         @click="closePDF(index)"
-        class="absolute top-2 right-2 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700"
+        class="px-4 py-2 absolute top-2 right-2 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700"
       >
         &times;
       </button>
@@ -33,6 +41,8 @@
         class="w-full h-full rounded-md"
       ></iframe>
     </div>
+  </div>
+  <div>
   </div>
 </template>
 
@@ -60,4 +70,9 @@ function openPDF() {
 function closePDF(index) {
   pdfWindows.value.splice(index, 1)
 }
+
+function openPDFInNewTab() {
+  window.open(pdfSrc, '_blank')
+}
 </script>
+

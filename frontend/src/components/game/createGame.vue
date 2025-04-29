@@ -26,11 +26,16 @@
                 <option v-for="deck in decks" :key="deck.id" :value="deck.id">{{ deck.name }}</option>
             </select>
 
+            <select v-model="selectedTeamId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 text-white w-full mb-4">
+                <option value="" disabled selected>Wybierz drużynę:</option>
+                <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
+            </select>
+
             <button 
                 type="button" 
                 class="bg-accent border-2 border-accent py-3 px-6 rounded-md mt-5">
                 <font-awesome-icon :icon="faSave" class="h-4 mr-2" />
-                Zapisz grę
+                Stwórz grę
               </button>
         </form>
 
@@ -47,6 +52,7 @@
     const boardStore = useBoardStore();
     const selectedBoardId = ref('');
     const selectedDeckId = ref('');
+    const selectedTeamId = ref('');
     const gameName = ref('');
     const gameDescription = ref('');
 
@@ -75,6 +81,7 @@
         gameDescription.value = '';
         selectedBoardId.value = '';
         selectedDeckId.value = '';
+        selectedTeamId.value = '';
         emits('close');
     };
 
@@ -93,5 +100,22 @@
     {
         id: 4,
         name: 'Talia 4',
+    }];
+
+    const teams = [{
+        id: 1,
+        name: 'Talia A',
+    },
+    {
+        id: 2,
+        name: 'Talia B',
+    },
+    {
+        id: 3,
+        name: 'Talia C',
+    },
+    {
+        id: 4,
+        name: 'Talia D',
     }];
 </script>
