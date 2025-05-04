@@ -19,35 +19,24 @@
     
     <div class="flex flex-row gap-2">
         <button 
-            class="flex-1 flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md  hover:border-accent hover:bg-gray-800 transition-colors duration-300">
+            class="flex  flex-auto items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md  hover:border-accent transition-colors duration-300">
             <font-awesome-icon :icon="faCircleStop" class="h-4 text-accent mr-2"/> 
             Wstrzymaj grę
         </button>
         <button 
-            class="flex-1 flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md  hover:border-accent hover:bg-gray-800 transition-colors duration-300">
-            <font-awesome-icon :icon="faForward" class="h-4 text-accent mr-2"/> 
-            Następna runda
+            class="flex flex-auto items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md  hover:border-accent transition-colors duration-300">
+            <font-awesome-icon :icon="faMagnifyingGlass" class="h-4 mr-2 text-accent"/>     
+            <span>Otwórz grę</span>
         </button>
     </div>
     
     <div class=" bg-lgray-accent p-3 rounded-md">
-        <div class="mb-1 font-bold">
-            <font-awesome-icon :icon="faHourglass" class="h-4 text-accent mr-2"/>
-            <span>Runda:</span>
-            <span>{{ game.round }}</span>
-        </div>
         <div class="mb-1 font-bold">
             <font-awesome-icon :icon="faCoins" class="h-4 text-accent mr-2"/>
             <span>Liczba bitów: </span>
             <span>{{ game.bits }}</span>
         </div>
     </div>
-    
-    <button 
-    class="flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md  hover:border-accent hover:bg-gray-800 transition-colors duration-300">
-    <font-awesome-icon :icon="faMagnifyingGlass" class="h-4 mr-2 text-accent"/>     
-    <span>Otwórz grę</span>
-    </button>
 </div>
 
 

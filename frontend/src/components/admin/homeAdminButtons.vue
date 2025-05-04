@@ -1,27 +1,26 @@
 <template>
-    <div class="flex flex-row gap-3 items-center justify-evenly">
+    <div class="flex flex-row justify-center gap-3 items-center mt-5 mb-5">
+        <div class="flex gap-2">
             <button 
-                class="border-2 border-lgray-accent py-2 px-4 rounded-md text-center hover:border-accent hover:bg-gray-800 transition-colors duration-300 flex items-center whitespace-nowrap"
+                class="border-2 border-lgray-accent py-2 px-4 rounded-md text-center hover:border-accent transition-colors duration-300 flex items-center"
                 @click="openCreateGame">
                 <font-awesome-icon :icon="faPlus" class="h-4 text-accent mr-2"/> 
                 Stwórz nową grę
             </button>
+        </div>
+        <div class="flex gap-2">
             <button 
-                class="border-2 border-lgray-accent py-2 px-4 rounded-md text-center hover:border-accent hover:bg-gray-800 transition-colors duration-300 flex items-center whitespace-nowrap">
+                class="border-2 border-lgray-accent py-2 px-4 rounded-md text-center hover:border-accent transition-colors duration-300 flex items-center">
                 <font-awesome-icon :icon="faCircleStop" class="h-4 text-accent mr-2"/> 
-                Zatrzymaj wszyskite gry
+                Zatrzymaj wszystkie gry
             </button>
             <button 
-                class="border-2 border-lgray-accent py-2 px-4 rounded-md text-center hover:border-accent hover:bg-gray-800 transition-colors duration-300 flex items-center whitespace-nowrap">
-                <font-awesome-icon :icon="faForward" class="h-4 text-accent mr-2"/> 
-                Przejdź do następnej rundy we wszystkich gier
-            </button>
-            <button 
-                class="border-2 border-lgray-accent py-2 px-4 rounded-md text-center hover:border-accent hover:bg-gray-800 transition-colors duration-300 flex items-center whitespace-nowrap">
+                class="border-2 border-lgray-accent py-2 px-4 rounded-md text-center hover:border-accent transition-colors duration-300 flex items-center">
                 <font-awesome-icon :icon="faPowerOff" class="h-4 text-accent mr-2"/> 
                 Zakończ wszystkie gry
             </button>
-            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
