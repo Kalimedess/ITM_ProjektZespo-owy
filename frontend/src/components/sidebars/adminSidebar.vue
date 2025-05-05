@@ -118,7 +118,7 @@
                         :class="isSideBarOpen ? '': 'justify-center' "
                         to="/admin/editBoard"
                     >
-                        <font-awesome-icon :icon="faPenToSquare" class="h-4 text-accent"/>
+                        <font-awesome-icon :icon="faChessBoard" class="h-4 text-accent"/>
                         <span v-if="isSideBarOpen">Edycja planszy</span>
                     </RouterLink>
                 </li>
@@ -151,7 +151,7 @@
 </template>
 
 <script setup>
-    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight} from '@fortawesome/free-solid-svg-icons'
+    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight,faChessBoard} from '@fortawesome/free-solid-svg-icons'
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
 
