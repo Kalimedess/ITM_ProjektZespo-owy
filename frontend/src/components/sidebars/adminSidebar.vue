@@ -113,6 +113,17 @@
                 </li>
 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
+                    <RouterLink
+                        class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
+                        to="/admin/editItems"
+                    >
+                        <font-awesome-icon :icon="faMicrochip" class="h-4 text-accent"/>
+                        <span v-if="isSideBarOpen">Edycja przedmiotów</span>
+                    </RouterLink>
+                </li>
+
+                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
                     <RouterLink 
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
                         :class="isSideBarOpen ? '': 'justify-center' "
@@ -151,7 +162,7 @@
 </template>
 
 <script setup>
-    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight,faChessBoard} from '@fortawesome/free-solid-svg-icons'
+    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight,faChessBoard,faMicrochip} from '@fortawesome/free-solid-svg-icons'
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
 

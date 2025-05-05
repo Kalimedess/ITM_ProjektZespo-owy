@@ -9,6 +9,7 @@ import editCardsView from '@/views/admin/editCardsView.vue'
 import adminGameDashboardView from '@/views/game/adminGameDashboardView.vue'
 import playerdView from '@/views/player/playerView.vue'
 import gameStatistics from '@/views/game/gameStatistics.vue'
+import editItems from '@/views/admin/editItems.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +48,11 @@ const router = createRouter({
           path:'editCards',
           name:'edit-cards',
           component: editCardsView
+        },
+        {
+          path:'editItems',
+          name:'edit-items',
+          component: editItems
         }
       ]
     },
