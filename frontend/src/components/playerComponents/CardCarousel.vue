@@ -44,6 +44,11 @@ const cards = ref([
   'Karta 1: Opis lub zawartość',
   'Karta 2: Coś ciekawego',
   'Karta 3: Jeszcze coś',
+  'Karta 3: Jeszcze coś',
+  'Karta 3: Jeszcze coś',
+  'Karta 3: Jeszcze coś',
+  'Karta 3: Jeszcze coś',
+  'Karta 3: Jeszcze coś',
 ])
 
 const currentIndex = ref(0)

@@ -1,30 +1,30 @@
 <template>
+  <div class="flex flex-col min-h-screen bg-primary">
+    <!-- Górny pasek -->
+    <PlayerNavbar />
 
-    <div class="flex flex-col min-h-screen bg-primary">
-        <PlayerNavbar />
-        
-        
-        <div class="flex flex-1 mt-2">
-          
-          <!--Content-->
-          <div class="flex-1 ml-4 bg-secondary  border-t-2 border-l-2 border-b-2 border-lgray-accent rounded-md shadow-sm text-center">
-              <RouterView />
-                <!--menu gracza-->
-              <div class="">
-                <PlayerMenu />
-              </div>
-              <!--system wybierania kart-->
-              <div class="">
-                <CardCarousel />
-              </div>
-          </div>
-        </div>
-        <div class="mt-2">
-          <Footer />
-        </div>
+    <!-- Główna zawartość -->
+    <div class="flex flex-1 mt-2">
+      
+      <!-- Lewa kolumna: wybór kart -->
+      <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4">
+        <RouterView />
+        <CardCarousel />
       </div>
-    
-    </template>
+
+      <!-- Prawa kolumna: decyzje -->
+      <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 w-1/3 mr-4">
+        <PlayerMenu />
+      </div>
+    </div>
+
+    <!-- Stopka -->
+    <div class="mt-2">
+      <Footer />
+    </div>
+  </div>
+</template>
+
     
     <script setup>
         import PlayerNavbar from '@/components/navbars/playerNavbar.vue';
