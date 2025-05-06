@@ -3,7 +3,6 @@
 
     <div class="p-2 rounded relative">
       <h2 class="text-xl font-semibold">📝 Dodaj decyzję</h2>
-      <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
     </div>
 
     <div class="p-2 rounded relative">
@@ -50,7 +49,7 @@
           <p class="text-sm text-white">
             {{ decision.description }}
           </p>
-          <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
+          <button class="text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
         </li>
       </ul>
       
