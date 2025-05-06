@@ -29,7 +29,7 @@
         <li
           v-for="(decision, index) in filteredDecisions"
           :key="index"
-          class="bg-primary text-white text-left p-2 rounded shadow-sm space-y-2"
+          class="bg-primary border-t text-white text-left p-2 rounded shadow-sm space-y-2"
         >
           <div class="text-sm italic text-gray-200">{{ decision.team }}</div>
           <div><strong>{{ decision.player }}</strong> → {{ decision.idchoice }} {{ decision.choice }}</div>
