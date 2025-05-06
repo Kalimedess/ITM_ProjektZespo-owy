@@ -273,3 +273,4 @@ D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.pdb
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\ref\backend.dll
+D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.Bcl.Memory.dll

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace backend.Data
 {
@@ -15,5 +16,15 @@ namespace backend.Data
         public int UserId { get; set; }
 
         public User User { get; set; }
+
+        [Column(TypeName ="ENUM('During', 'Paused', 'End')")]
+        public GameStatus? GameStatus { get; set; }
+    }
+
+    public enum GameStatus { 
+        During,
+        Paused,
+        End
+
     }
 }

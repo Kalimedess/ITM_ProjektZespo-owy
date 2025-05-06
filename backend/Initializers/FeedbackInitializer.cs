@@ -4,9 +4,10 @@ public static class FeedbackInitializer {
 
     public static void Initialize(AppDbContext context) {
 
+        var pdfBytes = File.ReadAllBytes("D:/Repozytoria/Projekt Zespołowy/ITM_ProjektZespo-owy/backend/Initializers/Test.pdf");
         //Dodawanie Decyzji
         var feedback = new List<Feedback> {
-            new Feedback { DeckId =1, FeedbackId = 1, CardId = 23, Status = true, LongDescription = "nan" },
+            new Feedback { DeckId =1, FeedbackId = 1, CardId = 23, Status = true, LongDescription = "nan", FeedbackPDF = pdfBytes},
             new Feedback { DeckId =1, FeedbackId = 2, CardId = 21, Status = false, LongDescription = "nan" },
             new Feedback { DeckId =1, FeedbackId = 3, CardId = 21, Status = false, LongDescription = "Jest zbyt wcześnie na określenie poziomu digitalizacji procesów, najpierw zastanów się nad zweryfikowaniem profilu organizacji." },
             new Feedback { DeckId =1, FeedbackId = 4, CardId = 6, Status = true, LongDescription = "nan" },
@@ -84,10 +85,10 @@ public static class FeedbackInitializer {
                 // Aktualizujesz istniejący feedback
                 existingFeedback.Status = newFeedback.Status;
                 existingFeedback.LongDescription = newFeedback.LongDescription;
+                existingFeedback.FeedbackPDF = newFeedback.FeedbackPDF;
             }
             else
             {
-                // Dodajesz nowy feedback
                 context.Feedbacks.Add(newFeedback);
             }
         }

@@ -150,7 +150,9 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     BoardId = table.Column<int>(type: "int", nullable: false),
                     DeckId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    GameStatus = table.Column<string>(type: "ENUM('During', 'Paused', 'End')", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -342,7 +344,7 @@ namespace backend.Migrations
                     TeamName = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TeamBud = table.Column<int>(type: "int", nullable: false),
-                    TeamToken = table.Column<string>(type: "varchar(6)", maxLength: 6, nullable: false)
+                    TeamToken = table.Column<string>(type: "varchar(6)", maxLength: 6, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>

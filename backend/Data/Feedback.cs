@@ -13,7 +13,7 @@ namespace backend.Data
         public string LongDescription { get; set; } = string.Empty;
         public int DeckId { get; set; }
         public Deck Deck { get; set; }
-        [Column(TypeName = "BLOB")]
-        public int? FeedbackPDF { get; set; }
+        [Column(TypeName = "LONGBLOB")]
+        public byte[]? FeedbackPDF { get; set; }
     }
 }

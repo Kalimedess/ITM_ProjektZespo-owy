@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250424111219_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250429170823_ChangePdfToLongBlob1")]
+    partial class ChangePdfToLongBlob1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -245,7 +245,7 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<byte[]>("FeedbackPDF")
-                        .HasColumnType("BLOB");
+                        .HasColumnType("LONGBLOB");
 
                     b.Property<string>("LongDescription")
                         .IsRequired()
@@ -285,6 +285,9 @@ namespace backend.Migrations
                     b.Property<string>("GameLongDesc")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("GameStatus")
+                        .HasColumnType("ENUM('During', 'Paused', 'End')");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -502,7 +505,6 @@ namespace backend.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("TeamToken")
-                        .IsRequired()
                         .HasMaxLength(6)
                         .HasColumnType("varchar(6)");
 

@@ -217,9 +217,16 @@ namespace backend.Data
             modelBuilder.Entity<Card>()
                 .Property(c => c.CardType)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<Game>()
+                .Property(g => g.GameStatus)
+                .HasConversion<string>()
+                .IsRequired(false);
+
             modelBuilder.Entity<DecisionWeight>()
                 .HasIndex(dw => dw.BoardId)
                 .IsUnique(false);
+
             modelBuilder.Entity<Feedback>()
                 .HasIndex(f => new { f.CardId, f.DeckId })
                 .IsUnique(false);

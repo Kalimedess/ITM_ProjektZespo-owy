@@ -16,6 +16,6 @@ namespace backend.Data
         public int TeamBud { get; set; }
 
         [MaxLength(6)]
-        public string TeamToken { get; set; } = string.Empty;
+        public string? TeamToken { get; set; } = string.Empty;
     }
 }
