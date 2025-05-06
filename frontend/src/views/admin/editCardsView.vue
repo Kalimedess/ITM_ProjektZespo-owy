@@ -3,12 +3,23 @@
         <div class="flex flex-col justify-center items-center m-4 px-2 py-2 border-2 border-lgray-accent rounded-md bg-tertiary">
             <h1 class="text-3xl font-nasalization text-white mt-5">Edycja kart decyzji</h1>
 
-            <!--Przycisk  do wczytania talii z pliku xls-->
-            <button 
-                class=" bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5">
-                <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
-                Wczytaj z pliku xls
-            </button>
+            <!--Przycisk do wczytania talii z pliku xls-->
+                <button 
+                    @click="triggerFileInput"
+                    class="bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5">
+                    <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
+                    Wczytaj z pliku xls
+                </button>
+
+                <!-- Ukryty input -->
+                <input 
+                    type="file" 
+                    accept=".xls,.xlsx" 
+                    ref="fileInput" 
+                    @change="handleFileChange" 
+                    style="display: none;" 
+                />
+
 
             <form class="w-full max-w-lg mt-4 flex flex-col items-center">
                 <!-- Dodanie wyboru talii -->
@@ -73,6 +84,7 @@
 import { faSave,faFileExcel} from '@fortawesome/free-solid-svg-icons';
 import dropDown from '@/components/dropDown.vue';
 import { reactive, ref, watch, computed } from 'vue';
+import axios from 'axios';
 
 const selectedDeck = ref(null);
 const selectedCard = ref(null);
@@ -125,6 +137,39 @@ const filteredCards = computed(() => {
 });
 
 const currentCard = ref(null);
+
+// Obsługa wczytywania pliku
+const fileInput = ref(null);
+
+function triggerFileInput() {
+    if (fileInput.value) {
+        fileInput.value.click(); // Otwiera okno wyboru pliku
+    }
+}
+
+async function handleFileChange(event) {
+    const file = event.target.files[0];
+    console.log('Plik wybrany:', file);
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+        const response = await axios.post("http://localhost:5023/api/deck/upload", formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        console.log("Odpowiedź z backendu:", response.data);
+    } catch (error) {
+        console.error("Błąd przy wysyłaniu pliku:", error);
+    }
+}
+
+
 
 // Reset wybranej karty gdy zmienia się talia
 watch(selectedDeck, () => {
