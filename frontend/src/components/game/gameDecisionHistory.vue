@@ -1,97 +1,100 @@
 <template>
-  <div>
-    <h2>Zarządzaj historią decyzji</h2>
-    <button @click="loadData">Ładowanie logów</button>
+  <div class="w-full max-w-md mx-auto bg-yellow rounded-xl shadow p-4 space-y-4 border border-white">
 
-    <div style="margin-top: 20px;">
-      <h3>Dodaj Decyzję</h3>
-      <form @submit.prevent="createGamelog">
-        <input v-model="newGamelog.TeamId" placeholder="TeamId" type="number" required />
-        <input v-model="newGamelog.GameId" placeholder="GameId" type="number" required />
-        <input v-model="newGamelog.CardId" placeholder="CardId" type="number" required />
-        <input v-model="newGamelog.DeckId" placeholder="DeckId" type="number" />
-        <input v-model="newGamelog.Date" placeholder="Date (YYYY-MM-DD)" type="text" />
-        <input v-model="newGamelog.FeedbackId" placeholder="FeedbackId" type="number" />
-        <input v-model="newGamelog.Cost" placeholder="Cost" type="number" />
-        <input v-model="newGamelog.Status" placeholder="Status" type="text" />
-        <button type="submit">Create</button>
-      </form>
+    <div class="p-2 rounded relative">
+      <h2 class="text-xl font-semibold">📝 Dodaj decyzję</h2>
+      <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
     </div>
 
-    <div style="margin-top: 20px;">
-      <h3>Usuń Decyzję</h3>
-      <form @submit.prevent="deleteGamelog">
-        <input v-model="deleteIds.TeamId" placeholder="TeamId" type="number" required />
-        <input v-model="deleteIds.GameId" placeholder="GameId" type="number" required />
-        <input v-model="deleteIds.CardId" placeholder="CardId" type="number" required />
-        <button type="submit">Usuń</button>
-      </form>
+    <div class="p-2 rounded relative">
+      <select class="w-full p-2 rounded border border-gray-300 text-black">
+        <option>Decyzja 1</option>
+        <option>Decyzja 2</option>
+        <option>Decyzja 3</option>
+      </select>
+      <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
+    </div>
+
+    <div class="p-2 rounded relative">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-semibold">📂 Podjęte decyzje</h2>
+        <select v-model="selectedTeam" class="p-2 rounded border border-gray-300 text-black">
+          <option>Wszystkie drużyny</option>
+          <option>Drużyna 1</option>
+          <option>Drużyna 2</option>
+        </select>
+      </div>
+      <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
+    </div>
+
+    <div class="p-2 rounded relative space-y-3">
+      <ul class="space-y-2">
+        <li
+          v-for="(decision, index) in filteredDecisions"
+          :key="index"
+          class="bg-primary text-white text-left p-2 rounded shadow-sm space-y-2"
+        >
+          <div class="text-sm italic text-gray-200">{{ decision.team }}</div>
+          <div><strong>{{ decision.player }}</strong> → {{ decision.idchoice }} {{ decision.choice }}</div>
+          <div class="border-t border-gray-300 w-full"></div>
+          <div>
+            Wynik:
+            <span
+              class="font-semibold"
+              :class="{
+                'text-green-400': decision.result === 'Pozytywny',
+                'text-red-400': decision.result === 'Negatywny'
+              }"
+            >
+              {{ decision.result }}
+            </span>
+          </div>
+          <p class="text-sm text-white">
+            {{ decision.description }}
+          </p>
+        </li>
+      </ul>
+      <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue'
 
-const emit = defineEmits(['data-loaded']);
+const selectedTeam = ref('Wszystkie drużyny')
 
-const gamelogs = ref([
-  { TeamId: 1, GameId: 100, CardId: 501, DeckId: 201, Date: '2025-04-01', FeedbackId: 301, Cost: 10, Status: 'Active' },
-  { TeamId: 2, GameId: 101, CardId: 502, DeckId: 202, Date: '2025-04-02', FeedbackId: 302, Cost: 15, Status: 'Inactive' },
-  { TeamId: 3, GameId: 102, CardId: 503, DeckId: 203, Date: '2025-04-03', FeedbackId: 303, Cost: 20, Status: 'Active' },
-]);
+const decisions = ref([
+  {
+    team: 'Drużyna 1',
+    player: 'Gracz 1',
+    idchoice: '1',
+    choice: 'Kupno karty',
+    result: 'Pozytywny',
+    description: 'Lorem ipsum dolor sit amet.'
+  },
+  {
+    team: 'Drużyna 2',
+    player: 'Gracz 2',
+    idchoice: '2',
+    choice: 'Pas',
+    result: 'Negatywny',
+    description: 'Consectetur adipiscing elit.'
+  },
+  {
+    team: 'Drużyna 1',
+    player: 'Gracz 3',
+    idchoice: '3',
+    choice: 'Sprzedaż zasobów',
+    result: 'Pozytywny',
+    description: 'Sed do eiusmod tempor.'
+  }
+])
 
-const newGamelog = ref({
-  TeamId: '',
-  GameId: '',
-  CardId: '',
-  DeckId: '',
-  Date: '',
-  FeedbackId: '',
-  Cost: '',
-  Status: '',
-});
-
-const deleteIds = ref({
-  TeamId: '',
-  GameId: '',
-  CardId: '',
-});
-
-function loadData() {
-  const selectedData = gamelogs.value.map(({ CardId, TeamId }) => ({ CardId, TeamId }));
-  emit('data-loaded', { fullData: gamelogs.value, selectedData });
-}
-
-function createGamelog() {
-  gamelogs.value.push({ ...newGamelog.value });
-  loadData(); 
-  newGamelog.value = { TeamId: '', GameId: '', CardId: '', DeckId: '', Date: '', FeedbackId: '', Cost: '', Status: '' };
-}
-
-function deleteGamelog() {
-  gamelogs.value = gamelogs.value.filter(log => 
-    !(log.TeamId == deleteIds.value.TeamId && log.GameId == deleteIds.value.GameId && log.CardId == deleteIds.value.CardId)
-  );
-  loadData(); 
-  deleteIds.value = { TeamId: '', GameId: '', CardId: '' };
-}
+const filteredDecisions = computed(() => {
+  if (selectedTeam.value === 'Wszystkie drużyny') {
+    return decisions.value
+  }
+  return decisions.value.filter(d => d.team === selectedTeam.value)
+})
 </script>
-
-<style scoped>
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-input {
-  padding: 5px;
-}
-button {
-  width: fit-content;
-  padding: 5px 10px;
-}
-</style>
-
-  
