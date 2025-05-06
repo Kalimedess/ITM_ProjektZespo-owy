@@ -6,6 +6,9 @@
         <div class="flex justify-center items-center mr-5">
             <div @click="toggleDropdown" class="cursor-pointer">
                 <font-awesome-icon :icon="faCircleUser" class="h-8 text-white hover:text-accent transition-all duration-300"/>
+            </div>
+            <div class="text-white ml-3 hidden sm:block">
+              {{ username }}
             </div>      
         </div>
 
@@ -23,6 +26,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import axios from 'axios'
 import logo from '@/assets/logos/ITM_poziom_biale.png'
 import { faCircleUser } from '@fortawesome/free-solid-svg-icons'
 import { useRouter } from 'vue-router'
@@ -30,9 +34,8 @@ import { useRouter } from 'vue-router'
 
 const isDropdownOpen = ref(false)
 const dropdownMenu = ref(null)
-
-
 const router = useRouter()
+const username = ref('')
 
 const toggleDropdown = () => {
     isDropdownOpen.value = !isDropdownOpen.value
@@ -46,16 +49,31 @@ const handleClickOutside = (event) => {
 }
 
 
-const logout = () => {
-   
-    router.push('/')
-    
-    isDropdownOpen.value = false
+const logout = async () => {
+  try {
+    await axios.post('http://localhost:5023/api/auth/logout', {}, {
+      withCredentials: true
+    });
+    router.push('/');
+    isDropdownOpen.value = false;
+  } catch (error) {
+    console.error('Błąd podczas wylogowywania:', error);
+  }
+};
+
+const fetchUser = async () => {
+    try {
+        const res = await axios.get('http://localhost:5023/api/auth/me', { withCredentials: true })
+        username.value = res.data.name
+    } catch (err) {
+        console.error('Nie udało się pobrać danych użytkownika')
+    }
 }
 
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside)
+    fetchUser()
 })
 
 onUnmounted(() => {

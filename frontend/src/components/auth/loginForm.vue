@@ -74,6 +74,8 @@
       const response = await axios.post('http://localhost:5023/api/auth/login', {
         username: loginData.value.email, 
         password: loginData.value.password
+      }, {
+        withCredentials: true
       });
   
       if (response.data.success) {
