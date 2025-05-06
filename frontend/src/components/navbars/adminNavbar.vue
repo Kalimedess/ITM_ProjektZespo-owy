@@ -16,6 +16,12 @@
         <div v-show="isDropdownOpen" 
             class="absolute top-16 right-0 w-36 bg-secondary rounded-md shadow-lg py-1 z-50 border-solid border-2 border-lgray-accent"
             ref="dropdownMenu">
+            <button @click="adminAccount" class="block w-full text-left px-4 py-2 text-sm text-white hover:text-red-600">
+                Ustawienia konta
+            </button>
+            <button @click="licenses" class="block w-full text-left px-4 py-2 text-sm text-white hover:text-red-600">
+                Licencje gier
+            </button>
             <button @click="logout" class="block w-full text-left px-4 py-2 text-sm text-white hover:text-red-600">
                 Wyloguj
             </button>
@@ -69,7 +75,18 @@ const fetchUser = async () => {
         console.error('Nie udało się pobrać danych użytkownika')
     }
 }
+const licenses = () => {
+    
+    router.push('/admin/licenses')
 
+    isDropdownOpen.value = false;
+}
+const adminAccount = () => {
+    
+    router.push('/admin/adminAccount')
+
+    isDropdownOpen.value = false;
+}
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside)

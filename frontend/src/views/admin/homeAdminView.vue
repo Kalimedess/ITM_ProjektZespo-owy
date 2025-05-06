@@ -53,7 +53,6 @@
     id: 1,
     name: "Gra 1",
     bits: 400,
-    round: 5,
   },
   {
     id: 2,
@@ -65,25 +64,15 @@
     id: 3,
     name: "Gra 3",
     bits: 100,
-    round: 1,
-  },
-  {
-    id: 4,
-    name: "Gra 4",
-    bits: 300,
-    round: 2,
   },
   {
     id: 5,
     name: "Gra 5",
     bits: 500,
-    round: 4,
   },
   {
     id: 6,
     name: "Gra 6",
-    bits: 7800,
-    round: 42,
   },
 ];
 

@@ -1,6 +1,6 @@
 <template>
-    <div class="w-full">
-        <div class="flex flex-col justify-center items-center m-4 px-2 py-2 border-2 border-lgray-accent rounded-md bg-tertiary">
+    <div class="w-full flex">
+        <div class="flex flex-col flex-1 justify-center items-center m-4 px-2 py-2 border-2 border-lgray-accent rounded-md bg-tertiary">
             <h1 class="text-3xl font-nasalization text-white mt-5">Edycja kart decyzji</h1>
 
             <!--Przycisk do wczytania talii z pliku xls-->
@@ -21,14 +21,23 @@
                 />
 
 
+            <!--Przycisk  do wczytania talii z pliku xls-->
+            <button 
+                class=" bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5 text-white">
+                <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
+                Wczytaj z pliku xls
+            </button>
+
             <form class="w-full max-w-lg mt-4 flex flex-col items-center">
                 <!-- Dodanie wyboru talii -->
                 <div class="w-full mb-4">
                     <label class="block text-white mb-1">Wybierz talię:</label>
                     <dropDown 
-                        :cards="decksData"
+                        :items="decksData"
                         v-model="selectedDeck"
-                        name="talię"
+                        :item-key="'id'"
+                        :display-format="(deck) => `#${deck.id} ${deck.title}`"
+                        :item-label="'title'"
                         placeholder="Wybierz talię..."
                     />
                 </div>
@@ -37,9 +46,10 @@
                 <div v-if="selectedDeck" class="w-full">
                     <label class="block text-white mb-1">Wybierz kartę:</label>
                     <dropDown 
-                        :cards="filteredCards"
+                        :items="filteredCards"
                         v-model="selectedCard"
-                        name="kartę"
+                        :item-key="'id'"
+                        :display-format="(card) => `#${card.id} ${card.title}`"
                         placeholder="Wybierz kartę..."
                     />
                 </div>
@@ -76,6 +86,42 @@
                 </div>
             </form>
         </div>
+        <div v-if="currentCard && selectedCard"
+            class="flex flex-col flex-1 items-center m-4 px-2 py-2 border-2 border-lgray-accent rounded-md bg-tertiary">
+            <h1 class="text-3xl font-nasalization text-white mt-5">Edycja feedbacku</h1>
+
+            <form class="w-full max-w-lg mt-4 flex flex-col items-center">
+                <div class="w-full mb-4">
+                    <label class="block text-white mb-1 mt-2">Wybierz feedback:</label>
+                    <dropDown 
+                        :items="feedbackData"
+                        v-model="selectedFeedback"
+                        :item-key="'id'"
+                        :display-format="(feedback) => `${feedback.status === 'P' ? '✅' : '❌'} ${feedback.longDescription.substring(0, 30)}`"
+                        placeholder="Wybierz feedback..."
+                    />
+                </div>
+
+                <div v-if="selectedFeedback" class="flex flex-col w-full">
+                    <label for="feedbackDescription" class="block text-white mb-1">Opis feedbacku:</label>
+                    <textarea
+                        id="feedbackDescription"
+                        v-model="currentFeedback.longDescription"
+                        rows="8"
+                        class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 text-white resize-none w-full"
+                    >
+                    </textarea>
+                    <div class="flex justify-center w-full">
+                        <button 
+                            type="button" 
+                            class="bg-accent border-2 border-accent py-3 px-6 rounded-md mt-5  text-white">
+                            <font-awesome-icon :icon="faSave" class="h-4 mr-2"/>
+                            Zapisz 
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </template>
 
@@ -88,14 +134,13 @@ import axios from 'axios';
 
 const selectedDeck = ref(null);
 const selectedCard = ref(null);
-
+const selectedFeedback = ref(null);
 
 const decksData = reactive([
     { id: 1, title: 'Talia Strategii Cyfrowej' },
     { id: 2, title: 'Talia Zarządzania Projektami' },
     { id: 3, title: 'Talia Transformacji Biznesowej' }
 ]);
-
 
 const cardsData = reactive([
     {
@@ -186,6 +231,20 @@ watch(selectedCard, (newValue) => {
         }
     } else {
         currentCard.value = null;
+    }
+});
+
+
+const currentFeedback = ref(null);
+
+watch(selectedFeedback, (newValue) => {
+    if (newValue) {
+        const feedback = feedbackData.find(feedback => feedback.id === newValue);
+        if (feedback) {
+            currentFeedback.value = { ...feedback };
+        }
+    } else {
+        currentFeedback.value = null;
     }
 });
 </script>
