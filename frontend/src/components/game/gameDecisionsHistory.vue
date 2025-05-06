@@ -23,7 +23,6 @@
           <option>Drużyna 2</option>
         </select>
       </div>
-      <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
     </div>
 
     <div class="p-2 rounded relative space-y-3">
