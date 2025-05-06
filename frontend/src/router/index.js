@@ -12,6 +12,7 @@ import gameStatistics from '@/views/game/gameStatistics.vue'
 import editItems from '@/views/admin/editItems.vue'
 import adminAccountSettingsView from '@/views/admin/adminAccountSettingsView.vue'
 import adminLicenses from '@/views/admin/adminLicenses.vue'
+import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -83,6 +84,11 @@ const router = createRouter({
       path:'/player',
       name:'player-dashboard',
       component: playerdView,
+    },
+    {
+      path:'/tempdecisions',
+      name:'decision-history',
+      component: decisionHistoryView,
     },
   ]
 })
