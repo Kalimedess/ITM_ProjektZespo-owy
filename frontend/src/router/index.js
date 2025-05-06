@@ -10,6 +10,8 @@ import adminGameDashboardView from '@/views/game/adminGameDashboardView.vue'
 import playerdView from '@/views/player/playerView.vue'
 import gameStatistics from '@/views/game/gameStatistics.vue'
 import editItems from '@/views/admin/editItems.vue'
+import adminAccountSettingsView from '@/views/admin/adminAccountSettingsView.vue'
+import adminLicenses from '@/views/admin/adminLicenses.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +40,16 @@ const router = createRouter({
           path:'editBoard',
           name:'edit-board',
           component: editBoardView
+        },
+        {
+          path: 'adminAccount',
+          name: 'admin-account',
+          component: adminAccountSettingsView
+        },
+        {
+          path: 'licenses',
+          name: 'licenses',
+          component: adminLicenses
         },
         {
           path:'cheatSheet',
