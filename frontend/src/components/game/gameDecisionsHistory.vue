@@ -52,9 +52,10 @@
           <p class="text-sm text-white">
             {{ decision.description }}
           </p>
+          <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
         </li>
       </ul>
-      <button class="absolute bottom-0 left-0 text-xs bg-red-600 text-white px-2 py-1 rounded">Usuń</button>
+      
     </div>
   </div>
 </template>
