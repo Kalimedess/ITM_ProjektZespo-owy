@@ -58,6 +58,12 @@ namespace backend.Initializers
                         if (!map.TryGetValue(prop.Name, out var col)) continue;
                         var val = ConvertValue(row.Cell(col).GetString(), prop.PropertyType, row.Cell(col).DataType, name);
                         if (val == null) continue;
+                        
+                        if (sheet.Name.Equals("Users", StringComparison.OrdinalIgnoreCase) && prop.Name == "Password" && val is string password)
+                        {
+                            val = BCrypt.Net.BCrypt.HashPassword(password);
+                        }
+                        
                         prop.SetValue(instance, val);
                         hasData = true;
                     }

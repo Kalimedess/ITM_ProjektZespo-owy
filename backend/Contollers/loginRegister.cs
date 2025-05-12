@@ -53,12 +53,7 @@ namespace backend.Controllers {
                 return BadRequest("E-mail nie został potwierdzony. Sprawdź skrzynkę pocztową.");
             }
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Email, user.Email),
-            };
+            var claims = JwtService.GenerateToken(user);
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
