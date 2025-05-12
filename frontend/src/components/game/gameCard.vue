@@ -29,14 +29,7 @@
             <span>Otwórz grę</span>
         </button>
     </div>
-    
-    <div class=" bg-lgray-accent p-3 rounded-md">
-        <div class="mb-1 font-bold">
-            <font-awesome-icon :icon="faCoins" class="h-4 text-accent mr-2"/>
-            <span>Liczba bitów: </span>
-            <span>{{ game.bits }}</span>
-        </div>
-    </div>
+
 </div>
 
 
