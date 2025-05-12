@@ -10,30 +10,40 @@
         </div>
       </div>
   
-      <!-- Tabela decyzji -->
-      <div class="border-t pt-3">
-        <h2 class="text-lg font-semibold mb-2 text-white">📋 Decyzje</h2>
-        <ul class="space-y-2">
+      <!-- Tabela decyzji ze scrollowaniem i mniejszym rozmiarem -->
+    <div class="border-t pt-3">
+      <h2 class="text-lg font-semibold mb-2 text-white">Decyzje</h2>
+
+      <!-- Dodany kontener ze scrollowaniem -->
+      <div class="max-h-[400px] overflow-y-auto pr-2">
+        <ul class="space-y-2 text-sm">
           <li
             v-for="(decision, index) in decisions"
             :key="index"
-            class="border pt-2 bg-primary text-white text-left p-2 rounded shadow-sm space-y-2">
+            class="border bg-primary text-white text-left p-2 rounded shadow-sm space-y-1 text-xs leading-tight">
+            
             <div><strong>{{ decision.player }}</strong> → {{ decision.choice }}</div>
-            <div class="border-t border-gray-500 w-full"></div>
-            <div>Wynik: 
-              <span class="font-semibold"
-              :class="{
-                'text-green-400': decision.result === 'Pozytywny',
-                'text-red-400': decision.result === 'Negatywny'}">
+            <div class="border-t border-gray-500 w-full my-1"></div>
+            <div>
+              Wynik: 
+              <span
+                class="font-semibold"
+                :class="{
+                  'text-green-400': decision.result === 'Pozytywny',
+                  'text-red-400': decision.result === 'Negatywny'
+                }"
+              >
                 {{ decision.result }}
-              </span></div>
-              <p class="text-sm text-white">
-                {{ decision.description }}
-              </p>
+              </span>
+            </div>
+            <p class="text-xs text-white">
+              {{ decision.description }}
+            </p>
           </li>
         </ul>
       </div>
-    </div>
+  </div>
+</div>
   </template>
   
   <script setup>
