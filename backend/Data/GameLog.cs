@@ -9,6 +9,7 @@ namespace backend.Data
         public int CardId { get; set; }
         public Card Card { get; set; }
         public int  DeckId { get; set; }
+        public Deck Deck { get; set; }
         public DateTime Data { get; set; }
         public int FeedbackId { get; set; }
         public Feedback Feedback { get; set; }

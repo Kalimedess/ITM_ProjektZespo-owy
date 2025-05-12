@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250429170823_ChangePdfToLongBlob1")]
-    partial class ChangePdfToLongBlob1
+    [Migration("20250511130543_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -89,23 +89,22 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Data.Card", b =>
                 {
                     b.Property<int>("CardId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("DeckId")
-                        .HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("CardId"));
 
-                    b.Property<string>("CardName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                    b.Property<double>("BaseCost")
+                        .HasColumnType("double");
 
                     b.Property<string>("CardType")
                         .IsRequired()
                         .HasColumnType("ENUM('Decision', 'Item')");
 
-                    b.HasKey("CardId", "DeckId");
+                    b.Property<int>("CostWeight")
+                        .HasColumnType("int");
 
-                    b.HasIndex("DeckId");
+                    b.HasKey("CardId");
 
                     b.ToTable("Cards");
                 });
@@ -119,12 +118,6 @@ namespace backend.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("DecisionId"));
 
                     b.Property<int>("CardId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DecisionBaseCost")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DecisionCostWeight")
                         .HasColumnType("int");
 
                     b.Property<string>("DecisionLongDesc")
@@ -141,9 +134,9 @@ namespace backend.Migrations
 
                     b.HasKey("DecisionId");
 
-                    b.HasIndex("DeckId");
+                    b.HasIndex("CardId");
 
-                    b.HasIndex("CardId", "DeckId");
+                    b.HasIndex("DeckId");
 
                     b.ToTable("Decisions");
                 });
@@ -256,9 +249,9 @@ namespace backend.Migrations
 
                     b.HasKey("FeedbackId");
 
-                    b.HasIndex("DeckId");
+                    b.HasIndex("CardId");
 
-                    b.HasIndex("CardId", "DeckId");
+                    b.HasIndex("DeckId");
 
                     b.ToTable("Feedbacks");
                 });
@@ -366,11 +359,13 @@ namespace backend.Migrations
 
                     b.HasKey("GameId", "TeamId");
 
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("DeckId");
+
                     b.HasIndex("FeedbackId");
 
                     b.HasIndex("TeamId");
-
-                    b.HasIndex("CardId", "DeckId");
 
                     b.ToTable("GameLogs");
                 });
@@ -465,17 +460,11 @@ namespace backend.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<double>("ItemsBaseCost")
-                        .HasColumnType("double");
-
-                    b.Property<int>("ItemsCostWeight")
-                        .HasColumnType("int");
-
                     b.HasKey("ItemsId");
 
-                    b.HasIndex("DeckId");
+                    b.HasIndex("CardId");
 
-                    b.HasIndex("CardId", "DeckId");
+                    b.HasIndex("DeckId");
 
                     b.ToTable("Items");
                 });
@@ -564,28 +553,17 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("backend.Data.Card", b =>
-                {
-                    b.HasOne("backend.Data.Deck", "Deck")
-                        .WithMany()
-                        .HasForeignKey("DeckId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Deck");
-                });
-
             modelBuilder.Entity("backend.Data.Decision", b =>
                 {
-                    b.HasOne("backend.Data.Deck", "Deck")
+                    b.HasOne("backend.Data.Card", "Card")
                         .WithMany()
-                        .HasForeignKey("DeckId")
+                        .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Data.Card", "Card")
+                    b.HasOne("backend.Data.Deck", "Deck")
                         .WithMany()
-                        .HasForeignKey("CardId", "DeckId")
+                        .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -599,14 +577,12 @@ namespace backend.Migrations
                     b.HasOne("backend.Data.Card", "Card")
                         .WithMany("DecisionEnablers")
                         .HasForeignKey("CardId")
-                        .HasPrincipalKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("backend.Data.Card", "CardEnabler")
                         .WithMany("DecisionEnablerOfThis")
                         .HasForeignKey("EnablerId")
-                        .HasPrincipalKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -626,7 +602,6 @@ namespace backend.Migrations
                     b.HasOne("backend.Data.Card", "Card")
                         .WithMany()
                         .HasForeignKey("CardId")
-                        .HasPrincipalKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -646,15 +621,15 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Data.Feedback", b =>
                 {
-                    b.HasOne("backend.Data.Deck", "Deck")
+                    b.HasOne("backend.Data.Card", "Card")
                         .WithMany()
-                        .HasForeignKey("DeckId")
+                        .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Data.Card", "Card")
-                        .WithOne()
-                        .HasForeignKey("backend.Data.Feedback", "CardId", "DeckId")
+                    b.HasOne("backend.Data.Deck", "Deck")
+                        .WithMany()
+                        .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -727,6 +702,18 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Data.GameLog", b =>
                 {
+                    b.HasOne("backend.Data.Card", "Card")
+                        .WithMany()
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Data.Deck", "Deck")
+                        .WithMany()
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("backend.Data.Feedback", "Feedback")
                         .WithMany()
                         .HasForeignKey("FeedbackId")
@@ -745,13 +732,9 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Data.Card", "Card")
-                        .WithMany()
-                        .HasForeignKey("CardId", "DeckId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Card");
+
+                    b.Navigation("Deck");
 
                     b.Navigation("Feedback");
 
@@ -797,15 +780,15 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Data.Item", b =>
                 {
+                    b.HasOne("backend.Data.Card", "Card")
+                        .WithMany()
+                        .HasForeignKey("CardId");
+
                     b.HasOne("backend.Data.Deck", "Deck")
                         .WithMany()
                         .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("backend.Data.Card", "Card")
-                        .WithMany()
-                        .HasForeignKey("CardId", "DeckId");
 
                     b.Navigation("Card");
 

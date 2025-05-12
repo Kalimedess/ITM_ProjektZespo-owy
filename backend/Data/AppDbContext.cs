@@ -67,9 +67,7 @@ namespace backend.Data
                 .HasKey(tm => tm.TeamId);
 
             modelBuilder.Entity<Card>()
-                .HasKey(c => new {c.CardId, c.DeckId });
-            modelBuilder.Entity<Card>()
-                .HasAlternateKey(c => c.CardId);
+                .HasKey(c => c.CardId);
 
             base.OnModelCreating(modelBuilder);
 
@@ -80,10 +78,6 @@ namespace backend.Data
                 .WithOne()
                 .HasForeignKey<Deck>(d => d.UserId);
         //Cards
-            modelBuilder.Entity<Card>()
-                .HasOne(c => c.Deck)
-                .WithMany()
-                .HasForeignKey(c => c.DeckId);
             modelBuilder.Entity<Card>()
                 .HasMany(c => c.DecisionEnablers)
                 .WithOne(de => de.Card)
@@ -124,7 +118,12 @@ namespace backend.Data
             modelBuilder.Entity<GameLog>()
                 .HasOne(gl => gl.Card)
                 .WithMany()
-                .HasForeignKey(gl => new {gl.CardId, gl.DeckId} );
+                .HasForeignKey(gl => gl.CardId);
+            
+            modelBuilder.Entity<GameLog>()
+                .HasOne(gl => gl.Deck)
+                .WithMany()
+                .HasForeignKey(gl => gl.DeckId);
 
             modelBuilder.Entity<GameLog>()
                 .HasOne(gl => gl.Feedback)
@@ -138,7 +137,7 @@ namespace backend.Data
             modelBuilder.Entity<Decision>()
                 .HasOne(d => d.Card)
                 .WithMany()
-                .HasForeignKey(d => new { d.CardId, d.DeckId });
+                .HasForeignKey(d => d.CardId);
         //DecisionWeights
             modelBuilder.Entity<DecisionWeight>()
                 .HasOne(dw => dw.Card)
@@ -198,8 +197,12 @@ namespace backend.Data
         //Feedback
             modelBuilder.Entity<Feedback>()
                 .HasOne(fb => fb.Card)
-                .WithOne()
-                .HasForeignKey<Feedback>(fb => new {fb.CardId, fb.DeckId});
+                .WithMany()
+                .HasForeignKey(fb => fb.CardId);
+            modelBuilder.Entity<Feedback>()
+                .HasOne(fb => fb.Deck)
+                .WithMany()
+                .HasForeignKey(fb => fb.DeckId);
 
         // Board
             modelBuilder.Entity<Board>()
@@ -211,7 +214,11 @@ namespace backend.Data
             modelBuilder.Entity<Item>()
                 .HasOne(i => i.Card)
                 .WithMany()
-                .HasForeignKey(i => new { i.CardId, i.DeckId });
+                .HasForeignKey(i =>i.CardId);
+            modelBuilder.Entity<Item>()
+                .HasOne(i => i.Deck)
+                .WithMany()
+                .HasForeignKey(i =>i.DeckId);
 
     //Inne
             modelBuilder.Entity<Card>()
@@ -226,11 +233,6 @@ namespace backend.Data
             modelBuilder.Entity<DecisionWeight>()
                 .HasIndex(dw => dw.BoardId)
                 .IsUnique(false);
-
-            modelBuilder.Entity<Feedback>()
-                .HasIndex(f => new { f.CardId, f.DeckId })
-                .IsUnique(false);
-
         
         }
 

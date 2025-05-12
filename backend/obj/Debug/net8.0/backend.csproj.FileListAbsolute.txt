@@ -286,6 +286,8 @@ H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\System.IO.Packa
 >>>>>>> 25fa32c12c7e639089bd36b70c7a599b939ab22c
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\appsettings.Development.json
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\appsettings.json
+D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Initializers\DigitalWars_InicjalizacjaBazyDanych.xlsx
+D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Initializers\Test.pdf
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\backend.exe
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\backend.deps.json
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\backend.runtimeconfig.json
@@ -300,6 +302,7 @@ D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\DocumentFormat.OpenXml.Framework.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\ExcelNumberFormat.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Humanizer.dll
+D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.AspNetCore.Razor.Language.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.Bcl.Memory.dll
@@ -568,4 +571,3 @@ D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.pdb
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\ref\backend.dll
-D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

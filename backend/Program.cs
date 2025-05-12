@@ -73,6 +73,7 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope()) {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     DbInitializer.Initialize(context);
 }
 
