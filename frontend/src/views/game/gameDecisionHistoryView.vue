@@ -26,5 +26,4 @@
         import Footer from '@/components/footers/adminFooter.vue';
         import { RouterView } from 'vue-router';
     </script>
-    
-    
+  

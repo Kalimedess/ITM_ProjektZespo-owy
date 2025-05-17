@@ -108,4 +108,21 @@
         id: 4,
         name: 'Talia 4',
     }];
+
+    const teams = [{
+        id: 1,
+        name: 'Talia A',
+    },
+    {
+        id: 2,
+        name: 'Talia B',
+    },
+    {
+        id: 3,
+        name: 'Talia C',
+    },
+    {
+        id: 4,
+        name: 'Talia D',
+    }];
 </script>
