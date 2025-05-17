@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import axios from 'axios'
 import mainView from '@/views/landing/mainView.vue'
 import adminDashboardView from '@/views/admin/adminDashboardView.vue'
 import homeAdmin from '@/views/admin/homeAdminView.vue'
@@ -26,6 +27,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin-dashboard',
       component: adminDashboardView,
+      meta: { requiresAuth: true },
       children: [
         {
           path:'',
@@ -40,43 +42,44 @@ const router = createRouter({
         {
           path:'editBoard',
           name:'edit-board',
-          component: editBoardView
+          component: editBoardView,
         },
         {
           path: 'adminAccount',
           name: 'admin-account',
-          component: adminAccountSettingsView
+          component: adminAccountSettingsView,
         },
         {
           path: 'licenses',
           name: 'licenses',
-          component: adminLicenses
+          component: adminLicenses,
         },
         {
           path:'cheatSheet',
           name:'cheat-sheet',
-          component: cheatSheetView
+          component: cheatSheetView,
         },
         {
           path:'editCards',
           name:'edit-cards',
-          component: editCardsView
+          component: editCardsView,
         },
         {
           path:'editItems',
           name:'edit-items',
-          component: editItems
+          component: editItems,
         }
       ]
     },
     {
       path: '/admin/game',
       component: adminGameDashboardView,
+      meta: { requiresAuth: true },
       children: [
         {
           path: '',
           name: 'admin-game-statistics',
-          component: gameStatistics 
+          component: gameStatistics,
         }
       ]
     },
@@ -92,5 +95,24 @@ const router = createRouter({
     },
   ]
 })
+
+//Zabazpiecznie routera 
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+
+  if (!requiresAuth) return next();
+
+  try {
+    await axios.get('http://localhost:5023/api/auth/me', {
+      withCredentials: true
+    });
+    next();
+  } catch (err) {
+    sessionStorage.setItem('showLoginAfterRedirect', 'true');
+    next('/');
+  }
+});
+
+
 
 export default router

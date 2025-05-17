@@ -14,16 +14,19 @@
 
 
         <div v-show="isDropdownOpen" 
-            class="absolute top-16 right-0 w-36 bg-secondary rounded-md shadow-lg py-1 z-50 border-solid border-2 border-lgray-accent"
+            class=" flex flex-col items-center absolute top-16 right-16 w-48 bg-secondary rounded-md shadow-lg py-1 z-50 border-solid border-2 border-lgray-accent"
             ref="dropdownMenu">
-            <button @click="adminAccount" class="block w-full text-left px-4 py-2 text-sm text-white hover:text-red-600">
-                Ustawienia konta
+            <button @click="adminAccount" class="flex items-center w-full px-4 py-2 text-sm text-white hover:text-gray-500">
+                <span>Ustawienia konta</span>
+                <font-awesome-icon :icon="faGear" class="ml-2"/>
             </button>
-            <button @click="licenses" class="block w-full text-left px-4 py-2 text-sm text-white hover:text-red-600">
+            <button @click="licenses" class="block w-full text-left px-4 py-2 text-sm text-white hover:text-gray-500">
                 Licencje gier
             </button>
-            <button @click="logout" class="block w-full text-left px-4 py-2 text-sm text-white hover:text-red-600">
-                Wyloguj
+            <hr class="border-lgray-accent w-[90%]">
+            <button @click="logout" class="flex items-center w-full px-4 py-2 text-sm text-white hover:text-red-600 ">
+                <span>Wyloguj się</span>
+                <font-awesome-icon :icon="faRightFromBracket" class="ml-2"/>
             </button>
         </div>
     </nav>
@@ -34,7 +37,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import logo from '@/assets/logos/ITM_poziom_biale.png'
-import { faCircleUser } from '@fortawesome/free-solid-svg-icons'
+import { faCircleUser,faRightFromBracket,faGear } from '@fortawesome/free-solid-svg-icons'
 import { useRouter } from 'vue-router'
 
 

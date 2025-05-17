@@ -51,7 +51,7 @@
     <script setup>
   
       import { faSignInAlt,faQrcode } from '@fortawesome/free-solid-svg-icons'
-      import { ref } from 'vue';
+      import { ref,onMounted } from 'vue';
       import LoginRegister from '@/components/auth/loginRegister.vue';
       import joinByCode from '@/components/game/joinGameByCode.vue';
       import Footer from '@/components/footers/myFooter.vue';
@@ -60,6 +60,13 @@
       //Jest to zmienna od której zależy czy formularz logowania/rejestracji jest wyświetlony
       const showAuthModal = ref(false);
       const showJoinByCode = ref(false);
+
+      onMounted(() => {
+      if (sessionStorage.getItem('showLoginAfterRedirect') === 'true') {
+        showAuthModal.value = true;
+        sessionStorage.removeItem('showLoginAfterRedirect');
+      }
+      });
     </script>
   
   
