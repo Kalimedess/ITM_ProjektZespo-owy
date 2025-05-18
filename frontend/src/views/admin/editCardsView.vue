@@ -6,7 +6,7 @@
             <!--Przycisk do wczytania talii z pliku xls-->
                 <button 
                     @click="triggerFileInput"
-                    class="bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5">
+                    class=" bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5 text-white">
                     <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
                     Wczytaj z pliku xls
                 </button>
@@ -19,14 +19,6 @@
                     @change="handleFileChange" 
                     style="display: none;" 
                 />
-
-
-            <!--Przycisk  do wczytania talii z pliku xls-->
-            <button 
-                class=" bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5 text-white">
-                <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
-                Wczytaj z pliku xls
-            </button>
 
             <form class="w-full max-w-lg mt-4 flex flex-col items-center">
                 <!-- Dodanie wyboru talii -->
@@ -204,8 +196,9 @@ async function handleFileChange(event) {
     try {
         const response = await axios.post("http://localhost:5023/api/deck/upload", formData, {
             headers: {
-                'Content-Type': 'multipart/form-data'
-            }
+                'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true
         });
 
         console.log("Odpowiedź z backendu:", response.data);
