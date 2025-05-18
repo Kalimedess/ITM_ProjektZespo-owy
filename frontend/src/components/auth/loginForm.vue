@@ -1,6 +1,6 @@
 <template>
     <div>
-      <h2 class="text-2xl font-bold mb-8 text-center">Zaloguj się</h2>
+      <h2 class="text-2xl font-nasalization mb-6 text-center">Zaloguj się</h2>
       
       <div v-show="errorLogin">
         <p class="text-red-500 mt-2 mb-2">Nieprawidłowy e-mail lub hasło. Spróbuj ponownie ❗</p>

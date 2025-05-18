@@ -66,7 +66,7 @@
         showAuthModal.value = true;
         sessionStorage.removeItem('showLoginAfterRedirect');
       }
-      });
+    });
     </script>
   
   
