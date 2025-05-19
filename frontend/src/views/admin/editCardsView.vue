@@ -129,6 +129,21 @@ const selectedDeck = ref(null);
 const selectedCard = ref(null);
 const selectedFeedback = ref(null);
 
+const feedbackData = reactive([
+    {
+        id:1,
+        longDescription:'Feedback negatywny',
+        status:'N'
+        
+    },
+    {
+        id:2,
+        longDescription:'Feedback pozytywny',
+        status:'P'
+        
+    },
+]);
+
 const decksData = reactive([
     { id: 1, title: 'Talia Strategii Cyfrowej' },
     { id: 2, title: 'Talia Zarządzania Projektami' },

@@ -102,7 +102,7 @@
   
   const selectedBoardId = ref(null); // ID wybranej planszy 
   const activeView = ref('add');   // Aktualny tryb widoku (add/edit)
-  const toast = useToast();        // System powiadomień
+  const toast = useToast();        // Toasty
 
   watch(selectedBoardId, async (id) => {
     if (id) await loadSelectedBoard();
@@ -201,7 +201,7 @@
     if (!selectedBoardId.value) return;
     
     try {
-      // Pobieranie planszy z tablicy boards
+      
       const selectedBoard = data.boards.find(board => board.BoardId === selectedBoardId.value);
       
       if (!selectedBoard) {
@@ -209,7 +209,7 @@
         return;
       }
       
-      // Konwersja tekstów oddzielonych średnikami na tablice
+      
       const labelsUp = stringToArray(selectedBoard.LabelsUp);
       const labelsRight = stringToArray(selectedBoard.LabelsRight);
       const borderColors = stringToArray(selectedBoard.BorderColors);
@@ -272,20 +272,20 @@
   // Zapisuje planszę (dodaje nową lub aktualizuje istniejącą)
 const saveBoard = async () => {
   try {
-    // Sprawdzamy czy nazwa planszy została podana
+    
     if (!formData.Name.trim()) {
       toast.error('Nazwa planszy jest wymagana!');
       return;
     }
     
-    // Sprawdzamy czy wszystkie etykiety są wypełnione
+    
     if (formData.LabelsUp.some(label => !label.trim()) || 
         formData.LabelsRight.some(label => !label.trim())) {
       toast.error('Wszystkie etykiety muszą być wypełnione!');
       return;
     }
     
-    // Upewniamy się, że opisy nie są puste
+    
     validateDescriptions();
     
     // Przygotowanie danych do zapisu w formacie bazy danych
@@ -302,20 +302,19 @@ const saveBoard = async () => {
       BorderColors: arrayToString(formData.BorderColors)
     };
     
-    // Zależnie od trybu: dodajemy nową lub aktualizujemy istniejącą planszę
+    
     if (activeView.value === 'add') {
-      // Dodawanie nowej planszy (symulacja generowania ID)
+      
       const maxId = data.boards.reduce((max, board) => Math.max(max, board.BoardId), 0);
       const newBoard = {
         BoardId: maxId + 1,
         ...boardData
       };
       
-      // Dodanie nowej planszy do tablicy
+      
       data.boards.push(newBoard);
       toast.success('Plansza została dodana pomyślnie!');
       
-      // Resetowanie formularza
       resetForm();
     } else {
       
@@ -334,7 +333,7 @@ const saveBoard = async () => {
       
       
       data.boards[boardIndex] = {
-        ...data.boards[boardIndex], // zachowaj BoardId i inne pola, które nie są w formularzu
+        ...data.boards[boardIndex], 
         ...boardData
       };
       

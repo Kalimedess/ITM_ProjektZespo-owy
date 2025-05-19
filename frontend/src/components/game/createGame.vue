@@ -62,7 +62,6 @@
   const gameName = ref('');
   const gameDescription = ref('');
   
-  // Lokalne dane plansz
   const data = reactive({
     boards: [
       {
