@@ -38,8 +38,10 @@ import axios from 'axios'
 import logo from '@/assets/logos/ITM_poziom_biale.png'
 import { faCircleUser,faRightFromBracket,faGear } from '@fortawesome/free-solid-svg-icons'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import adminSettings from '../admin/adminSettings.vue'
 
+const authStore = useAuthStore()
 
 
 const isDropdownOpen = ref(false)
@@ -47,7 +49,6 @@ const dropdownMenu = ref(null)
 const router = useRouter()
 const username = ref('')
 const email = ref('')
-const password = ref('')
 const isVisible = ref(false)
 
 const toggleDropdown = () => {
@@ -67,6 +68,7 @@ const logout = async () => {
     await axios.post('http://localhost:5023/api/auth/logout', {}, {
       withCredentials: true
     });
+    authStore.setAuthenticated(false);
     router.push('/');
     isDropdownOpen.value = false;
   } catch (error) {
@@ -79,7 +81,6 @@ const fetchUser = async () => {
         const res = await axios.get('http://localhost:5023/api/auth/me', { withCredentials: true })
         username.value = res.data.name
         email.value = res.data.email
-        password.value = res.data.password
     } catch (err) {
         console.error('Nie udało się pobrać danych użytkownika')
     }

@@ -57,6 +57,9 @@
   import { useToast } from 'vue-toastification';
   import router from '@/router';
   import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+  import { useAuthStore } from '@/stores/auth';
+
+  const authStore = useAuthStore();
   
   const toast = useToast();
   const emit = defineEmits(['login', 'close']);
@@ -80,6 +83,7 @@
   
       if (response.data.success) {
         console.log('✅ Zalogowano pomyślnie');
+        authStore.setAuthenticated(true);
         router.push('/admin');
       }
     } catch (error) {

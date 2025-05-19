@@ -17,7 +17,7 @@
           <!--Przycisk do logowania/rejestraci oraz do dołączenia do gry przez kod-->
           <div class="w-full max-w-md space-y-4 px-4">
             <button 
-              @click="showAuthModal = true"
+              @click="handleLoginClick"
               class="bg-tertiary hover:bg-accent text-white w-full py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60 mb-5"
             >
               <font-awesome-icon :icon="faSignInAlt" class="mr-4" />
@@ -56,6 +56,10 @@
       import joinByCode from '@/components/game/joinGameByCode.vue';
       import Footer from '@/components/footers/myFooter.vue';
       import Navbar from '@/components/navbars/myNavbar.vue';
+      import { useAuthStore } from '@/stores/auth';
+import router from '@/router';
+
+      const authStore = useAuthStore();
   
       //Jest to zmienna od której zależy czy formularz logowania/rejestracji jest wyświetlony
       const showAuthModal = ref(false);
@@ -63,10 +67,19 @@
 
       onMounted(() => {
       if (sessionStorage.getItem('showLoginAfterRedirect') === 'true') {
-        showAuthModal.value = true;
         sessionStorage.removeItem('showLoginAfterRedirect');
+        showAuthModal.value = true;
       }
     });
+
+    const handleLoginClick = () => {
+      if (authStore.isAuthenticated === true) {
+        router.push('/admin');
+      }
+      else {
+        showAuthModal.value = true;
+      }
+    };
     </script>
   
   
