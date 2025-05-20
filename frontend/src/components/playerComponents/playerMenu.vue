@@ -1,31 +1,27 @@
 <template>
-    <div class="w-full max-w-md mx-auto bg-yellow rounded-xl shadow p-4 space-y-4 justify-left">
-      <!-- Góra: bity + runda -->
-      <div class="flex justify-between items-center">
-        <div class="text-xl font-bold text-green-600">
-          Bity: {{ bits }}
-        </div>
-        <div class="text-md font-semibold text-gray-700">
-          Runda: {{ round }}
-        </div>
-      </div>
-  
-      <!-- Tabela decyzji ze scrollowaniem i mniejszym rozmiarem -->
-    <div class="border-t pt-3">
+  <div class="h-screen w-full max-w-md mx-auto bg-yellow rounded-xl shadow p-4 flex flex-col">
+    <!-- Góra: bity + etap -->
+    <div class="flex justify-between items-center mb-2">
+      <div class="text-xl font-bold text-green-600">Bity: {{ bits }}</div>
+      <div class="text-md font-semibold text-gray-700">Etap: {{ round }}</div>
+    </div>
+
+    <!-- Tabela decyzji -->
+    <div class="flex flex-col flex-grow border-t pt-3 overflow-hidden">
       <h2 class="text-lg font-semibold mb-2 text-white">Decyzje</h2>
 
-      <!-- Dodany kontener ze scrollowaniem -->
-      <div class="max-h-[400px] overflow-y-auto pr-2">
+      <!-- Lista -->
+      <div class="overflow-y-auto pr-2">
         <ul class="space-y-2 text-sm">
           <li
             v-for="(decision, index) in decisions"
             :key="index"
-            class="border bg-primary text-white text-left p-2 rounded shadow-sm space-y-1 text-xs leading-tight">
-            
+            class="border bg-primary text-white text-left p-2 rounded shadow-sm space-y-1 text-xs leading-tight"
+          >
             <div><strong>{{ decision.player }}</strong> → {{ decision.choice }}</div>
             <div class="border-t border-gray-500 w-full my-1"></div>
             <div>
-              Wynik: 
+              Wynik:
               <span
                 class="font-semibold"
                 :class="{
@@ -42,9 +38,9 @@
           </li>
         </ul>
       </div>
+    </div>
   </div>
-</div>
-  </template>
+</template>
   
   <script setup>
   import { ref } from 'vue'
