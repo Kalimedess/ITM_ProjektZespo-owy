@@ -28,7 +28,7 @@
             class="absolute right-3 -translate-y-1/2 top-1/2"
             type="button"
           >
-            <font-awesome-icon :icon="showOldPassword ? faEyeSlash : faEye" class="h-4 text-white hover:text-accent transition-all duration-300" />
+            <font-awesome-icon :icon="showOldPassword ? faEye : faEyeSlash" class="h-4 text-white hover:text-accent transition-all duration-300" />
           </button>
         </div>
         
@@ -48,7 +48,7 @@
             class="absolute right-3 -translate-y-1/2 top-1/2"
             type="button"
           >
-            <font-awesome-icon :icon="showPassword ? faEyeSlash : faEye" class="h-4 text-white hover:text-accent transition-all duration-300" />
+            <font-awesome-icon :icon="showPassword ? faEye : faEyeSlash" class="h-4 text-white hover:text-accent transition-all duration-300" />
           </button>
         </div>
   
