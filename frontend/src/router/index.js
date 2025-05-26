@@ -13,6 +13,7 @@ import gameStatistics from '@/views/game/gameStatistics.vue'
 import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
+import editBitsView from '@/views/game/editBitsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -74,7 +75,13 @@ const router = createRouter({
           path: '',
           name: 'admin-game-statistics',
           component: gameStatistics,
+        },
+        {
+          path: 'editbits',
+          name: 'edit-bits',
+          component: editBitsView,
         }
+
       ]
     },
     {

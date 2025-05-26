@@ -39,7 +39,7 @@ const stddevData = [
     <h2 class="text-2xl font-bold mb-6 text-white">Statystyki gry</h2>
 
     <div v-if="selectedStat === 'bits'">
-      <BitsUsage :data="avgBitsUsageByTeam" />
+      <BitsUsage :data="avgBitsUsageByTeam" xAxisLabel="Gra" />
     </div>
     <div v-else-if="selectedStat === 'results'">
       <DecisionSuccessChart :data="decisionSuccessByTeam" />

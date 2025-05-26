@@ -83,13 +83,13 @@
               :to="{ path: '/admin/statistics', query: { stat: 'results' } }"
               class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
               @click.stop>
-              Skuteczność Decyzji
+              Skuteczność decyzji
             </RouterLink>
             <RouterLink 
               :to="{ path: '/admin/statistics', query: { stat: 'bits' } }"
               class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
               @click.stop>
-              Średnie Zużycie Bitów na grę
+              Średnie zużycie bitów na rundę
             </RouterLink>   
             <RouterLink 
               :to="{ path: '/admin/statistics', query: { stat: 'deviation' } }"

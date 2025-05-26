@@ -10,6 +10,10 @@
     data: {
       type: Array,
       required: true
+    },
+    xAxisLabel: {
+      type: String,
+      default: 'Drużyna'
     }
   })
   
@@ -79,14 +83,14 @@
       .attr('x', width / 2)
       .attr('y', height + 40)
       .attr('text-anchor', 'middle')
-      .text('Drużyna')
+      .text(props.xAxisLabel)
       .style('fill', '#ffffff')
       .style('font-size', '14px')
   
     svg.append('text')
       .attr('text-anchor', 'middle')
       .attr('transform', `translate(-35, ${height / 2}) rotate(-90)`)
-      .text('Średnie zużycie bitów na rundę')
+      .text('Bity')
       .style('fill', '#ffffff')
       .style('font-size', '14px')
   }
