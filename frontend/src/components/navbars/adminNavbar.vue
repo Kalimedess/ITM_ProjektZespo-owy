@@ -1,7 +1,9 @@
 <template>
     <nav class="w-full bg-secondary py-3 px-6 flex flex-row justify-between items-center border-b-2 border-lgray-accent">
         <div>
-            <img :src="logo" class="h-12" alt="ITM logo">
+            <RouterLink to="/">
+                <img :src="logo" class="h-12" alt="ITM logo">
+            </RouterLink>
         </div>
         <div class="flex justify-center items-center mr-5">
             <div @click="toggleDropdown" class="cursor-pointer">
@@ -39,6 +41,7 @@ import logo from '@/assets/logos/ITM_poziom_biale.png'
 import { faCircleUser,faRightFromBracket,faGear } from '@fortawesome/free-solid-svg-icons'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { RouterLink } from 'vue-router';
 import adminSettings from '../admin/adminSettings.vue'
 
 const authStore = useAuthStore()

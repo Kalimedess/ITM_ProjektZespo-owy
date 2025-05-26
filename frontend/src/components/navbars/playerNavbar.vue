@@ -1,7 +1,9 @@
 <template>
     <nav :class="navClasses">
       <div>
-        <img :src="logo" class="h-12" alt="ITM logo">
+         <RouterLink to="/">
+              <img :src="logo" class="h-12" alt="ITM logo">
+          </RouterLink>
       </div>
   
       <div class="absolute left-1/2 transform -translate-x-1/2">
@@ -12,6 +14,7 @@
   
   <script setup>
   import { ref, computed } from 'vue'
+  import { RouterLink } from 'vue-router';
   import logo from '@/assets/logos/ITM_poziom_biale.png'
   
   // Zmienna koloru tła
