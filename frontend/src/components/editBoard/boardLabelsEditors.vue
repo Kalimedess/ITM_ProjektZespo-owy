@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-row w-full gap-5 mt-8 mb-5">
+    <div class="flex flex-row w-full gap-5 mt-3 md:mt-5">
       <!-- Etykiety górne -->
       <div class="flex-1">
         <label class="block mb-1">Etykiety górne</label>
         
         <!-- Lista istniejących etykiet górnych -->
-        <div class="border-2 border-lgray-accent px-2 py-2 rounded-md mb-3">
+        <div class="border-2 border-lgray-accent px-2 py-2 rounded-md mb-1.5 md:mb-3">
           <div class="flex flex-col gap-2">
             <div 
               v-for="(label, index) in labelsUp" 
@@ -30,16 +30,16 @@
         </div>
         
         <!-- Formularz dodawania nowej etykiety górnej -->
-        <div class="flex items-center gap-2">
-          <input 
-            type="text" 
-            v-model="newLabelUp" 
-            class="flex-1 px-3 py-2 border-2 border-lgray-accent rounded-md bg-transparent"
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <input
+            type="text"
+            v-model="newLabelUp"
+            class="w-full text-sm md:text-base px-2 sm:px-3 py-1.5 sm:py-2 border-2 border-lgray-accent rounded-md bg-transparent"
             placeholder="Nowa etykieta" />
-          <button 
-            type="button" 
-            @click="addLabelUp" 
-            class="px-2 py-2 rounded-md border-2 border-lgray-accent hover:border-accent transition-colors duration-300">
+          <button
+            type="button"
+            @click="addLabelUp"
+            class="flex-shrink-0 text-sm md:text-base px-2 py-1.5 sm:py-2 rounded-md border-2 border-lgray-accent hover:border-accent transition-colors duration-300">
             <font-awesome-icon :icon="faPlus" class="h-4 text-accent" />
             Dodaj
           </button>
@@ -76,16 +76,16 @@
         </div>
         
         <!-- Formularz dodawania nowej etykiety prawej -->
-        <div class="flex items-center gap-2">
-          <input 
-            type="text" 
-            v-model="newLabelRight" 
-            class="flex-1 px-3 py-2 border-2 border-lgray-accent rounded-md bg-transparent"
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <input
+            type="text"
+            v-model="newLabelRight"
+            class="w-full text-sm md:text-base px-2 sm:px-3 py-1.5 sm:py-2 border-2 border-lgray-accent rounded-md bg-transparent"
             placeholder="Nowa etykieta" />
-          <button 
-            type="button" 
-            @click="addLabelRight" 
-            class="px-2 py-2 rounded-md border-2 border-lgray-accent hover:border-accent transition-colors duration-300">
+          <button
+            type="button"
+            @click="addLabelRight"
+            class="flex-shrink-0 text-sm md:text-base px-2 py-1.5 sm:py-2 rounded-md border-2 border-lgray-accent hover:border-accent transition-colors duration-300">
             <font-awesome-icon :icon="faPlus" class="h-4 text-accent" />
             Dodaj
           </button>

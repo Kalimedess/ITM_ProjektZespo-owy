@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row w-full gap-5 mb-5">
+    <div class="flex flex-row w-full gap-5 mt-3 md:mt-5">
       <!-- Opis dolny (pod planszą) -->
       <div class="flex-1">
         <label for="description-down" class="block mb-1">Opis dolny</label>
