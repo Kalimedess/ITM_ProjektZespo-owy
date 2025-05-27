@@ -2,44 +2,29 @@
   <!--Jest to główny widok, który użytkownik widzi po przejsciu na stronę gry-->
   
   <div class="
-    min-h-screen bg-primary flex flex-col
-    h-screen
+     bg-primary flex flex-col min-h-screen
   ">
     <!--navbar-->
     <Navbar />
     
     <div class="
-      flex-1 flex flex-col justify-center items-center text-center
-      px-4 sm:px-6 md:px-8
-      py-4 sm:py-6 md:py-8
-      overflow-y-auto
-    ">
-      <div class="mb-3 sm:mb-4 md:mb-6">
+      flex-1 flex flex-col justify-center items-center text-center">
+      <div class="mb-3  md:mb-4 lg:mb-6 xl:mb-8">
         <h1 class="
           text-white font-bold tracking-wider font-nasalization animate-glow
           text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl
-          mb-1 sm:mb-2 md:mb-3
+          mb-1 sm:mb-2 md:mb-3 lg:mb-5 xl:mb-7
         ">
           DIGITAL
         </h1>
         <h1 class="
           text-white font-bold tracking-wider font-nasalization animate-glow
           text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl
+          mb-1 sm:mb-2 md:mb-3 lg:mb-5 xl:mb-7
         ">
           WARS
         </h1>
       </div>
-
-      <!--Opis - responsive text-->
-      <p class="
-        text-gray-500 
-        text-sm sm:text-base md:text-lg
-        mb-4 sm:mb-6 md:mb-8
-        max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg
-        px-2 sm:px-0
-      ">
-        Gra o zarządzaniu kapitałem ludzkim
-      </p>
 
       <!--Przycisk do logowania/rejestraci oraz do dołączenia do gry przez kod-->
       <div class="
@@ -54,8 +39,7 @@
             transition-all duration-300 shadow-sm hover:shadow-lg 
             shadow-accent/40 hover:shadow-accent/60
             py-2.5 sm:py-3 md:py-4
-            text-sm sm:text-base md:text-lg
-            h-[44px] sm:h-[48px] md:h-[52px]
+            text-sm sm:text-base md:text-md lg:text-lg xl:text-xl
           "
         > 
           Stwórz grę jako Game Master
@@ -68,8 +52,7 @@
             transition-all duration-300 shadow-sm hover:shadow-lg 
             shadow-accent/40 hover:shadow-accent/60
             py-2.5 sm:py-3 md:py-4
-            text-sm sm:text-base md:text-lg
-            h-[44px] sm:h-[48px] md:h-[52px]
+            text-sm sm:text-base md:text-md lg:text-lg xl:text-xl
           "
         >
           Dołącz do gry jako gracz
@@ -148,7 +131,6 @@ const handleLoginClick = () => {
   animation-iteration-count: infinite;
 }
 
-/* Enhanced responsive glow effect */
 @media (max-width: 640px) {
   @keyframes glow {
     0%, 100% {

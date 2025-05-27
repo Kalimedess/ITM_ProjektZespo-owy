@@ -11,7 +11,13 @@
       <div class="absolute inset-0 bg-black/70 transition-opacity duration-300" @click="closeModal"></div>
       
       <div 
-        class="bg-primary text-white rounded-lg relative z-10 border-2 border-accent p-12 transition-all duration-300"
+        class="bg-primary text-white rounded-lg relative z-10 border-2
+         border-accent transition-all duration-300
+         p-6 sm:p-8 md:p-10 lg:p-12
+         max-h-[90vh]
+         w-full max-w-lg 
+         "
+
         :class="props.isVisible ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'"
       >
         <button 
@@ -20,7 +26,7 @@
         >
           <font-awesome-icon :icon="faXmark" class="h-5 text-white hover:text-accent transition-all duration-100" />
         </button>
-        <div class="flex mb-5 gap-2">
+        <div class="flex mb-1 sm:mb-2 md:mb-3 lg:mb-4 gap-2">
           <button 
             class="text-white w-full py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60"
             :class="activeView === 'login' ? 'bg-accent' : 'bg-tertiary'"
@@ -38,7 +44,7 @@
           </button>
         </div>
 
-        <div class="w-100 h-0.5 mb-5 bg-accent"></div>
+        <div class="w-100 h-0.5 mb-1 sm:mb-2 md:mb-3 lg:mb-4 bg-accent"></div>
 
         <LoginForm 
           v-if="activeView === 'login'" 
