@@ -118,7 +118,7 @@
       
       <button 
         type="submit" 
-        class="bg-tertiary hover:bg-accent text-white w-full rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60 py-2.5 sm:py-3 text-sm sm:text-base md:text-lg !mt-5"
+        class="bg-tertiary hover:bg-accent text-white w-full rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60 py-2.5 sm:py-3 text-sm sm:text-base md:text-lg"
       >
         Zarejestruj się
       </button>
