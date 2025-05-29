@@ -10,8 +10,13 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  
+  //To jest na razie tylko do testów na tablecie !
   server: {
-    host: '0.0.0.0'
+    host: '0.0.0.0',
+    allowedHosts: [
+    '.ngrok-free.app'
+  ]
   },
   resolve: {
     alias: {
