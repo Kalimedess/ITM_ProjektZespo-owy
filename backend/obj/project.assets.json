@@ -7849,11 +7849,16 @@
     ]
   },
   "packageFolders": {
+<<<<<<< HEAD
     "C:\\Users\\kejko\\.nuget\\packages\\": {}
+=======
+    "C:\\Users\\Wiktoria\\.nuget\\packages\\": {}
+>>>>>>> c4b94af1117d3c1aa5bdaca24e19f2e9d1ca5acf
   },
   "project": {
     "version": "1.0.0",
     "restore": {
+<<<<<<< HEAD
       "projectUniqueName": "C:\\Users\\kejko\\Desktop\\projekt zaspolowy\\backend\\backend.csproj",
       "projectName": "backend",
       "projectPath": "C:\\Users\\kejko\\Desktop\\projekt zaspolowy\\backend\\backend.csproj",
@@ -7863,12 +7868,25 @@
       "configFilePaths": [
         "C:\\Users\\kejko\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+=======
+      "projectUniqueName": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+      "projectName": "backend",
+      "projectPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+      "packagesPath": "C:\\Users\\Wiktoria\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\Wiktoria\\AppData\\Roaming\\NuGet\\NuGet.Config"
+>>>>>>> c4b94af1117d3c1aa5bdaca24e19f2e9d1ca5acf
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+<<<<<<< HEAD
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+=======
+>>>>>>> c4b94af1117d3c1aa5bdaca24e19f2e9d1ca5acf
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {

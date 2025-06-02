@@ -9,8 +9,8 @@
         class="flex-1 px-2 py-1.5 md:px-3 md:py-2 border-2 border-lgray-accent rounded-md bg-tertiary text-white text-sm md:text-base"
         @change="$emit('update:modelValue', Number($event.target.value))">
         <option :value="null" disabled >Wybierz planszę</option>
-        <option v-for="board in boards" :key="board.BoardId" :value="board.BoardId">
-          {{ board.Name }}
+        <option v-for="board in boards" :key="board.boardId" :value="board.boardId">
+          {{ board.name }}
         </option>
       </select>
 
