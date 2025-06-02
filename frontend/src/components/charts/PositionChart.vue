@@ -22,7 +22,6 @@ const drawChart = () => {
   const height = chart.value.clientHeight - margin.top - margin.bottom
 
 
-  // Czyszczenie starego wykresu
   d3.select(chart.value).selectAll('*').remove()
 
   const svg = d3
@@ -41,7 +40,7 @@ const drawChart = () => {
 
   const y = d3.scaleLinear().domain([0, 30]).range([height, 0])
 
-  // Osie
+
   svg
     .append('g')
     .call(d3.axisLeft(y))
@@ -68,7 +67,7 @@ const drawChart = () => {
     .attr('text-anchor', 'middle')
     .attr('x', width / 2)
     .attr('y', height + 60)
-    .text('Gracz')
+    .text('Drużyna')
     .style('fill', '#ffffff')
     .style('font-size', '14px')
 
@@ -86,7 +85,7 @@ const drawChart = () => {
     .attr('y', (d) => y(d.position))
     .attr('width', x.bandwidth())
     .attr('height', (d) => height - y(d.position))
-    .attr('fill', '#a855f7') // fioletowe słupki
+    .attr('fill', '#a855f7') 
 }
 
 onMounted(() => {
@@ -104,6 +103,3 @@ watch(
 )
 </script>
 
-<style scoped>
-/* Można dodać animacje słupków, tooltipy itp. */
-</style>

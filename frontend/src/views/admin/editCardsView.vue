@@ -3,13 +3,6 @@
         <div class="flex flex-col flex-1 justify-center items-center m-4 px-2 py-2 border-2 border-lgray-accent rounded-md bg-tertiary">
             <h1 class="text-3xl font-nasalization text-white mt-5">Edycja kart decyzji</h1>
 
-            <!--Przycisk do wczytania talii z pliku xls-->
-                <button 
-                    @click="triggerFileInput"
-                    class=" bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5 text-white">
-                    <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
-                    Wczytaj z pliku xls
-                </button>
 
                 <!-- Ukryty input -->
                 <input 
@@ -19,6 +12,14 @@
                     @change="handleFileChange" 
                     style="display: none;" 
                 />
+
+            <!--Przycisk  do wczytania talii z pliku xls-->
+            <button
+                @click="triggerFileInput" 
+                class=" bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5 text-white">
+                <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
+                Wczytaj z pliku xls
+            </button>
 
             <form class="w-full max-w-lg mt-4 flex flex-col items-center">
                 <!-- Dodanie wyboru talii -->
@@ -128,6 +129,21 @@ const selectedDeck = ref(null);
 const selectedCard = ref(null);
 const selectedFeedback = ref(null);
 
+const feedbackData = reactive([
+    {
+        id:1,
+        longDescription:'Feedback negatywny',
+        status:'N'
+        
+    },
+    {
+        id:2,
+        longDescription:'Feedback pozytywny',
+        status:'P'
+        
+    },
+]);
+
 const decksData = reactive([
     { id: 1, title: 'Talia Strategii Cyfrowej' },
     { id: 2, title: 'Talia Zarządzania Projektami' },
@@ -196,9 +212,8 @@ async function handleFileChange(event) {
     try {
         const response = await axios.post("http://localhost:5023/api/deck/upload", formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-            withCredentials: true
+                'Content-Type': 'multipart/form-data'
+            }
         });
 
         console.log("Odpowiedź z backendu:", response.data);

@@ -61,7 +61,7 @@
                             :to="{ path: '/admin/game', query: { stat: 'bits' } }"
                             class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
                             @click.stop>
-                            Zużycie Bitów
+                            Średnie zużycie bitów na rundę
                         </RouterLink>
 
                        
@@ -92,10 +92,10 @@
 
                 <div v-show="isStatsDropdownOpen" class="flex flex-col py-1 space-y-1">
             <RouterLink 
-              :to="{ path: '/admin/game', query: { stat: 'BPR' } }"
+              :to="{ path: '/admin/game/editbits'}"
               class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
               @click.stop>
-              Zmień ilość bitów na rundę
+              Zmień ilość bitów drużyny
             </RouterLink>
           
             <RouterLink 

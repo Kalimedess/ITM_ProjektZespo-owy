@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Sekcja wyboru kolorów podstawowych -->
-    <div class="flex flex-row w-full items-center justify-center gap-5 mt-8 mb-5">
+    <div class="flex flex-row w-full items-center justify-center gap-5 mt-3 md:mt-5">
       <!-- Kolor wypełnienia komórki -->
       <div class="border-2 border-lgray-accent py-2 px-2 rounded-md w-60 text-center">
         <label for="cell-color" class="block mb-1">Kolor komórki</label>
@@ -28,7 +28,7 @@
     </div>
     
     <!-- Sekcja kolorów stref na planszy -->
-    <div class="mb-4 mt-8">
+    <div class="mt-3 md:mt-5">
       <label class="block mb-1">Kolory granic planszy</label>
       
       <!-- Lista istniejących kolorów stref -->

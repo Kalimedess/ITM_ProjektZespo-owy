@@ -2,9 +2,9 @@
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 
-import PlayerPositionChart from '@/components/charts/PlayerPositionChart.vue'
+import PositionChart from '@/components/charts/PositionChart.vue'
 import BitsUsage from '@/components/charts/AverageBitsUsage.vue'
-import PlayerProgressChart from '@/components/charts/PlayerProgressChart.vue'
+import ProgressChart from '@/components/charts/ProgressChart.vue'
 import DecisionSuccessChart from '@/components/charts/DecisionSuccessByTeamChart.vue'
 
 const route = useRoute()
@@ -46,7 +46,7 @@ const teamProgress = [
       <h2 class="text-2xl font-bold text-white mb-6">Statystyki aktualnej gry</h2>
   
       <div v-if="selectedStat === 'positions'">
-        <PlayerPositionChart :data="teamPositions" />
+        <PositionChart :data="teamPositions" />
       </div>
   
       <div v-else-if="selectedStat === 'bits'">
@@ -58,7 +58,7 @@ const teamProgress = [
     </div>
   
       <div v-else-if="selectedStat === 'progress'">
-        <PlayerProgressChart :data="teamProgress" />
+        <ProgressChart :data="teamProgress" />
       </div>
   
       <div v-else>
