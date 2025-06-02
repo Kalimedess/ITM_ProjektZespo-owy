@@ -91,15 +91,9 @@ namespace backend.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("CardId"));
 
-                    b.Property<double>("BaseCost")
-                        .HasColumnType("double");
-
                     b.Property<string>("CardType")
                         .IsRequired()
                         .HasColumnType("ENUM('Decision', 'Item')");
-
-                    b.Property<int>("CostWeight")
-                        .HasColumnType("int");
 
                     b.HasKey("CardId");
 
@@ -115,6 +109,12 @@ namespace backend.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("DecisionId"));
 
                     b.Property<int>("CardId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("DecisionBaseCost")
+                        .HasColumnType("double");
+
+                    b.Property<int>("DecisionCostWeight")
                         .HasColumnType("int");
 
                     b.Property<string>("DecisionLongDesc")
@@ -456,6 +456,12 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<double>("ItemsBaseCost")
+                        .HasColumnType("double");
+
+                    b.Property<int>("ItemsCostWeight")
+                        .HasColumnType("int");
 
                     b.HasKey("ItemsId");
 

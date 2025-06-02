@@ -22,9 +22,7 @@ namespace backend.Migrations
                     CardId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     CardType = table.Column<string>(type: "ENUM('Decision', 'Item')", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    BaseCost = table.Column<double>(type: "double", nullable: false),
-                    CostWeight = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -196,11 +194,13 @@ namespace backend.Migrations
                     DecisionId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     CardId = table.Column<int>(type: "int", nullable: false),
-                    DeckId = table.Column<int>(type: "int", nullable: false),
+                    DecisionBaseCost = table.Column<double>(type: "double", nullable: false),
+                    DecisionCostWeight = table.Column<int>(type: "int", nullable: false),
                     DecisionShortDesc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DecisionLongDesc = table.Column<string>(type: "TEXT", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeckId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -302,7 +302,9 @@ namespace backend.Migrations
                     HardwareShortDesc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     HardwareLongDesc = table.Column<string>(type: "TEXT", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ItemsBaseCost = table.Column<double>(type: "double", nullable: false),
+                    ItemsCostWeight = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
