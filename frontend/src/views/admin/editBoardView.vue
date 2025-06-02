@@ -86,93 +86,67 @@
   </div>
 </template>
 
-
 <script setup>
 import { faPlus, faPenToSquare, faSave } from '@fortawesome/free-solid-svg-icons';
-import { ref, reactive, computed, onMounted,watch } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useToast } from 'vue-toastification';
-import myBoard from '@/components/game/gameBoard.vue';
+import myBoard from '@/components/game/gameBoard.vue'; // Załóżmy, że te są potrzebne
 import boardSelector from '@/components/editBoard/boardSelector.vue';
 import boardInfo from '@/components/editBoard/boardInfo.vue';
 import boardColorSettings from '@/components/editBoard/boardColorSettings.vue';
 import boardLabelsEditors from '@/components/editBoard/boardLabelsEditors.vue';
 import boardDescriptions from '@/components/editBoard/boardDescriptions.vue';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:5023/api/Board';
 
 const selectedBoardId = ref(null);
 const activeView = ref('add');
 const toast = useToast();
 
-watch(selectedBoardId, async (id) => {
-  if (id) await loadSelectedBoard();
+const data = reactive({
+  boards: []
 });
 
- const data = reactive({
-    boards: [
-      {
-        BoardId: 1, 
-        Name: 'Plansza podstawowa', 
-        LabelsUp: 'Podstawowa kordynacja;Standaryzacja procesów;Zintegrowane działania;Pełna integracja strategiczna', 
-        LabelsRight: 'Nowicjusz;Naśladowca;Innowator;Lider cyfrowy', 
-        DescriptionDown: 'Poziom integracji wew/zew', 
-        DescriptionLeft: 'Zawansowanie Cyfrowe', 
-        Rows: 8,
-        Cols: 8,
-        CellColor: '#fefae0', 
-        BorderColor: '#595959', 
-        BorderColors: '#008000;#FFFF00;#FFA500;#FF0000'
-      },
-      {
-        BoardId: 2, 
-        Name: 'Plansza zaawansowana', 
-        LabelsUp: 'Początkowy;Rozwinięty;Zaawansowany;Ekspercki;Mistrzowski', 
-        LabelsRight: 'Poziom 1;Poziom 22;Poziom 3;Poziom 4', 
-        DescriptionDown: 'Etapy rozwoju kompetencji', 
-        DescriptionLeft: 'Poziomy umiejętności', 
-        Rows: 8,
-        Cols: 10,
-        CellColor: '#f5f5f5', 
-        BorderColor: '#333333', 
-        BorderColors: '#3498db;#2ecc71;#f1c40f;#e74c3c;#9b59b6'
-      },
-      {
-        BoardId: 3, 
-        Name: 'Mapa strategiczna', 
-        LabelsUp: 'Mapa strategiczna;Planowanie;Implementacja;Kontrola', 
-        LabelsRight: 'Strategia;Taktyka;Operacje', 
-        DescriptionDown: 'Etapy zarządzania', 
-        DescriptionLeft: 'Poziomy zarządzania', 
-        Rows: 6,
-        Cols: 8,
-        CellColor: '#e0f7fa', 
-        BorderColor: '#444444', 
-        BorderColors: '#1abc9c;#3498db;#f39c12;#e74c3c'
-      }
-    ]
-  });
-
 const getDefaultFormData = () => ({
-  Name: 'Nowa plansza', 
-  LabelsUp: ['Etykieta 1', 'Etykieta 2', 'Etykieta 3', 'Etykieta 4'], 
-  LabelsRight: ['Etykieta A', 'Etykieta B', 'Etykieta C', 'Etykieta D'], 
-  DescriptionDown: 'Opis dolny', 
-  DescriptionLeft: 'Opis lewy', 
+  BoardId: 0,
+  Name: 'Nowa plansza',
+  LabelsUp: ['Etykieta 1', 'Etykieta 2', 'Etykieta 3', 'Etykieta 4'],
+  LabelsRight: ['Etykieta A', 'Etykieta B', 'Etykieta C', 'Etykieta D'],
+  DescriptionDown: 'Opis dolny',
+  DescriptionLeft: 'Opis lewy',
   Rows: 8,
   Cols: 8,
-  CellColor: '#ffffff', 
-  BorderColor: '#000000', 
+  CellColor: '#ffffff',
+  BorderColor: '#000000',
   BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
 });
 
 const formData = reactive(getDefaultFormData());
 
 const stringToArray = (str) => {
-  if (!str) return [];
-  return str.split(';').map(item => item.trim());
+  if (typeof str !== 'string' || !str) return [];
+  return str.split(';').map(item => item.trim()).filter(item => item);
 };
 
 const arrayToString = (arr) => {
   if (!arr || !Array.isArray(arr)) return '';
   return arr.join(';');
+};
+
+const fetchBoardsFromAPI = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/get`, { withCredentials: true });
+    data.boards = response.data;
+    console.log('Pobrane plansze:', JSON.stringify(data.boards, null, 2)); // DEBUG
+    if (data.boards.length === 0 && activeView.value === 'edit') {
+        toast.info("Brak plansz do edycji, przełączam na dodawanie.");
+        activeView.value = 'add';
+    }
+  } catch (error) {
+    console.error('Błąd pobierania plansz:', error.response?.data || error.message);
+    toast.error(`Nie udało się pobrać plansz: ${error.response?.data?.title || error.message}`);
+  }
 };
 
 const resetForm = () => {
@@ -181,40 +155,144 @@ const resetForm = () => {
 };
 
 const loadSelectedBoard = async () => {
-  if (!selectedBoardId.value) return;
+  if (!selectedBoardId.value) {
+    resetForm();
+    return;
+  }
   try {
-    const selectedBoard = data.boards.find(board => board.BoardId === selectedBoardId.value);
+    // Tutaj jest OK, bo selectedBoardId.value to liczba
+    const selectedBoard = data.boards.find(board => board.boardId === selectedBoardId.value); 
+
     if (!selectedBoard) {
-      toast.error('Nie znaleziono wybranej planszy');
+      toast.error('Nie znaleziono wybranej planszy lokalnie. Spróbuj odświeżyć listę.');
       return;
     }
-    
-    formData.Name = selectedBoard.Name;
-    formData.LabelsUp = stringToArray(selectedBoard.LabelsUp);
-    formData.LabelsRight = stringToArray(selectedBoard.LabelsRight);
-    formData.DescriptionDown = selectedBoard.DescriptionDown;
-    formData.DescriptionLeft = selectedBoard.DescriptionLeft;
-    formData.Rows = selectedBoard.Rows;
-    formData.Cols = selectedBoard.Cols;
-    formData.CellColor = selectedBoard.CellColor;
-    formData.BorderColor = selectedBoard.BorderColor;
-    formData.BorderColors = stringToArray(selectedBoard.BorderColors);
-    
-    toast.success(`Załadowano planszę: ${selectedBoard.Name}`);
+
+    // Poniżej używasz camelCase, co jest ZGODNE z tym, co zwraca API!
+    formData.BoardId = selectedBoard.boardId; 
+    formData.Name = selectedBoard.name;
+    formData.LabelsUp = stringToArray(selectedBoard.labelsUp);
+    formData.LabelsRight = stringToArray(selectedBoard.labelsRight);
+    formData.DescriptionDown = selectedBoard.descriptionDown;
+    formData.DescriptionLeft = selectedBoard.descriptionLeft;
+    formData.Rows = selectedBoard.rows;
+    formData.Cols = selectedBoard.cols;
+    formData.CellColor = selectedBoard.cellColor;
+    formData.BorderColor = selectedBoard.borderColor;
+    formData.BorderColors = stringToArray(selectedBoard.borderColors);
+
+    toast.success(`Załadowano planszę: ${formData.Name}`); // Jeśli formData.Name jest teraz poprawnie ustawione, to zadziała
   } catch (error) {
     console.error('Błąd podczas ładowania planszy:', error);
-    toast.error(`Wystąpił błąd: ${error.message}`);
+    toast.error(`Wystąpił błąd podczas ładowania: ${error.message}`);
   }
 };
 
+watch(selectedBoardId, loadSelectedBoard);
+
+const saveBoard = async () => {
+  try {
+    if (!formData.Name.trim()) {
+      toast.error('Nazwa planszy jest wymagana!');
+      return;
+    }
+    if (formData.LabelsUp.some(label => !label.trim()) || 
+        formData.LabelsRight.some(label => !label.trim())) {
+      toast.error('Wszystkie etykiety muszą być wypełnione!');
+      return;
+    }
+
+    const payload = {
+      Name: formData.Name,
+      LabelsUp: arrayToString(formData.LabelsUp),
+      LabelsRight: arrayToString(formData.LabelsRight),
+      DescriptionDown: formData.DescriptionDown,
+      DescriptionLeft: formData.DescriptionLeft,
+      Rows: formData.Rows,
+      Cols: formData.Cols,
+      CellColor: formData.CellColor,
+      BorderColor: formData.BorderColor,
+      BorderColors: arrayToString(formData.BorderColors)
+    };
+    
+    let response;
+    if (activeView.value === 'add') {
+      response = await axios.post(`${API_BASE_URL}`, payload, { withCredentials: true });
+      toast.success(`Plansza "${response.data.name}" dodana pomyślnie!`);
+      await fetchBoardsFromAPI();
+      resetForm();
+    } else {
+      if (!selectedBoardId.value) {
+        toast.warning('Wybierz planszę do edycji!');
+        return;
+      }
+      response = await axios.put(`${API_BASE_URL}/${selectedBoardId.value}`, payload, { withCredentials: true });
+      toast.success(`Plansza "${response.data.name}" zaktualizowana pomyślnie!`);
+      await fetchBoardsFromAPI();
+    }
+  } catch (error) {
+    console.error('Błąd podczas zapisywania planszy:', error.response?.data || error.message);
+    toast.error(`Błąd zapisu: ${error.response?.data?.title || error.response?.data || error.message}`);
+  }
+};
+
+const deleteBoardAPI = async () => {
+  if (!selectedBoardId.value) {
+    toast.warning('Nie wybrano planszy do usunięcia!');
+    return;
+  }
+  
+  const boardToDelete = data.boards.find(b => b.boardId === selectedBoardId.value);
+  const boardName = boardToDelete ? boardToDelete.name : "wybrana plansza";
+
+  if (confirm(`Czy na pewno chcesz usunąć planszę "${boardName}"? Tej operacji nie można cofnąć.`)) {
+    try {
+      await axios.delete(`${API_BASE_URL}/${selectedBoardId.value}`, { withCredentials: true });
+      toast.success('Plansza została usunięta pomyślnie z serwera!');
+      await fetchBoardsFromAPI();
+      resetForm();
+      if (data.boards.length === 0) {
+        activeView.value = 'add';
+      }
+    } catch (error) {
+      console.error('Błąd podczas usuwania planszy:', error.response?.data || error.message);
+      toast.error(`Błąd usuwania: ${error.response?.data?.title || error.response?.data || error.message}`);
+    }
+  }
+};
+
+onMounted(async () => {
+  await fetchBoardsFromAPI();
+});
+
+watch(activeView, (newView) => {
+  resetForm();
+  if (newView === 'edit') {
+    if (data.boards.length === 0) {
+      toast.info('Brak plansz do edycji. Dodaj nową planszę.');
+      activeView.value = 'add';
+    }
+  }
+});
+
 const previewConfig = computed(() => {
-  const cols = (formData.LabelsUp?.length || 0) * 2;
-  const rows = (formData.LabelsRight?.length || 0) * 2;
+  const labelsUpArray = Array.isArray(formData.LabelsUp) ? formData.LabelsUp : [];
+  const labelsRightArray = Array.isArray(formData.LabelsRight) ? formData.LabelsRight : [];
+
+  const cols = (labelsUpArray.length || 0) * 2;
+  const rows = (labelsRightArray.length || 0) * 2;
   
   return {
-    ...formData,
+    Name: formData.Name,
+    LabelsUp: labelsUpArray,
+    LabelsRight: labelsRightArray,
+    DescriptionDown: formData.DescriptionDown,
+    DescriptionLeft: formData.DescriptionLeft,
     Rows: rows,
     Cols: cols,
+    CellColor: formData.CellColor,
+    BorderColor: formData.BorderColor,
+    BorderColors: Array.isArray(formData.BorderColors) ? formData.BorderColors : []
   };
 });
 
@@ -228,94 +306,4 @@ const validateDescriptions = () => {
     toast.warning("Opis lewy nie może być pusty. Ustawiono wartość domyślną.");
   }
 };
-
-const saveBoard = async () => {
-  try {
-    if (!formData.Name.trim()) {
-      toast.error('Nazwa planszy jest wymagana!');
-      return;
-    }
-    if (formData.LabelsUp.some(label => !label.trim()) || 
-        formData.LabelsRight.some(label => !label.trim())) {
-      toast.error('Wszystkie etykiety muszą być wypełnione!');
-      return;
-    }
-    validateDescriptions();
-    
-    const boardData = {
-      ...formData,
-      LabelsUp: arrayToString(formData.LabelsUp),
-      LabelsRight: arrayToString(formData.LabelsRight),
-      BorderColors: arrayToString(formData.BorderColors)
-    };
-    
-    if (activeView.value === 'add') {
-      const maxId = data.boards.reduce((max, board) => Math.max(max, board.BoardId), 0);
-      const newBoard = { BoardId: maxId + 1, ...boardData };
-      data.boards.push(newBoard);
-      toast.success('Plansza została dodana pomyślnie!');
-      resetForm();
-    } else {
-      if (!selectedBoardId.value) {
-        toast.warning('Wybierz planszę do edycji!');
-        return;
-      }
-      const boardIndex = data.boards.findIndex(board => board.BoardId === selectedBoardId.value);
-      if (boardIndex === -1) {
-        toast.error('Nie znaleziono planszy do aktualizacji!');
-        return;
-      }
-      data.boards[boardIndex] = { ...data.boards[boardIndex], ...boardData };
-      toast.success('Plansza została zaktualizowana pomyślnie!');
-    }
-  } catch (error) {
-    toast.error(`Wystąpił błąd: ${error.message}`);
-    console.error('Błąd podczas zapisywania planszy:', error);
-  }
-};
-
-const deleteBoard = async () => {
-  if (!selectedBoardId.value) {
-    toast.warning('Nie wybrano planszy do usunięcia!');
-    return;
-  }
-  
-  if (confirm(`Czy na pewno chcesz usunąć planszę "${formData.Name}"? Tej operacji nie można cofnąć.`)) {
-    try {
-      const boardIndex = data.boards.findIndex(board => board.BoardId === selectedBoardId.value);
-      if (boardIndex === -1) {
-        toast.error('Nie znaleziono planszy do usunięcia!');
-        return;
-      }
-      data.boards.splice(boardIndex, 1);
-      toast.success('Plansza została usunięta pomyślnie!');
-      resetForm();
-      if (data.boards.length === 0) {
-        activeView.value = 'add';
-        toast.info('Wszystkie plansze zostały usunięte. Dodaj nową planszę.');
-      }
-    } catch (error) {
-      toast.error(`Błąd podczas usuwania planszy: ${error.message}`);
-    }
-  }
-};
-
-onMounted(() => {
-  resetForm();
-});
-
-watch(activeView, (newView) => {
-  if (newView === 'add') {
-    resetForm();
-  } else if (newView === 'edit') {
-    selectedBoardId.value = null; 
-    if (data.boards.length === 0) {
-      toast.warning('Brak dostępnych plansz do edycji');
-      activeView.value = 'add';
-    } else {
-      Object.assign(formData, getDefaultFormData());
-      formData.Name = '';
-    }
-  }
-});
 </script>
