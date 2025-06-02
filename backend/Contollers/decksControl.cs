@@ -383,6 +383,69 @@ namespace backend.Controllers
                 // _logger?.LogError(ex, "Unexpected error while saving card data.");
                 return (new List<Feedback>(), new ObjectResult($"Nieoczekiwany błąd podczas zapisywania danych kart: {ex.Message}") { StatusCode = StatusCodes.Status500InternalServerError });
             }
+
+
+    
+
+
         }
+
+
+        [Authorize]
+        [HttpGet("edit")]
+        public async Task<ActionResult<IEnumerable<object>>> GetDecks()
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int userId = 0;
+
+            if (!int.TryParse(userIdString, out userId))
+            {
+                return Unauthorized("Nieprawidłowy identyfikator użytkownika.");
+            }
+
+            var decks = await _context.Decks
+                          .Where(deck => deck.UserId == null || deck.UserId == userId)
+                          .Select(deck => new {
+                              id = deck.DeckId,
+                              title = deck.DeckName
+                          })
+                          .ToListAsync();
+
+            return Ok(decks);
+        }
+
+        [Authorize]
+        [HttpGet("decisions")]
+        public async Task<ActionResult<IEnumerable<object>>> GetDecisionCards(int deckId)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                return Unauthorized("Nieprawidłowy identyfikator użytkownika.");
+            }
+
+            var deck = await _context.Decks.FirstOrDefaultAsync(d => d.DeckId == deckId && (d.UserId == null || d.UserId == userId));
+            if (deck == null)
+            {
+                return NotFound("Talia nie istnieje lub brak dostępu.");
+            }
+
+            var decisionCards = await _context.Decisions
+                .Where(decision => decision.DeckId == deckId)
+                .Select(decision => new {
+                    id = decision.CardId,
+                    deckId= decision.DeckId,
+                    title = decision.DecisionShortDesc,
+                    description = decision.DecisionLongDesc,
+                })
+                .ToListAsync();
+
+            return Ok(decisionCards);
+        }
+
+        
+
+
     }
 }

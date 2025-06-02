@@ -5,17 +5,17 @@
 
 
                 <!-- Ukryty input -->
-                <input 
-                    type="file" 
-                    accept=".xls,.xlsx" 
-                    ref="fileInput" 
-                    @change="handleFileChange" 
-                    style="display: none;" 
+                <input
+                    type="file"
+                    accept=".xls,.xlsx"
+                    ref="fileInput"
+                    @change="handleFileChange"
+                    style="display: none;"
                 />
 
             <!--Przycisk  do wczytania talii z pliku xls-->
             <button
-                @click="triggerFileInput" 
+                @click="triggerFileInput"
                 class=" bg-green-500 border-2 border-green-700 py-3 px-6 rounded-md mt-5 text-white">
                 <font-awesome-icon :icon="faFileExcel" class="h-4 mr-2"/>
                 Wczytaj z pliku xls
@@ -25,7 +25,7 @@
                 <!-- Dodanie wyboru talii -->
                 <div class="w-full mb-4">
                     <label class="block text-white mb-1">Wybierz talię:</label>
-                    <dropDown 
+                    <dropDown
                         :items="decksData"
                         v-model="selectedDeck"
                         :item-key="'id'"
@@ -34,11 +34,11 @@
                         placeholder="Wybierz talię..."
                     />
                 </div>
-                
+
                 <!-- Wybór karty - widoczny tylko po wybraniu talii -->
                 <div v-if="selectedDeck" class="w-full">
                     <label class="block text-white mb-1">Wybierz kartę:</label>
-                    <dropDown 
+                    <dropDown
                         :items="filteredCards"
                         v-model="selectedCard"
                         :item-key="'id'"
@@ -46,19 +46,19 @@
                         placeholder="Wybierz kartę..."
                     />
                 </div>
-                
+
                 <!-- Formularz edycji karty - widoczny po wybraniu karty -->
                 <div v-if="selectedCard && currentCard" class="mt-6 space-y-4 text-white w-full">
                     <div class="flex flex-col">
                         <label for="title" class="mb-1">Tytuł karty:</label>
-                        <input 
+                        <input
                             id="title"
                             v-model="currentCard.title"
                             type="text"
                             class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 text-white w-full"
                         />
                     </div>
-                    
+
                     <div class="flex flex-col">
                         <label for="description" class="mb-1">Opis karty:</label>
                         <textarea
@@ -69,11 +69,11 @@
                         ></textarea>
                     </div>
                     <div class="flex justify-center w-full">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             class="bg-accent border-2 border-accent py-3 px-6 rounded-md mt-5">
                             <font-awesome-icon :icon="faSave" class="h-4 mr-2"/>
-                            Zapisz 
+                            Zapisz
                         </button>
                     </div>
                 </div>
@@ -86,7 +86,7 @@
             <form class="w-full max-w-lg mt-4 flex flex-col items-center">
                 <div class="w-full mb-4">
                     <label class="block text-white mb-1 mt-2">Wybierz feedback:</label>
-                    <dropDown 
+                    <dropDown
                         :items="feedbackData"
                         v-model="selectedFeedback"
                         :item-key="'id'"
@@ -105,11 +105,11 @@
                     >
                     </textarea>
                     <div class="flex justify-center w-full">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             class="bg-accent border-2 border-accent py-3 px-6 rounded-md mt-5  text-white">
                             <font-awesome-icon :icon="faSave" class="h-4 mr-2"/>
-                            Zapisz 
+                            Zapisz
                         </button>
                     </div>
                 </div>
@@ -124,6 +124,7 @@ import { faSave,faFileExcel} from '@fortawesome/free-solid-svg-icons';
 import dropDown from '@/components/dropDown.vue';
 import { reactive, ref, watch, computed } from 'vue';
 import axios from 'axios';
+import { onMounted } from 'vue';
 
 const selectedDeck = ref(null);
 const selectedCard = ref(null);
@@ -134,53 +135,22 @@ const feedbackData = reactive([
         id:1,
         longDescription:'Feedback negatywny',
         status:'N'
-        
+
     },
     {
         id:2,
         longDescription:'Feedback pozytywny',
         status:'P'
-        
+
     },
 ]);
 
 const decksData = reactive([
-    { id: 1, title: 'Talia Strategii Cyfrowej' },
-    { id: 2, title: 'Talia Zarządzania Projektami' },
-    { id: 3, title: 'Talia Transformacji Biznesowej' }
+
 ]);
 
 const cardsData = reactive([
-    {
-        id: 1,
-        deckId: 1,
-        title: 'Stworzenie szczegółowego planu wdrożenia',
-        description: 'Kluczowy krok w realizacji projektu, który zapewnia płynne przejście od etapu planowania do realizacji'
-    },
-    {
-        id: 2,
-        deckId: 1,
-        title: 'Zarządzanie danymi',
-        description: 'W miarę skalowania technologii rośnie znaczenie zarządzania danymi. Warto zainwestować w narzędzia do analizy danych, które pozwolą na lepsze wykorzystanie zasobów informacyjnych oraz podejmowanie decyzji opartych na danych.'
-    },
-    {
-        id: 3,
-        deckId: 2,
-        title: 'Określenie kluczowych procesów digitalizacji',
-        description: 'Proces polegający na analizie działalności organizacji w celu zidentyfikowania obszarów, które mogą zostać ulepszone lub zautomatyzowane za pomocą technologii cyfrowych. Ustal priorytet koncentracji na procesie  na podstawie obecnego stanu digitalizacji. Wybierz maksymalnie 4 procesy.'
-    },
-    {
-        id: 4,
-        deckId: 2,
-        title: 'Ocena efektywności szkoleń',
-        description: 'Po zakończeniu szkoleń warto przeprowadzać testy wiedzy lub certyfikacje, aby upewnić się, że pracownicy opanowali niezbędne umiejętności. Dodatkowo regularne zbieranie opinii od uczestników szkoleń pozwala na bieżąco dostosowywać programy szkoleniowe i reagować na ewentualne braki w edukacji.Należy też pamiętać, że wdrażanie technologii i szkoleń powinno być monitorowane poprzez ocenę postępów pracowników w codziennej pracy oraz ich adaptacji do nowych narzędzi.'
-    },
-    {
-        id: 5,
-        deckId: 3,
-        title: 'Stwórz strategię transformacji modelu biznesowego',
-        description: 'Oceń, czy istnieją możliwości wsparcia modelu biznesowego w technologie cyfrowe, np. sprzedaż online, e-gwarancja, e-instrukcja itp.'
-    }
+
 ]);
 
 // Filtrowanie kart na podstawie wybranej talii
@@ -213,7 +183,8 @@ async function handleFileChange(event) {
         const response = await axios.post("http://localhost:5023/api/deck/upload", formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
-            }
+            },
+            withCredentials: true
         });
 
         console.log("Odpowiedź z backendu:", response.data);
@@ -230,6 +201,28 @@ watch(selectedDeck, () => {
     currentCard.value = null;
 });
 
+watch(selectedDeck, async (deckId) => {
+    selectedCard.value = null;
+    currentCard.value = null;
+
+    if (!deckId) {
+        cardsData.splice(0);
+        return;
+    }
+
+    try {
+        const response = await axios.get("http://localhost:5023/api/deck/decisions", {
+            params: {
+                deckId: selectedDeck.value
+            },
+            withCredentials: true
+        });
+        cardsData.splice(0, cardsData.length, ...response.data);
+    } catch (error) {
+        console.error("Błąd przy pobieraniu kart z talii:", error);
+    }
+});
+
 // Aktualizacja bieżącej karty gdy zmienia się wybrana karta
 watch(selectedCard, (newValue) => {
     if (newValue) {
@@ -241,6 +234,19 @@ watch(selectedCard, (newValue) => {
         currentCard.value = null;
     }
 });
+
+onMounted(async () => {
+    try {
+        const response = await axios.get("http://localhost:5023/api/deck/edit", {
+            withCredentials: true
+        });
+        decksData.splice(0, decksData.length, ...response.data);
+    } catch (error) {
+        console.error("Błąd przy pobieraniu talii:", error);
+    }
+});
+
+
 
 
 const currentFeedback = ref(null);
