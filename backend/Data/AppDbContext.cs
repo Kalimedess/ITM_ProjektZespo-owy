@@ -45,8 +45,34 @@ namespace backend.Data
             modelBuilder.Entity<DecisionEnabler>()
                 .HasKey(de => de.DecisionEnablerId);
 
-            modelBuilder.Entity<Game>()
-                .HasKey(ga => ga.GameId);
+            modelBuilder.Entity<Game>(entity =>
+            {
+                entity.HasKey(ga => ga.GameId);
+
+                entity.Property(g => g.GameId)
+                      .ValueGeneratedOnAdd();
+
+                entity.HasOne(g => g.User)
+                      .WithMany()
+                      .HasForeignKey(g => g.UserId);
+            
+                entity.HasOne(g => g.Deck)
+                      .WithMany()
+                      .HasForeignKey(g => g.DeckId);
+
+                entity.HasOne(g => g.Board)
+                      .WithMany()
+                      .HasForeignKey(g => g.BoardId);
+
+                entity.HasMany(g => g.Teams)
+                      .WithOne(t => t.Game)
+                      .HasForeignKey(t => t.GameId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.Property(g => g.GameStatus)
+                      .HasConversion<string>()
+                      .IsRequired(false);
+            });   
 
             modelBuilder.Entity<GameBoard>()
                 .HasKey(gb => new { gb.GameId, gb.TeamId });
@@ -63,8 +89,16 @@ namespace backend.Data
             modelBuilder.Entity<Item>()
                 .HasKey(it => it.ItemsId);
 
-            modelBuilder.Entity<Team>()
-                .HasKey(tm => tm.TeamId);
+            modelBuilder.Entity<Team>(entity =>
+            {
+                entity.HasKey(tm => tm.TeamId);
+
+                entity.Property(t => t.TeamId)
+                      .ValueGeneratedOnAdd();
+
+            });
+
+
 
             modelBuilder.Entity<Card>()
                 .HasKey(c => c.CardId);
@@ -189,11 +223,6 @@ namespace backend.Data
                 .HasOne(gb => gb.Board)
                 .WithMany()
                 .HasForeignKey(gb => gb.BoardId);
-        //Team
-            modelBuilder.Entity<Team>()
-                .HasOne(t => t.Game)
-                .WithMany()
-                .HasForeignKey(t => t.GameId);
         //Feedback
             modelBuilder.Entity<Feedback>()
                 .HasOne(fb => fb.Card)

@@ -10,12 +10,17 @@
       <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4">
         <RouterView />
         <QuestionBox />
-        <CardCarousel />
+        <Suspense>
+      <template #default>
+        <CardCarousel :deckId="aktualneDeckId" />
+      </template>
+      <template #fallback>
+        <div>Ładowanie karuzeli kart... (Fallback ze Suspense)</div>
+      </template>
+    </Suspense>
       </div>
 
-      <!-- Prawa kolumna: decyzje -->
       <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 w-1/3 mr-4 flex flex-col space-y-4">
-        <!-- Przyciski przełączania paneli -->
         <div class="flex justify-center space-x-2">
           <button
             @click="currentPanel = 'menu'"
@@ -64,5 +69,7 @@ import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
 import Footer from '@/components/footers/adminFooter.vue'
 import { RouterView } from 'vue-router'
+
+const aktualneDeckId = ref(1);
 </script>
     

@@ -123,7 +123,7 @@
 import { faSave,faFileExcel} from '@fortawesome/free-solid-svg-icons';
 import dropDown from '@/components/dropDown.vue';
 import { reactive, ref, watch, computed } from 'vue';
-import axios from 'axios';
+import apiClient from '@/assets/plugins/axios';
 import { onMounted } from 'vue';
 
 const selectedDeck = ref(null);
@@ -180,7 +180,7 @@ async function handleFileChange(event) {
     formData.append("file", file);
 
     try {
-        const response = await axios.post("http://localhost:5023/api/deck/upload", formData, {
+        const response = await apiClient.post("/api/deck/upload", formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             },
@@ -211,7 +211,7 @@ watch(selectedDeck, async (deckId) => {
     }
 
     try {
-        const response = await axios.get("http://localhost:5023/api/deck/decisions", {
+        const response = await apiClient.get("/api/deck/decisions", {
             params: {
                 deckId: selectedDeck.value
             },
@@ -237,7 +237,7 @@ watch(selectedCard, (newValue) => {
 
 onMounted(async () => {
     try {
-        const response = await axios.get("http://localhost:5023/api/deck/edit", {
+        const response = await apiClient.get("/api/deck/edit", {
             withCredentials: true
         });
         decksData.splice(0, decksData.length, ...response.data);

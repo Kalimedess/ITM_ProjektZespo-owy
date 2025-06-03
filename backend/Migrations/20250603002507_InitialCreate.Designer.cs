@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250602114254_InitialCreate")]
+    [Migration("20250603002507_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -445,7 +445,7 @@ namespace backend.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ItemsId"));
 
-                    b.Property<int?>("CardId")
+                    b.Property<int>("CardId")
                         .HasColumnType("int");
 
                     b.Property<int>("DeckId")
@@ -788,7 +788,9 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Data.Card", "Card")
                         .WithMany()
-                        .HasForeignKey("CardId");
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("backend.Data.Deck", "Deck")
                         .WithMany()
@@ -804,7 +806,7 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Data.Team", b =>
                 {
                     b.HasOne("backend.Data.Game", "Game")
-                        .WithMany()
+                        .WithMany("Teams")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -817,6 +819,11 @@ namespace backend.Migrations
                     b.Navigation("DecisionEnablerOfThis");
 
                     b.Navigation("DecisionEnablers");
+                });
+
+            modelBuilder.Entity("backend.Data.Game", b =>
+                {
+                    b.Navigation("Teams");
                 });
 #pragma warning restore 612, 618
         }

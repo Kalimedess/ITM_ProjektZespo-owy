@@ -17,11 +17,15 @@ namespace backend.Data
 
         public User User { get; set; }
 
-        [Column(TypeName ="ENUM('During', 'Paused', 'End')")]
+        [Column(TypeName = "ENUM('During', 'Paused', 'End')")]
         public GameStatus? GameStatus { get; set; }
+        
+        public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
     }
 
-    public enum GameStatus { 
+
+    public enum GameStatus
+    {
         During,
         Paused,
         End

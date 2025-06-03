@@ -297,7 +297,7 @@ namespace backend.Migrations
                 {
                     ItemsId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CardId = table.Column<int>(type: "int", nullable: true),
+                    CardId = table.Column<int>(type: "int", nullable: false),
                     DeckId = table.Column<int>(type: "int", nullable: false),
                     HardwareShortDesc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -313,7 +313,8 @@ namespace backend.Migrations
                         name: "FK_Items_Cards_CardId",
                         column: x => x.CardId,
                         principalTable: "Cards",
-                        principalColumn: "CardId");
+                        principalColumn: "CardId",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Items_Decks_DeckId",
                         column: x => x.DeckId,

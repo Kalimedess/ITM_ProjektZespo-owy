@@ -72,7 +72,7 @@
 
 <script setup>
 import { ref, defineEmits } from 'vue';
-import axios from 'axios';
+import apiClient from '@/assets/plugins/axios';
 import { useToast } from 'vue-toastification';
 import router from '@/router';
 import { faEye, faEyeSlash, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
@@ -93,7 +93,7 @@ const loginData = ref({
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post('http://localhost:5023/api/auth/login', {
+    const response = await apiClient.post('/api/auth/login', {
       username: loginData.value.email, 
       password: loginData.value.password
     }, {

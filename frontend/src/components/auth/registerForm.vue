@@ -128,7 +128,7 @@
 
 <script setup>
 import { ref, computed, defineEmits } from 'vue';
-import axios from 'axios';
+import apiClient from '@/assets/plugins/axios';
 import { useToast } from 'vue-toastification';
 import passwordStrength from './passwordStrength.vue';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -179,7 +179,7 @@ const handleRegister = async () => {
   }
   
   try {
-    const response = await axios.post('http://localhost:5023/api/auth/register', {
+    const response = await apiClient.post('/api/auth/register', {
       username: registerData.value.username,
       email: registerData.value.email,
       password: registerData.value.password

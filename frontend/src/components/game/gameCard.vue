@@ -18,12 +18,14 @@
     
     <div class="flex flex-row gap-2">
       <button 
+        v-if="game.status === 'During' || game.status === 'Paused'"
+        @click="requestStatusChange(game.id, game.status === 'During' ? 'Paused' : 'During')"
         class="flex flex-auto items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300">
-        <font-awesome-icon :icon="faCircleStop" class="h-4 text-accent mr-2"/> 
-        Wstrzymaj grę
+        <font-awesome-icon :icon="game.status === 'During' ? faCircleStop : faCirclePlay" class="h-4 text-accent mr-2"/>
+        {{ game.status === 'During' ? 'Wstrzymaj grę' : 'Wznów grę' }}
       </button>
       <RouterLink 
-        to="/admin/game"
+        :to="`/admin/game`"
         class="flex flex-auto items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300">
         <font-awesome-icon :icon="faMagnifyingGlass" class="h-4 mr-2 text-accent"/>     
         Otwórz grę
@@ -78,7 +80,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { faGamepad, faCircleStop, faMagnifyingGlass, faQrcode, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faGamepad, faCircleStop, faMagnifyingGlass, faQrcode, faXmark, faCirclePlay } from '@fortawesome/free-solid-svg-icons';
 import { RouterLink } from 'vue-router';
 import QrcodeVue from 'qrcode.vue';
 
@@ -101,9 +103,16 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['update-status']);
+
 const showQr = ref(false);
 
 const gameUrl = computed(() => {
   return `${window.location.origin}/player`;
 });
+
+const requestStatusChange = (gameId, newStatus) => {
+
+    emit('update-status', { gameId, newStatus });
+};
 </script>

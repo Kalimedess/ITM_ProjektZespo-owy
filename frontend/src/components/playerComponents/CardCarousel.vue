@@ -1,5 +1,9 @@
 <template>
   <div class="w-full max-w-xl mx-auto mt-10">
+    <div v-if="loading" class="text-center text-white">Ładowanie kart...</div>
+    <div v-else-if="fetchError" class="text-center text-red-500">Błąd ładowania kart: {{ fetchError }}</div>
+    <div v-else-if="!cards || cards.length === 0" class="text-center text-white">Brak dostępnych kart.</div>
+    <div v-else-if="cards[currentIndex]" class="relative"></div>
     <div class="relative">
       
       <div
@@ -17,6 +21,7 @@
             @click.stop="prevCard"
             class="w-12 flex items-center justify-center hover:bg-black/20 rounded-l-2xl transition"
             aria-label="Poprzednia karta"
+            :disabled="cards.length <= 1"
           >
             <p><</p>
           </button>
@@ -24,11 +29,12 @@
           <!-- Środek karty -->
           <div class="flex-1 flex flex-col items-center justify-center px-6 text-center">
             <h2 class="text-2xl font-bold mb-2">
-              {{ cards[currentIndex].title }}
+              {{ cards[currentIndex]?.title }}
             </h2>
             <p class="text-base text-white/90 italic">
-              {{ cards[currentIndex].description }}
+              {{ cards[currentIndex]?.description }}
             </p>
+            <p class="text-xs mt-2">ID: {{ cards[currentIndex]?.id }}</p>
           </div>
 
           <!-- Prawy przycisk -->
@@ -36,6 +42,7 @@
             @click.stop="nextCard"
             class="w-12 flex items-center justify-center hover:bg-black/20 rounded-r-2xl transition"
             aria-label="Następna karta"
+            :disabled="cards.length <= 1"
           >
             <p>></p>
           </button>
@@ -45,15 +52,15 @@
       <!-- Wskaźniki (zawijane) -->
       <div class="flex flex-wrap justify-center gap-2 mt-6">
         <button
-          v-for="(card, index) in cards"
-          :key="index"
-          @click="goToCard(index)"
+          v-for="(card) in cards"
+          :key="card.id"
+          @click="goToCardByDisplayOrder(card.displayOrder)"
           class="w-8 h-8 text-sm font-medium rounded-full flex items-center justify-center transition-all duration-300 border-2"
-          :class="index === currentIndex
+          :class="card.displayOrder === cards[currentIndex].displayOrder
             ? 'bg-primary text-white border-white scale-110'
             : 'bg-gray-200 text-gray-700 border-gray-400 hover:bg-gray-300'"
         >
-          {{ index + 1 }}
+          {{ card.id}}
         </button>
       </div>
 
@@ -71,88 +78,112 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+  import { ref, onMounted, computed, watch } from 'vue'
+  import apiClient from '@/assets/plugins/axios';
 
-// Lista kart (każda zawiera tytuł i opis)
-const cards = ref([
-  { title: 'Karta 1', description: 'Opis pierwszej karty' },
-  { title: 'Karta 2', description: 'Opis drugiej karty' },
-  { title: 'Karta 3', description: 'Opis trzeciej karty' },
-  { title: 'Karta 4', description: 'Opis czwartej karty' },
-  { title: 'Karta 5', description: 'Opis piątej karty' },
-  { title: 'Karta 6', description: 'Opis szóstej karty' },
-  { title: 'Karta 7', description: 'Opis siódmej karty' },
-  { title: 'Karta 8', description: 'Opis ósmej karty' },
-  { title: 'Karta 9', description: 'Opis dziewiątej karty' },
-  { title: 'Karta 10', description: 'Opis dziesiątej karty' },
-  { title: 'Karta 11', description: 'Opis jedenastej karty' },
-  { title: 'Karta 12', description: 'Opis dwunastej karty' },
-  { title: 'Karta 13', description: 'Opis trzynastej karty' },
-  { title: 'Karta 14', description: 'Opis czternastej karty' },
-  { title: 'Karta 15', description: 'Opis piętnastej karty' },
-  { title: 'Karta 16', description: 'Opis szesnastej karty' },
-  { title: 'Karta 17', description: 'Opis siedemnastej karty' },
-  { title: 'Karta 18', description: 'Opis osiemnastej karty' },
-  { title: 'Karta 19', description: 'Opis dziewiętnastej karty' },
-  { title: 'Karta 20', description: 'Opis dwudziestej karty' },
-  { title: 'Karta 21', description: 'Opis dwudziestej pierwszej karty' },
-  { title: 'Karta 22', description: 'Opis dwudziestej drugiej karty' },
-  { title: 'Karta 23', description: 'Opis dwudziestej trzeciej karty' },
-  { title: 'Karta 24', description: 'Opis dwudziestej czwartej karty' },
-  { title: 'Karta 25', description: 'Opis dwudziestej piątej karty' },
-  { title: 'Karta 26', description: 'Opis dwudziestej szóstej karty' },
-  { title: 'Karta 27', description: 'Opis dwudziestej siódmej karty' },
-  { title: 'Karta 28', description: 'Opis dwudziestej ósmej karty' },
-  { title: 'Karta 29', description: 'Opis dwudziestej dziewiątej karty' },
-  { title: 'Karta 30', description: 'Opis trzydziestej karty' },
-  { title: 'Karta 31', description: 'Opis trzydziestej pierwszej karty' },
-  { title: 'Karta 32', description: 'Opis trzydziestej drugiej karty' },
-  { title: 'Karta 33', description: 'Opis trzydziestej trzeciej karty' },
-  { title: 'Karta 34', description: 'Opis trzydziestej czwartej karty' },
-  { title: 'Karta 35', description: 'Opis trzydziestej piątej karty' },
-  { title: 'Karta 36', description: 'Opis trzydziestej szóstej karty' },
-  { title: 'Karta 37', description: 'Opis trzydziestej siódmej karty' },
-  { title: 'Karta 38', description: 'Opis trzydziestej ósmej karty' },
-  { title: 'Karta 39', description: 'Opis trzydziestej dziewiątej karty' },
-  { title: 'Karta 40', description: 'Opis czterdziestej karty' },
-  { title: 'Karta 41', description: 'Opis czterdziestej pierwszej karty' },
-  { title: 'Karta 42', description: 'Opis czterdziestej drugiej karty' },
-  { title: 'Karta 43', description: 'Opis czterdziestej trzeciej karty' },
-  { title: 'Karta 44', description: 'Opis czterdziestej czwartej karty' },
-  { title: 'Karta 45', description: 'Opis czterdziestej piątej karty' },
-  { title: 'Karta 46', description: 'Opis czterdziestej szóstej karty' },
-  { title: 'Karta 47', description: 'Opis czterdziestej siódmej karty' },
-  { title: 'Karta 48', description: 'Opis czterdziestej ósmej karty' },
-  { title: 'Karta 49', description: 'Opis czterdziestej dziewiątej karty' },
-  { title: 'Karta 50', description: 'Opis pięćdziesiątej karty' }
-])
 
-const currentIndex = ref(0)
+  const cards = ref([]);
+  const currentIndex = ref(0);
+  const loading = ref(true);
+  const fetchError = ref(null);
 
-const cardClicked = ref(false)
-let holdTimeout = null
+  const cardClicked = ref(false)
+  let holdTimeout = null
 
-const startHold = () => {
-  holdTimeout = setTimeout(() => {
-    cardClicked.value = true
-  }, 500) // ustawianie czasu powiększania kart 0,5 sekundy
-}
+  const props = defineProps({
+      deckId: {
+          type: Number,
+          default: 1
+      }
 
-const cancelHold = () => {
-  clearTimeout(holdTimeout)
-  cardClicked.value = false
-}
+  });
 
-const nextCard = () => {
-  currentIndex.value = (currentIndex.value + 1) % cards.value.length
-}
+  const deckIdToFetch = computed(() => props.deckId);
 
-const prevCard = () => {
-  currentIndex.value = (currentIndex.value - 1 + cards.value.length) % cards.value.length
-}
+  async function fetchCards() {
+    if (!deckIdToFetch.value) {
+      console.log("ID talii nie jest określone.");
+      loading.value = false;
+      return;
+    }
+    loading.value = true;
+    fetchError.value = null;
+    try {
+      const response = await apiClient.get(`/api/deck/${deckIdToFetch.value}/unified-cards`);
 
-const goToCard = (index) => {
-  currentIndex.value = index
-}
+      if (response && response.data && Array.isArray(response.data)) {
+        const sortedCards = response.data.sort((a, b) => a.displayOrder - b.displayOrder);
+        cards.value = sortedCards;
+
+        if (cards.value.length > 0) {
+          currentIndex.value = 0;
+        } else {
+          currentIndex.value = 0; 
+        }
+      } else {
+        cards.value = [];
+        currentIndex.value = 0;
+      }
+    } catch (error) {
+      cards.value = [];
+      currentIndex.value = 0;
+      console.error("[CardCarousel] Błąd pobierania kart:", error.response?.data || error.message, error);
+
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  watch(() => props.deckId, (newDeckId, oldDeckId) => {
+      if (newDeckId && newDeckId !== oldDeckId) {
+          fetchCards();
+      } else if (!newDeckId) {
+          cards.value = []; 
+          currentIndex.value = 0;
+      }
+  }, { immediate: true });
+
+  onMounted(() => {
+    fetchCards();
+  });
+
+  const startHold = () => {
+    holdTimeout = setTimeout(() => {
+      cardClicked.value = true;
+    }, 500);
+  };
+
+  const cancelHold = () => {
+    clearTimeout(holdTimeout);
+    cardClicked.value = false;
+  };
+
+  const nextCard = () => {
+    if (cards.value.length === 0) return;
+    currentIndex.value = (currentIndex.value + 1) % cards.value.length;
+  };
+
+  const prevCard = () => {
+    if (cards.value.length === 0) return;
+    currentIndex.value = (currentIndex.value - 1 + cards.value.length) % cards.value.length;
+  };
+
+  const goToCardByDisplayOrder = (displayOrder) => {
+    const targetIndex = cards.value.findIndex(card => card.displayOrder === displayOrder);
+    if (targetIndex !== -1) {
+      currentIndex.value = targetIndex;
+    }
+  };
+
+  const sendCardSelection = () => {
+    if (cards.value.length > 0) {
+      const selectedCardData = cards.value[currentIndex.value];
+      console.log('Wybrano kartę:', selectedCardData);
+      // Tutaj logika wysyłania wybranej karty (np. emit zdarzenia, wywołanie API)
+      // np. emit('card-selected', selectedCardData.id); // Wysyłaj oryginalne ID karty
+    }
+  };
+
+
 
 </script>

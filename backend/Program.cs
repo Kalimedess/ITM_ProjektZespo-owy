@@ -7,14 +7,28 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy => policy.WithOrigins("http://localhost:5173") //Gdyby nie działało, zobaczyć na jakim porcie działa Vue 
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials()
-                        );
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        if (allowedOrigins != null && allowedOrigins.Any())
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            Console.WriteLine("OSTRZEŻENIE: Brak skonfigurowanych dozwolonych źródeł CORS w appsettings.json. Zastosowano domyślne dla localhost:5173.");
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+    });
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>

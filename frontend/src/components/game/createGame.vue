@@ -50,7 +50,7 @@
             <label for="selectBoard" class="block font-bold text-left text-xs mb-1">Wybierz planszę</label>
             <select v-model="selectedBoardId" id="selectBoard" required class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
               <option value="" disabled>Wybierz planszę</option>
-              <option v-for="board in data.boards" :key="board.BoardId" :value="board.BoardId">{{ board.Name }}</option>
+              <option v-for="board in data.boards" :key="board.boardId" :value="board.boardId">{{ board.name }}</option>
             </select>
           </div>
 
@@ -58,7 +58,7 @@
             <label for="selectDeck" class="block font-bold text-left text-xs mb-1">Wybierz talię kart</label>
             <select v-model="selectedDeckId" required id="selectDeck" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
               <option value="" disabled>Wybierz talię kart</option>
-              <option v-for="deck in decks" :key="deck.id" :value="deck.id">{{ deck.name }}</option>
+              <option v-for="deck in data.decks" :key="deck.id" :value="deck.id">{{ deck.title }}</option>
             </select>
           </div>
 
@@ -190,10 +190,11 @@
 
 <script setup>
   import { faArrowRight,faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-  import { defineProps, defineEmits, ref, reactive, watch, computed } from 'vue';
+  import { defineProps, defineEmits, ref, reactive, watch, computed, onMounted } from 'vue';
   import { faXmark } from '@fortawesome/free-solid-svg-icons';
   import { useToast } from 'vue-toastification';
   import DropDown from '../dropDown.vue';
+  import axios from 'axios';
 
   const toast = useToast();
 
@@ -282,50 +283,36 @@
 
     return true;
   }
-
   const data = reactive({
-    boards: [
-      {
-        BoardId: 1, 
-        Name: 'Plansza podstawowa', 
-        LabelsUp: 'Podstawowa kordynacja;Standaryzacja procesów;Zintegrowane działania;Pełna integracja strategiczna', 
-        LabelsRight: 'Nowicjusz;Naśladowca;Innowator;Lider cyfrowy', 
-        DescriptionDown: 'Poziom integracji wew/zew', 
-        DescriptionLeft: 'Zawansowanie Cyfrowe', 
-        Rows: 8,
-        Cols: 8,
-        CellColor: '#fefae0', 
-        BorderColor: '#595959', 
-        BorderColors: '#008000;#FFFF00;#FFA500;#FF0000'
-      },
-      {
-        BoardId: 2, 
-        Name: 'Plansza zaawansowana', 
-        LabelsUp: 'Początkowy;Rozwinięty;Zaawansowany;Ekspercki;Mistrzowski', 
-        LabelsRight: 'Poziom 1;Poziom 22;Poziom 3;Poziom 4', 
-        DescriptionDown: 'Etapy rozwoju kompetencji', 
-        DescriptionLeft: 'Poziomy umiejętności', 
-        Rows: 8,
-        Cols: 10,
-        CellColor: '#f5f5f5', 
-        BorderColor: '#333333', 
-        BorderColors: '#3498db;#2ecc71;#f1c40f;#e74c3c;#9b59b6'
-      },
-      {
-        BoardId: 3, 
-        Name: 'Mapa strategiczna', 
-        LabelsUp: 'Mapa strategiczna;Planowanie;Implementacja;Kontrola', 
-        LabelsRight: 'Strategia;Taktyka;Operacje', 
-        DescriptionDown: 'Etapy zarządzania', 
-        DescriptionLeft: 'Poziomy zarządzania', 
-        Rows: 6,
-        Cols: 8,
-        CellColor: '#e0f7fa', 
-        BorderColor: '#444444', 
-        BorderColors: '#1abc9c;#3498db;#f39c12;#e74c3c'
-      }
-    ]
+    boards: [],
+    decks:[]
   });
+
+  const fetchBoardsFromAPI = async () => {
+    try {
+      const response = await axios.get(`/api/Board/get`, { withCredentials: true });
+      data.boards = response.data;
+      if (data.boards.length === 0) {
+          toast.info("Brak plansz do wyboru!");
+      }
+    } catch (error) {
+      console.error('Błąd pobierania plansz:', error.response?.data || error.message);
+      toast.error(`Nie udało się pobrać plansz: ${error.response?.data?.title || error.message}`);
+    }
+  };
+
+  const fetchDecksFromAPI = async () => {
+    try {
+      const response = await axios.get(`api/deck/edit`, { withCredentials: true });
+      data.decks = response.data;
+      if (data.decks.length === 0) {
+          toast.info("Brak talii kart do wyboru!");
+      }
+    } catch (error) {
+      console.error('Błąd pobierania talii kart:', error.response?.data || error.message);
+      toast.error(`Nie udało się pobrać talii kart: ${error.response?.data?.title || error.message}`);
+    }
+  };
   
   const props = defineProps({
     isVisible: {
@@ -334,7 +321,7 @@
     }
   });
 
-  const emits = defineEmits(['close']);
+  const emits = defineEmits(['close', 'gameCreated']);
 
   const closeModal = () => {
     gameName.value = '';
@@ -347,21 +334,70 @@
     emits('close');
   };
 
-  const decks = [{
-    id: 1,
-    name: 'Talia 1',
-  },
-  {
-    id: 2,
-    name: 'Talia 2',
-  },
-  {
-    id: 3,
-    name: 'Talia 3',
-  },
-  {
-    id: 4,
-    name: 'Talia 4',
-  }];
+  const handleSubmit = async () => {
+    if (step.value === 1) {
+        handleNextStep();
+        return;
+    }
+
+    const teamNameErrors = teams.value.filter(team => !team.name.trim());
+    if (teamNameErrors.length > 0) {
+        toast.error(`Nazwy drużyn nie mogą być puste (Drużyna ${teamNameErrors.map(t => t.id + 1).join(', ')})`);
+        return;
+    }
+    if (numberOfBits.value < 1 || numberOfBits.value > 100000) {
+        toast.error("Liczba bitów na start musi być pomiędzy 1 a 100000.");
+        return;
+    }
+
+    const gamePayload = {
+      GameName: gameName.value,
+      GameDescription: gameDescription.value,
+      BoardId: selectedBoardId.value,
+      DeckId: selectedDeckId.value,
+      NumberOfTeams: numberOfTeams.value,
+      StartBits: Number(numberOfBits.value),
+      Teams: teams.value.map(team => ({
+        Name: team.name,
+        Colour: team.colour 
+      }))
+    };
+
+    console.log('Wysyłanie danych gry do API:', gamePayload)
+
+    try {
+      const response = await axios.post(`/api/games/create`, gamePayload, { withCredentials: true });
+
+      emits('gameCreated')
+
+      toast.success(response.data.message || `Gra "${gamePayload.GameName}" utworzona pomyślnie!`);
+
+      closeModal();
+    } catch (error) {
+      console.error('Błąd tworzenia gry:', error.response?.data || error.message, error);
+      let errorMessage = "Nie udało się utworzyć gry.";
+      if (error.response && error.response.data) {
+          if (typeof error.response.data === 'string') {
+              errorMessage = error.response.data;
+          } else if (error.response.data.title) {
+              errorMessage = error.response.data.title;
+          } else if (error.response.data.errors) {
+              const errors = Object.values(error.response.data.errors).flat();
+              errorMessage = errors.join('\n');
+          } else if (error.response.data.message) {
+              errorMessage = error.response.data.message;
+          }
+      } else if (error.message) {
+          errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
+  onMounted(async () => {
+  await fetchBoardsFromAPI();
+  await fetchDecksFromAPI();
+});
+
 
 </script>

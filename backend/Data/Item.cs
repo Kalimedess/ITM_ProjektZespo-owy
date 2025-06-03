@@ -6,8 +6,8 @@ namespace backend.Data
     public class Item
     {
         public int ItemsId { get; set; }
-        public int? CardId { get; set; }
-        public Card? Card { get; set; }
+        public int CardId { get; set; }
+        public Card Card { get; set; }
         public int DeckId { get; set; }
         public Deck Deck { get; set; }
         [MaxLength(100)]

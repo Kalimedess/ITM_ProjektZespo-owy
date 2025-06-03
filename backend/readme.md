@@ -15,7 +15,7 @@ PAMIĘTAJ! Podczas konfigurtacji serwera Hasło roota ustaw na 'root'
 [Pobierz](https://dotnet.microsoft.com/en-us/download) i zanistaluj .NET 8.0 
 
 Następnie zainstaluj Microsoft.EntityFrameworkCore używając:
-    `dotnet tools install -global dotnet-ef `
+    `dotnet tool install --global dotnet-ef `
 
 Następnie sprawdź czy dotnet-ef został zainstalowany:
     `dotnet tool list -g `

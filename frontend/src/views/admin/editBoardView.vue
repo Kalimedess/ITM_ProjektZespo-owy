@@ -96,9 +96,7 @@ import boardInfo from '@/components/editBoard/boardInfo.vue';
 import boardColorSettings from '@/components/editBoard/boardColorSettings.vue';
 import boardLabelsEditors from '@/components/editBoard/boardLabelsEditors.vue';
 import boardDescriptions from '@/components/editBoard/boardDescriptions.vue';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5023/api/Board';
+import apiClient from '@/assets/plugins/axios';
 
 const selectedBoardId = ref(null);
 const activeView = ref('add');
@@ -136,7 +134,7 @@ const arrayToString = (arr) => {
 
 const fetchBoardsFromAPI = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/get`, { withCredentials: true });
+    const response = await apiClient.get(`/api/Board/get`, { withCredentials: true });
     data.boards = response.data;
     console.log('Pobrane plansze:', JSON.stringify(data.boards, null, 2)); // DEBUG
     if (data.boards.length === 0 && activeView.value === 'edit') {
@@ -217,7 +215,7 @@ const saveBoard = async () => {
     
     let response;
     if (activeView.value === 'add') {
-      response = await axios.post(`${API_BASE_URL}`, payload, { withCredentials: true });
+      response = await apiClient.post(`$/api/Board`, payload, { withCredentials: true });
       toast.success(`Plansza "${response.data.name}" dodana pomyślnie!`);
       await fetchBoardsFromAPI();
       resetForm();
@@ -226,7 +224,7 @@ const saveBoard = async () => {
         toast.warning('Wybierz planszę do edycji!');
         return;
       }
-      response = await axios.put(`${API_BASE_URL}/${selectedBoardId.value}`, payload, { withCredentials: true });
+      response = await apiClient.put(`/api/Board/${selectedBoardId.value}`, payload, { withCredentials: true });
       toast.success(`Plansza "${response.data.name}" zaktualizowana pomyślnie!`);
       await fetchBoardsFromAPI();
     }
@@ -247,7 +245,7 @@ const deleteBoardAPI = async () => {
 
   if (confirm(`Czy na pewno chcesz usunąć planszę "${boardName}"? Tej operacji nie można cofnąć.`)) {
     try {
-      await axios.delete(`${API_BASE_URL}/${selectedBoardId.value}`, { withCredentials: true });
+      await apiClient.delete(`/api/Board/${selectedBoardId.value}`, { withCredentials: true });
       toast.success('Plansza została usunięta pomyślnie z serwera!');
       await fetchBoardsFromAPI();
       resetForm();
