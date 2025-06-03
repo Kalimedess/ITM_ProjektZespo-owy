@@ -14,7 +14,7 @@
       </div>
 
       <!-- Prawa kolumna: decyzje -->
-      <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 w-1/3 mr-4 flex flex-col space-y-4">
+      <div class="flex-1 ml-4 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 w-1/3 mr-4 flex flex-col space-y-4">
         <!-- Przyciski przełączania paneli -->
         <div class="flex justify-center space-x-2">
           <button

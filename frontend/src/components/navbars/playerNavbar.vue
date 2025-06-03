@@ -25,6 +25,6 @@
   
   // Klasa CSS dla nav
   const navClasses = computed(() =>
-    `w-full ${navBgColor.value} py-3 px-6 flex flex-row justify-between items-center border-b-2 border-lgray-accent`
+    `w-full ${navBgColor.value} py-3 px-6 flex flex-row items-center border-b-2 border-lgray-accent`
   )
   </script>
