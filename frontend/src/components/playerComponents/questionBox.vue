@@ -5,5 +5,5 @@
   </template>
   
   <script setup>
-  const question = "Tu pokarze się treść pytania"
+  const question = "Tu pokaże się treść pytania"
   </script>
