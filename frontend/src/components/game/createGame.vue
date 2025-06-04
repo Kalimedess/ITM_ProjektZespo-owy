@@ -194,7 +194,7 @@
   import { faXmark } from '@fortawesome/free-solid-svg-icons';
   import { useToast } from 'vue-toastification';
   import DropDown from '../dropDown.vue';
-  import axios from 'axios';
+  import apiClient from '@/assets/plugins/axios';
 
   const toast = useToast();
 
@@ -290,7 +290,7 @@
 
   const fetchBoardsFromAPI = async () => {
     try {
-      const response = await axios.get(`/api/Board/get`, { withCredentials: true });
+      const response = await apiClient.get(`/api/Board/get`, { withCredentials: true });
       data.boards = response.data;
       if (data.boards.length === 0) {
           toast.info("Brak plansz do wyboru!");
@@ -303,7 +303,7 @@
 
   const fetchDecksFromAPI = async () => {
     try {
-      const response = await axios.get(`api/deck/edit`, { withCredentials: true });
+      const response = await apiClient.get(`api/deck/edit`, { withCredentials: true });
       data.decks = response.data;
       if (data.decks.length === 0) {
           toast.info("Brak talii kart do wyboru!");
@@ -332,6 +332,7 @@
     step.value = 1;
     numberOfBits.value = 1;
     emits('close');
+    emits('gameCreated');
   };
 
   const handleSubmit = async () => {
@@ -363,10 +364,8 @@
       }))
     };
 
-    console.log('Wysyłanie danych gry do API:', gamePayload)
-
     try {
-      const response = await axios.post(`/api/games/create`, gamePayload, { withCredentials: true });
+      const response = await apiClient.post(`/api/games/create`, gamePayload, { withCredentials: true });
 
       emits('gameCreated')
 

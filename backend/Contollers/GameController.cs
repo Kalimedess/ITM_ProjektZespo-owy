@@ -235,6 +235,76 @@ namespace backend.Controllers
                 return StatusCode(500, "Wystąpił błąd serwera podczas aktualizacji statusu gry.");
             }
         }
+
+        [HttpGet("get-token")]
+        [Authorize]
+        public async Task<IActionResult> GetTeamToken()
+        {
+            return Ok();
+        }
+
+        [HttpPost("stop-all")]
+        [Authorize]
+        public async Task<IActionResult> StopAllGames()
+        {
+            var adminUserName = User.Identity?.Name ?? "UnknownAdmin";
+
+            try
+            {
+                var gamesToStop = await _context.Games
+                    .Where(g => g.GameStatus == GameStatus.During)
+                    .ToListAsync();
+
+                if (!gamesToStop.Any())
+                {
+                    return Ok(new { message = "Nie znaleziono aktywnych gier do zatrzymania." });
+                }
+
+                foreach (var game in gamesToStop)
+                {
+                    game.GameStatus = GameStatus.Paused;
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok(new { message = $"Pomyślnie zatrzymano {gamesToStop.Count} gier (status zmieniony na 'Spauzowana')." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Wystąpił błąd serwera podczas próby zatrzymania gier.");
+            }
+        }
+        [HttpPost("end-all")]
+        [Authorize]
+        public async Task<IActionResult> EndAllGames()
+        {
+            var adminUserName = User.Identity?.Name ?? "UnknownAdmin";
+            try
+            {
+                var gamesToEnd = await _context.Games
+                    .Where(g => g.GameStatus == GameStatus.During || g.GameStatus == GameStatus.Paused)
+                    .ToListAsync();
+
+                if (!gamesToEnd.Any())
+                {
+                    return Ok(new { message = "Nie znaleziono gier (w trakcie lub spauzowanych) do zakończenia." });
+                }
+
+                foreach (var game in gamesToEnd)
+                {
+                    game.GameStatus = GameStatus.End;
+
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok(new { message = $"Pomyślnie zakończono {gamesToEnd.Count} gier (status zmieniony na 'Zakończona')." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Wystąpił błąd serwera podczas próby zakończenia gier.");
+            }
+        }
+
+
         
 
         public static class TokenGenerator

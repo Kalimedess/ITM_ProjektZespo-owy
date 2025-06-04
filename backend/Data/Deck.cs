@@ -10,5 +10,9 @@ namespace backend.Data
         public int? UserId { get; set; }
         public User? User { get; set; }
 
+        public virtual ICollection<Decision> Decisions { get; set; } = new HashSet<Decision>();
+        public virtual ICollection<Item> Items { get; set; } = new HashSet<Item>();
+        public virtual ICollection<Feedback> Feedbacks { get; set; } = new HashSet<Feedback>();
+
     }
 }

@@ -26,7 +26,6 @@ namespace backend.Controllers
             _context = context;
         }
 
-        [Authorize]
         [HttpGet("deck/{deckId}/unified-cards")]
         public async Task<ActionResult<IEnumerable<UnifiedCardDto>>> GetUnifiedCardsForDeck(int deckId)
         {

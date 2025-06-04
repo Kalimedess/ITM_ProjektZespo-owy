@@ -165,9 +165,10 @@ namespace backend.Data
                 .HasForeignKey(gl => gl.FeedbackId);
         //Decisions
             modelBuilder.Entity<Decision>()
-                .HasOne(d => d.Deck)
-                .WithMany()
-                .HasForeignKey(d => d.DeckId);
+                .HasOne(decision => decision.Deck)
+                .WithMany(deck => deck.Decisions)
+                .HasForeignKey(decision => decision.DeckId)
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Decision>()
                 .HasOne(d => d.Card)
                 .WithMany()
@@ -229,9 +230,10 @@ namespace backend.Data
                 .WithMany()
                 .HasForeignKey(fb => fb.CardId);
             modelBuilder.Entity<Feedback>()
-                .HasOne(fb => fb.Deck)
-                .WithMany()
-                .HasForeignKey(fb => fb.DeckId);
+                .HasOne(feedback => feedback.Deck)
+                .WithMany(deck => deck.Feedbacks)
+                .HasForeignKey(feedback => feedback.DeckId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         // Board
             modelBuilder.Entity<Board>()
@@ -245,9 +247,10 @@ namespace backend.Data
                 .WithMany()
                 .HasForeignKey(i =>i.CardId);
             modelBuilder.Entity<Item>()
-                .HasOne(i => i.Deck)
-                .WithMany()
-                .HasForeignKey(i =>i.DeckId);
+                .HasOne(item => item.Deck)
+                .WithMany(deck => deck.Items)
+                .HasForeignKey(item => item.DeckId)
+                .OnDelete(DeleteBehavior.Cascade);
 
     //Inne
             modelBuilder.Entity<Card>()

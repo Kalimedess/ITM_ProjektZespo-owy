@@ -565,7 +565,7 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.HasOne("backend.Data.Deck", "Deck")
-                        .WithMany()
+                        .WithMany("Decisions")
                         .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -631,7 +631,7 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.HasOne("backend.Data.Deck", "Deck")
-                        .WithMany()
+                        .WithMany("Feedbacks")
                         .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -790,7 +790,7 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.HasOne("backend.Data.Deck", "Deck")
-                        .WithMany()
+                        .WithMany("Items")
                         .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -816,6 +816,15 @@ namespace backend.Migrations
                     b.Navigation("DecisionEnablerOfThis");
 
                     b.Navigation("DecisionEnablers");
+                });
+
+            modelBuilder.Entity("backend.Data.Deck", b =>
+                {
+                    b.Navigation("Decisions");
+
+                    b.Navigation("Feedbacks");
+
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("backend.Data.Game", b =>
