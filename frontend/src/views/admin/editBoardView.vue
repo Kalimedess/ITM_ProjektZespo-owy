@@ -122,6 +122,19 @@ const getDefaultFormData = () => ({
 
 const formData = reactive(getDefaultFormData());
 
+watch(() => formData.LabelsUp, (newLabels) => {
+  if (Array.isArray(newLabels)) {
+    formData.Cols = newLabels.length * 2;
+  }
+}, { deep: true }); 
+
+watch(() => formData.LabelsRight, (newLabels) => {
+  if (Array.isArray(newLabels)) {
+    formData.Rows = newLabels.length * 2;
+  }
+}, { deep: true });
+
+
 const stringToArray = (str) => {
   if (typeof str !== 'string' || !str) return [];
   return str.split(';').map(item => item.trim()).filter(item => item);
@@ -214,27 +227,32 @@ const saveBoard = async () => {
     };
     
     let response;
+    
     if (activeView.value === 'add') {
-      response = await apiClient.post(`$/api/Board`, payload, { withCredentials: true });
+      response = await apiClient.post(`/api/Board/add`, payload, { withCredentials: true });
       toast.success(`Plansza "${response.data.name}" dodana pomyślnie!`);
       await fetchBoardsFromAPI();
       resetForm();
+
     } else {
       if (!selectedBoardId.value) {
         toast.warning('Wybierz planszę do edycji!');
         return;
       }
-      response = await apiClient.put(`/api/Board/${selectedBoardId.value}`, payload, { withCredentials: true });
+      response = await apiClient.put(`/api/Board/edit/${selectedBoardId.value}`, payload, { withCredentials: true });
+      
       toast.success(`Plansza "${response.data.name}" zaktualizowana pomyślnie!`);
       await fetchBoardsFromAPI();
     }
   } catch (error) {
     console.error('Błąd podczas zapisywania planszy:', error.response?.data || error.message);
-    toast.error(`Błąd zapisu: ${error.response?.data?.title || error.response?.data || error.message}`);
+    const errorMessage = error.response?.data?.title || error.response?.data || error.message;
+    toast.error(`Błąd zapisu: ${errorMessage}`);
   }
 };
 
-const deleteBoardAPI = async () => {
+// W pliku frontendu, zastąp tę funkcję:
+const deleteBoard = async () => {
   if (!selectedBoardId.value) {
     toast.warning('Nie wybrano planszy do usunięcia!');
     return;
@@ -245,8 +263,13 @@ const deleteBoardAPI = async () => {
 
   if (confirm(`Czy na pewno chcesz usunąć planszę "${boardName}"? Tej operacji nie można cofnąć.`)) {
     try {
-      await apiClient.delete(`/api/Board/${selectedBoardId.value}`, { withCredentials: true });
-      toast.success('Plansza została usunięta pomyślnie z serwera!');
+      // --- TUTAJ JEST ZMIANA ---
+      // Zmieniamy URL, aby pasował do nowego endpointu w backendzie: /api/Board/delete/{id}
+      await apiClient.delete(`/api/Board/delete/${selectedBoardId.value}`, { withCredentials: true });
+      
+      toast.success('Plansza została usunięta pomyślnie!');
+      
+      // Reszta logiki jest już dobra - odświeżenie danych i zresetowanie formularza
       await fetchBoardsFromAPI();
       resetForm();
       if (data.boards.length === 0) {
@@ -254,7 +277,8 @@ const deleteBoardAPI = async () => {
       }
     } catch (error) {
       console.error('Błąd podczas usuwania planszy:', error.response?.data || error.message);
-      toast.error(`Błąd usuwania: ${error.response?.data?.title || error.response?.data || error.message}`);
+      const errorMessage = error.response?.data?.title || error.response?.data || error.message;
+      toast.error(`Błąd usuwania: ${errorMessage}`);
     }
   }
 };
