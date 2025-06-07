@@ -404,7 +404,7 @@ namespace backend.Controllers
             }
 
             var decks = await _context.Decks
-                          .Where(deck => deck.UserId == null || deck.UserId == userId)
+                          .Where(deck => deck.UserId == userId)
                           .Select(deck => new {
                               id = deck.DeckId,
                               title = deck.DeckName

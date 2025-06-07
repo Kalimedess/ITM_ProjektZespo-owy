@@ -117,6 +117,22 @@ namespace backend.Controllers
 
             user.LicensesOwned--;
             _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            foreach (var teamInGame in newGame.Teams)
+            {
+                var newGameBoardEntry = new GameBoard
+                {
+                    GameId = newGame.GameId,
+                    TeamId = teamInGame.TeamId,
+                    BoardId = newGame.BoardId,
+                    PozX = 0,
+                    PozY = 0,
+                    GameProcessId = null
+                };
+                _context.GameBoards.Add(newGameBoardEntry);
+            }
+            await _context.SaveChangesAsync();
 
             try
             {

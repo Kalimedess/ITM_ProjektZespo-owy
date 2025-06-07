@@ -126,7 +126,7 @@ const closeModal = () => {
 };
 
 const joinGame = () => {
-  router.push('/player');
+  router.push(`/player/${code.value}`);
   closeModal();
 };
 

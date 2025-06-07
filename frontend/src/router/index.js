@@ -86,8 +86,14 @@ const router = createRouter({
     },
     {
       path:'/player',
+      name:'player-dashboard-by-token',
+      component: playerdView,
+    },
+    {
+      path:'/player/:teamToken',
       name:'player-dashboard',
       component: playerdView,
+      props:true
     },
     {
       path:'/tempdecisions',

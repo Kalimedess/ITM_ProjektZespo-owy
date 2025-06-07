@@ -17,8 +17,7 @@ namespace backend.Controllers
         {
             _context = context;
         }
-
-        // GET: api/Board/user/5
+        
         [Authorize]        
         [HttpGet("get")]
         
@@ -29,7 +28,7 @@ namespace backend.Controllers
         return Unauthorized();
 
         var boards = await _context.Boards
-        .Where(b => b.UserId == null || b.UserId == userId)
+        .Where(b => b.UserId == userId)
         .ToListAsync();
 
         return Ok(boards);

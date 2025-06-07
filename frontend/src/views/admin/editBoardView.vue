@@ -134,9 +134,8 @@ const arrayToString = (arr) => {
 
 const fetchBoardsFromAPI = async () => {
   try {
-    const response = await apiClient.get(`/api/Board/get`, { withCredentials: true });
+    const response = await apiClient.get(`/api/Board/get`);
     data.boards = response.data;
-    console.log('Pobrane plansze:', JSON.stringify(data.boards, null, 2)); // DEBUG
     if (data.boards.length === 0 && activeView.value === 'edit') {
         toast.info("Brak plansz do edycji, przełączam na dodawanie.");
         activeView.value = 'add';

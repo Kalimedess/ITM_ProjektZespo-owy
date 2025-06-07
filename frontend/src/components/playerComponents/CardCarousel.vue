@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, watch } from 'vue'
+  import { ref, computed, watch} from 'vue'
   import apiClient from '@/assets/plugins/axios';
 
 
@@ -92,14 +92,31 @@
 
   const props = defineProps({
       deckId: {
+          type: Number
+      },
+      gameId: {
+          type: Number
+        },
+        teamId: {
+          type: Number
+        },
+        boardId: {
+            type: Number
+        },
+        gameProcessId: {
+            type: Number
+        },
+        currentBudget: {
           type: Number,
-          default: 1
-      }
+          default: 0
+        }
 
   });
+  
+  const emit = defineEmits(['card-action-completed']);
 
   const deckIdToFetch = computed(() => props.deckId);
-
+  
   async function fetchCards() {
     if (!deckIdToFetch.value) {
       console.log("ID talii nie jest określone.");
@@ -109,7 +126,9 @@
     loading.value = true;
     fetchError.value = null;
     try {
-      const response = await apiClient.get(`/api/deck/${deckIdToFetch.value}/unified-cards`);
+      const response = await apiClient.get(`/api/player/deck/${deckIdToFetch.value}/unified-cards`, {
+        params: { gameId: props.gameId, teamId: props.teamId }
+      });
 
       if (response && response.data && Array.isArray(response.data)) {
         const sortedCards = response.data.sort((a, b) => a.displayOrder - b.displayOrder);
@@ -124,6 +143,9 @@
         cards.value = [];
         currentIndex.value = 0;
       }
+      
+      console.log("Pobrane dane:", JSON.stringify(cards.value, null, 2));
+            
     } catch (error) {
       cards.value = [];
       currentIndex.value = 0;
@@ -134,18 +156,7 @@
     }
   };
 
-  watch(() => props.deckId, (newDeckId, oldDeckId) => {
-      if (newDeckId && newDeckId !== oldDeckId) {
-          fetchCards();
-      } else if (!newDeckId) {
-          cards.value = []; 
-          currentIndex.value = 0;
-      }
-  }, { immediate: true });
-
-  onMounted(() => {
-    fetchCards();
-  });
+ 
 
   const startHold = () => {
     holdTimeout = setTimeout(() => {
@@ -175,15 +186,41 @@
     }
   };
 
-  const sendCardSelection = () => {
+  const sendCardSelection = async () => {
     if (cards.value.length > 0) {
       const selectedCardData = cards.value[currentIndex.value];
-      console.log('Wybrano kartę:', selectedCardData);
+      const selectedCardEnablers = selectedCardData.enablers && Array.isArray(selectedCardData.enablers) && selectedCardData.enablers.length > 0;
+
+      const propsToSend = {
+        gameId: props.gameId,
+        teamId: props.teamId,
+        deckId: props.deckId,
+        boardId: props.boardId,
+        gameProcessId: props.gameProcessId,
+        cost: selectedCardData.cost
+
+    };
+
+      if(!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)){
+        const response = await apiClient.post(`/api/player/success/${selectedCardData.id}`, propsToSend)
+        console.log(response)
+      } else {
+        await apiClient.post(`/api/player/failure/${selectedCardData.id}`, propsToSend)
+      }
+
+      emit('card-action-completed', { 
+        success: true
+      },
+        fetchCards());
       // Tutaj logika wysyłania wybranej karty (np. emit zdarzenia, wywołanie API)
       // np. emit('card-selected', selectedCardData.id); // Wysyłaj oryginalne ID karty
     }
   };
 
-
+ watch(() => props.deckId, (newDeckId, oldDeckId) => {
+      if (newDeckId && newDeckId !== oldDeckId) {
+          fetchCards();
+      }
+  }, { immediate: true });
 
 </script>

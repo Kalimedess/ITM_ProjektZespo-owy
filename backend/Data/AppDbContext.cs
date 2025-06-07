@@ -24,7 +24,6 @@ namespace backend.Data
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<GameBoard> GameBoards { get; set; }
         public DbSet<GameLog> GameLogs { get; set; }
-        public DbSet<GameLogSpec> GameLogSpecs { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<GameProcess> GameProcess { get; set; }
         
@@ -75,13 +74,10 @@ namespace backend.Data
             });   
 
             modelBuilder.Entity<GameBoard>()
-                .HasKey(gb => new { gb.GameId, gb.TeamId });
+                .HasKey(gb => gb.GameBoardId);
 
             modelBuilder.Entity<GameLog>()
-                .HasKey(gl => new { gl.GameId, gl.TeamId });
-
-            modelBuilder.Entity<GameLogSpec>()
-                .HasKey(gs => gs.GameLogSpecId);
+                .HasKey(gl => gl.GameLogId);
 
             modelBuilder.Entity<GameProcess>()
                 .HasKey(gp => gp.GameProcessId);
@@ -184,22 +180,17 @@ namespace backend.Data
                 .WithOne()
                 .HasForeignKey<DecisionWeight>(dw => dw.BoardId);
         //GameLogSpec
-            modelBuilder.Entity<GameLogSpec>()
-                .HasOne(gls => gls.GameLog)
-                .WithMany()
-                .HasForeignKey(gls => new { gls.GameLogId, gls.TeamId });
-
-            modelBuilder.Entity<GameLogSpec>()
+            modelBuilder.Entity<GameLog>()
                 .HasOne(gls => gls.Team)
                 .WithMany()
                 .HasForeignKey(gls => gls.TeamId);
 
-            modelBuilder.Entity<GameLogSpec>()
+            modelBuilder.Entity<GameLog>()
                 .HasOne(gls => gls.Board)
                 .WithMany()
                 .HasForeignKey(gls => gls.BoardId);
 
-            modelBuilder.Entity<GameLogSpec>()
+            modelBuilder.Entity<GameLog>()
                 .HasOne(gls => gls.GameProcess)
                 .WithMany()
                 .HasForeignKey(gls => gls.GameProcessId);
@@ -207,13 +198,13 @@ namespace backend.Data
         //GameBoard
             modelBuilder.Entity<GameBoard>()
                 .HasOne(gb => gb.Team)
-                .WithOne()
-                .HasForeignKey<GameBoard>(gb => gb.TeamId);
+                .WithMany()
+                .HasForeignKey(gb => gb.TeamId);
 
             modelBuilder.Entity<GameBoard>()
                 .HasOne(gb => gb.Game)
-                .WithOne()
-                .HasForeignKey<GameBoard>(gb => gb.GameId);
+                .WithMany()
+                .HasForeignKey(gb => gb.GameId);
 
             modelBuilder.Entity<GameBoard>()
                 .HasOne(gb => gb.GameProcess)
