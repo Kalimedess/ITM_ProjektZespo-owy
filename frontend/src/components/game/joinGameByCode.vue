@@ -167,7 +167,7 @@ const processScanResult = (decodedText) => {
     const url = new URL(decodedText);
     
     if (url.pathname === '/player' || url.pathname.includes('/player')) {
-      router.push('/player');
+      router.push(`/player/${code.value}`);
       closeModal();
     } else {
       scanError.value = 'Kod QR nie prowadzi do gry';

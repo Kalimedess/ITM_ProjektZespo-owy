@@ -37,7 +37,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import apiClient from '@/assets/plugins/axios';
 import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
 
 const licencesData = ref({
@@ -48,7 +48,7 @@ const licencesData = ref({
 
 onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:5023/api/User/licenses', {
+    const response = await apiClient.get('/api/User/licenses', {
       withCredentials: true
     });
 
