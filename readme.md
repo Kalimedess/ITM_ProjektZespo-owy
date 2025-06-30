@@ -37,3 +37,4 @@ Poniżej znajdują się instrukcje jak uruchomić frontend i backend aplikacji:
 
 ### ⚙️ Backend (.NET)
 📘 Instrukcja dostępna tutaj: [Instrukcja](/backend/readme.md)
+=======
