@@ -33,7 +33,7 @@ Projekt znajduje się w fazie aktywnego rozwoju – aktualnie trwa implementacja
 Poniżej znajdują się instrukcje jak uruchomić frontend i backend aplikacji:
 
 ### 🖥️ Frontend (Vue 3)
-📘 Instrukcja dostępna tutaj: [Instrukcja](/frontend/readme.md)
+📘 Instrukcja dostępna tutaj: [Instrukcja](/frontend/README.md)
 
 ### ⚙️ Backend (.NET)
 📘 Instrukcja dostępna tutaj: [Instrukcja](/backend/readme.md)
