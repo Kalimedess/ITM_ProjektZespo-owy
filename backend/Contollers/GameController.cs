@@ -92,8 +92,7 @@ namespace backend.Controllers
             var newGame = new Game
             {
                 GameDesc = gameDto.GameName,
-                GameLongDesc = gameDto.GameDescription,
-                BoardId = gameDto.BoardId,
+                TeamBoardId = gameDto.BoardId,
                 DeckId = gameDto.DeckId,
                 GameStatus = GameStatus.During,
                 UserId = userId,
@@ -125,7 +124,7 @@ namespace backend.Controllers
                 {
                     GameId = newGame.GameId,
                     TeamId = teamInGame.TeamId,
-                    BoardId = newGame.BoardId,
+                    BoardId = newGame.TeamBoardId,
                     PozX = 0,
                     PozY = 0,
                     GameProcessId = null
