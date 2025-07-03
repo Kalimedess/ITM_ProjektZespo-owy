@@ -1,35 +1,27 @@
-# frontend
+# Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Projekt frontendowy oparty na Vue 3 oraz Vite. Poniżej opisano sposób uruchomienia projektu oraz dane testowe do logowania.
 
-## Recommended IDE Setup
+## Wymagania
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Node.js (zalecana najnowsza wersja LTS)
+- npm (menedżer pakietów, instalowany z Node.js)
 
-## Customize configuration
+## Setup projektu
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+Po pobraniu projektu i przejściu do folderu `ITM_ProjektZespo-owy/frontend`, w terminalu (cmd, PowerShell lub innym) należy wykonać poniższe komendy:
 
-## Project Setup
 
-```sh
-npm install
-```
+`npm install`
+`npm run dev`
+Po chwili powinien uruchomić się lokalny serwer deweloperski. Adres IP, pod którym można otworzyć aplikację w przeglądarce, zostanie wyświetlony w terminalu.
 
-### Compile and Hot-Reload for Development
+Dane testowe do logowania
+Aby przetestować działanie panelu logowania, można użyć następujących danych:
 
-```sh
-npm run dev
-```
+    - Email: jan@example.com
+    - Hasło: jankowalski123
+Lub:
 
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+    - Email: anna@example.com
+    - Hasło: annanowak987
