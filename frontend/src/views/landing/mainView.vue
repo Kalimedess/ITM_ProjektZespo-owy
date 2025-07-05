@@ -26,6 +26,21 @@
         </h1>
       </div>
 
+      <div class="flex text-white bg-secondary border border-accent/50  shadow-xl px-4 py-3  rounded-full  mb-11 gap-4">
+        <div @click="currentView =  'game master' "
+          class= "px-4 py-4 rounded-full cursor-pointer"
+          :class="currentView === 'game master' ? 'bg-accent font-semibold shadow-lg shadow-accent/70' : 'bg-transparent transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-accent/70' ">
+          <span class="mr-2">Game Master</span>
+          <font-awesome-icon :icon="faUserGear" class="h-4"/>
+        </div>
+        <div @click="currentView = 'player' "
+          class="px-4 py-4 rounded-full cursor-pointer"
+          :class="currentView === 'player' ? 'bg-accent font-semibold shadow-lg shadow-accent/70' : 'bg-transparent transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-accent/70' ">
+          <span class="mr-2">Gracz</span>
+          <font-awesome-icon :icon="faUser" class="h-4" />
+        </div>
+      </div>
+
       <!--Przycisk do logowania/rejestraci oraz do dołączenia do gry przez kod-->
       <div class="
         w-full space-y-3 sm:space-y-4
@@ -34,10 +49,11 @@
       ">
         <button 
           @click="handleLoginClick"
+          v-if="currentView === 'game master' "
           class="
-            bg-tertiary hover:bg-accent text-white w-full rounded-lg font-medium 
+            bg-tertiary border border-accent/50 hover:bg-accent text-white w-full rounded-3xl font-medium 
             transition-all duration-300 shadow-sm hover:shadow-lg 
-            shadow-accent/40 hover:shadow-accent/60
+            shadow-accent/60 hover:shadow-accent/70
             py-2.5 sm:py-3 md:py-4
             text-sm sm:text-base md:text-md lg:text-lg xl:text-xl
           "
@@ -47,10 +63,10 @@
       
         <button
           @click="showJoinByCode = true" 
+          v-if="currentView === 'player' "
           class="
-            bg-tertiary hover:bg-accent text-white w-full rounded-lg font-medium 
-            transition-all duration-300 shadow-sm hover:shadow-lg 
-            shadow-accent/40 hover:shadow-accent/60
+            bg-tertiary border border-accent/50 hover:bg-accent text-white w-full rounded-3xl font-medium 
+            transition-all duration-300 shadow-sm shadow-accent/60 hover:shadow-lg  hover:shadow-accent/70
             py-2.5 sm:py-3 md:py-4
             text-sm sm:text-base md:text-md lg:text-lg xl:text-xl
           "
@@ -84,11 +100,15 @@ import Navbar from '@/components/navbars/myNavbar.vue';
 import { useAuthStore } from '@/stores/auth';
 import router from '@/router';
 
+ import {faUser,faUserGear} from '@fortawesome/free-solid-svg-icons'
+
 const authStore = useAuthStore();
 
 //Jest to zmienna od której zależy czy formularz logowania/rejestracji jest wyświetlony
 const showAuthModal = ref(false);
 const showJoinByCode = ref(false);
+
+const currentView = ref('player');
 
 onMounted(() => {
   if (sessionStorage.getItem('showLoginAfterRedirect') === 'true') {
