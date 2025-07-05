@@ -108,7 +108,7 @@ const authStore = useAuthStore();
 const showAuthModal = ref(false);
 const showJoinByCode = ref(false);
 
-const currentView = ref('player');
+const currentView = ref('game master');
 
 onMounted(() => {
   if (sessionStorage.getItem('showLoginAfterRedirect') === 'true') {

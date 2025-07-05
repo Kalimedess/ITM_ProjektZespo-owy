@@ -51,7 +51,10 @@
       </div>
       
       <div class="text-xs sm:text-sm text-right">
-        <a href="#" class="text-accent hover:text-purple-300 transition-colors">Zapomniałem hasła</a>
+        <span class="text-accent hover:text-purple-300 transition-colors cursor-pointer"
+        @click="emit('forgotPassword')">
+        Zapomniałem hasła
+      </span>
       </div>
       
       <button 
@@ -81,7 +84,7 @@ import { useAuthStore } from '@/stores/auth';
 const authStore = useAuthStore();
 
 const toast = useToast();
-const emit = defineEmits(['login', 'close']);
+const emit = defineEmits(['login', 'close','forgotPassword']);
 
 const showPassword = ref(false);
 const errorLogin = ref(false);
