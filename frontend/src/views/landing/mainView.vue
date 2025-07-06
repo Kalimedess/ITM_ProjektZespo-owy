@@ -26,6 +26,7 @@
         </h1>
       </div>
 
+      <!--Switch Game Master / Player -->
       <div class="flex text-white bg-secondary border border-accent/50  shadow-xl px-4 py-3  rounded-full  mb-11 gap-4">
         <div @click="currentView =  'game master' "
           class= "px-4 py-4 rounded-full cursor-pointer"

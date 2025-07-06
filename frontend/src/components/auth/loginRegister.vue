@@ -17,18 +17,18 @@
         >
           <font-awesome-icon :icon="faXmark" class="h-5 text-white hover:text-accent transition-all duration-100" />
         </button>
-        <div class="flex mb-1 sm:mb-2 md:mb-3 lg:mb-4 gap-2" v-if="activeView !== 'forgotPassword' ">
+        <div class="flex mb-1 sm:mb-2 md:mb-3 lg:mb-4 gap-3" v-if="activeView !== 'forgotPassword' ">
           <button 
-            class="text-white w-full py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60"
-            :class="activeView === 'login' ? 'bg-accent' : 'bg-tertiary'"
+            class="text-white w-full py-4 rounded-lg font-medium"
+            :class="activeView === 'login' ? 'bg-accent font-semibold shadow-lg shadow-accent/70' : 'bg-tertiary transition delay-150 duration-300 ease-in-out hover:-translate-y-2 hover:scale-105 hover:bg-accent/70'"
             @click="activeView = 'login'"
           >
             Logowanie
           </button> 
 
           <button 
-            class="text-white w-full py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60"
-            :class="activeView === 'register' ? 'bg-accent' : 'bg-tertiary'"
+            class="text-white w-full py-4 rounded-lg font-medium"
+            :class="activeView === 'register' ? 'bg-accent font-semibold shadow-lg shadow-accent/70' : 'bg-tertiary transition delay-150 duration-300 ease-in-out hover:-translate-y-2 hover:scale-105 hover:bg-accent/70'"
             @click="activeView = 'register'"
           >
             Rejestracja
@@ -51,7 +51,7 @@
           class="animate-fade-right"
         />
 
-        <ForgotPassword 
+        <ForgotPassword  
           v-if="activeView === 'forgotPassword'"
           @back-to-login="handleBackToLogin"
         />
