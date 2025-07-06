@@ -68,17 +68,19 @@
       
 
         <button 
-            @click="handleSendEmailAgain"
+            @click="handleSendEmail"
             class="
-            bg-tertiary hover:bg-accent text-white w-full rounded-lg font-medium 
-            transition-all duration-300 shadow-sm hover:shadow-lg 
-            shadow-accent/40 hover:shadow-accent/60
+            bg-tertiary  text-white w-full rounded-lg font-medium 
+            transition-all duration-300 shadow-sm
+            shadow-accent/40
             py-2.5 sm:py-3 
             text-sm sm:text-base md:text-lg
             mt-5
             "
+            :class="canResend ? 'hover:shadow-lg hover:shadow-accent/60 hover:bg-accent' : '' "
+            :disabled="!canResend"
         >
-            Wyślij ponownie
+            {{ canResend ? 'Wyślij ponownie' : `Wyślij ponownie ${countdown}s` }}
         </button>
     </div>
 
@@ -92,6 +94,10 @@
 
     const email = ref('');
     const isEmailSent = ref(false);
+    const canResend = ref(true);
+    const countdown = ref(0);
+
+
     import { faEnvelopeCircleCheck,faUserLock } from '@fortawesome/free-solid-svg-icons';
     ;
 
@@ -99,13 +105,28 @@
 
     const handleSendEmail = () => {
 
-        //Sprawdzenie czy użytkownik z takim e-mailem istnieje itp.
+        //Sprawdzenie czy użytkownik z takim e-mailem istnieje itp. i samo wysłanie maila jeżeli wszystko okej to przechodzi dalej
 
-        isEmailSent.value = true;
+        if(!isEmailSent.value){
+            isEmailSent.value = true;
+        }
+
+        startCooldown();
     }
 
-    const handleSendEmailAgain = () => {
 
+    const startCooldown = () => {
+
+        canResend.value = false;
+        countdown.value = 60;
+
+        const timer = setInterval(() => {
+            countdown.value--;
+            if (countdown.value <= 0) {
+                canResend.value = true;
+                clearInterval(timer);
+            }
+        }, 1000);
     }
 
 </script>
