@@ -63,7 +63,7 @@ namespace backend.Controllers
 
             var allRelevantEnablers = await _context.DecisionEnablers
                 .Select(de => new { de.CardId, de.EnablerId })
-                .Where(de => !playedCardIds.Contains(de.EnablerId))
+                .Where(de => de.EnablerId.HasValue && !playedCardIds.Contains(de.EnablerId.Value))
                 .ToListAsync();
 
             var enablersMap = allRelevantEnablers
@@ -103,16 +103,24 @@ namespace backend.Controllers
                 .ToList();
 
             var unifiedCards = allCardsTemp
-                .Select((c, index) => new UnifiedCardDto
-                {
-                    Id = c.CardId,
-                    DeckId = deckId,
-                    DisplayOrder = index + 1,
-                    Title = c.Title,
-                    Description = c.Description,
-                    CardType = c.Type,
-                    Cost = c.Cost,
-                    Enablers = enablersMap.TryGetValue(c.CardId, out var enablerList) ? enablerList : new List<int>()
+                .Select((c, index) => {
+                    List<int> enablersForCard = new List<int>();
+                    if (enablersMap.TryGetValue(c.CardId, out var enablerList))
+                    {
+                        enablersForCard = enablerList.Where(id => id.HasValue).Select(id => id.Value).ToList();
+                    }
+
+                    return new UnifiedCardDto
+                    {
+                        Id = c.CardId,
+                        DeckId = deckId,
+                        DisplayOrder = index + 1,
+                        Title = c.Title,
+                        Description = c.Description,
+                        CardType = c.Type,
+                        Cost = c.Cost,
+                        Enablers = enablersForCard
+                    };
                 })
                 .ToList();
 
@@ -136,7 +144,7 @@ namespace backend.Controllers
                 .Include(t => t.Game)
                     .ThenInclude(g => g.Deck) // Talia używana w grze
                 .Include(t => t.Game)
-                    .ThenInclude(g => g.Board) // Plansza używana w grze
+                    .ThenInclude(g => g.GameBoards) // Plansza używana w grze
                 .FirstOrDefaultAsync(t => t.TeamToken == teamToken);
 
             Console.Write("Znaleziono drużynę");
@@ -172,7 +180,7 @@ namespace backend.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Błąd konfiguracji gry: Brak danych talii." });
             }
-            if (team.Game.Board == null)
+            if (team.Game.GameBoards == null)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Błąd konfiguracji gry: Brak danych planszy." });
             }
@@ -196,19 +204,21 @@ namespace backend.Controllers
                 deckId = team.Game.DeckId,
                 deckName = team.Game.Deck.DeckName,
 
+                
+
                 boardConfig = new
                 {
-                    boardId = team.Game.Board.BoardId,
-                    Name = team.Game.Board.Name,
-                    LabelsUp = team.Game.Board.LabelsUp?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
-                    LabelsRight = team.Game.Board.LabelsRight?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
-                    DescriptionDown = team.Game.Board.DescriptionDown,
-                    DescriptionLeft = team.Game.Board.DescriptionLeft,
-                    Rows = team.Game.Board.Rows,
-                    Cols = team.Game.Board.Cols,
-                    CellColor = team.Game.Board.CellColor,
-                    BorderColor = team.Game.Board.BorderColor,
-                    BorderColors = team.Game.Board.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
+                    boardId = gameBoardState.BoardId, 
+                    Name = team.Game.TeamBoard.Name,
+                    LabelsUp = team.Game.TeamBoard.LabelsUp?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                    LabelsRight = team.Game.TeamBoard.LabelsRight?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                    DescriptionDown = team.Game.TeamBoard.DescriptionDown,
+                    DescriptionLeft = team.Game.TeamBoard.DescriptionLeft,
+                    Rows = team.Game.TeamBoard.Rows,
+                    Cols = team.Game.TeamBoard.Cols,
+                    CellColor = team.Game.TeamBoard.CellColor,
+                    BorderColor = team.Game.TeamBoard.BorderColor,
+                    BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
                 },
 
                 // currentTurn = team.Game.CurrentTurn, // Jeśli Game ma takie pole
@@ -299,9 +309,7 @@ namespace backend.Controllers
                 Cost = data.Cost,
                 Status = wasSuccess,
                 MoveX = 0,
-                MoveY = 0,
-                BoostX = 0,
-                BoostY = 0
+                MoveY = 0
             };
             _context.GameLogs.Add(gameLogEntry);
 

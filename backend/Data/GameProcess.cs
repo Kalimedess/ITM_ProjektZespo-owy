@@ -8,9 +8,11 @@ namespace backend.Data
         public int GameProcessId { get; set; }
         [MaxLength(100)]
         public string ProcessDesc { get; set; } = string.Empty;
-        [Column(TypeName = "TEXT")]
-        public string ProcessLongDesc { get; set; } = string.Empty;
+
+        public int? GameId { get; set; }
+        public Game? Game { get; set; }
+
+        public int? TeamId { get; set; }
+        public Team? Team { get; set; }
     }
 }
-
-

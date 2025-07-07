@@ -72,7 +72,16 @@ namespace backend.Initializers
 
                     if (entityType == typeof(DecisionEnabler) && instance is DecisionEnabler de)
                     {
-                        if (!trackedCards.ContainsKey(de.CardId) || !trackedCards.ContainsKey(de.EnablerId)) continue;
+                        if (!trackedCards.ContainsKey(de.CardId))
+                        {
+                            continue;
+                        }
+
+                        if (de.EnablerId.HasValue && !trackedCards.ContainsKey(de.EnablerId.Value))
+                        {
+                            continue;
+                        }
+
                     }
 
                     if (entityType == typeof(DecisionWeight) && instance is DecisionWeight dw)
