@@ -7,9 +7,9 @@ namespace backend.Data
     {
         public int FeedbackId { get; set; }
         public int CardId { get; set; }
-        public Card Card { get; set; }
+        public Card Card { get; set; } = null!;
         public int DeckId { get; set; }
-        public Deck Deck { get; set; }
+        public Deck Deck { get; set; } = null!;
         public bool Status { get; set; }
         [Column(TypeName = "TEXT")]
         public string LongDescription { get; set; } = string.Empty;

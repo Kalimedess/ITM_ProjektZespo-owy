@@ -1,17 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+// Upewnij się, że masz tutaj odpowiednie usingi do swoich modeli, np.:
+using backend.Data;
 
 namespace backend.Data
 {
     public class AppDbContext : DbContext
     {
-        private readonly IConfiguration _configuration;
-
-        public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration configuration) 
-            : base(options) 
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+            : base(options)
         {
-            _configuration = configuration;
         }
 
+        // DbSets
         public DbSet<User> Users { get; set; }
         public DbSet<Board> Boards { get; set; }
         public DbSet<Game> Games { get; set; }
@@ -26,252 +26,247 @@ namespace backend.Data
         public DbSet<GameLog> GameLogs { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<GameProcess> GameProcess { get; set; }
-        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
 
-            // Klucze Główne
-            modelBuilder.Entity<User>()
-                .HasKey(u => u.UserId);
+            // User Configuration
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(u => u.UserId);
+            });
 
-            modelBuilder.Entity<Decision>()
-                .HasKey(d => d.DecisionId);
+            // Board Configuration
+            modelBuilder.Entity<Board>(entity =>
+            {
+                entity.HasKey(b => b.BoardId);
 
-            modelBuilder.Entity<DecisionWeight>()
-                .HasKey(dw => dw.DecisionWeightId);
+                entity.HasOne(b => b.User)
+                      .WithMany()
+                      .HasForeignKey(b => b.UserId);
+            });
+            
+            // Deck Configuration
+            modelBuilder.Entity<Deck>(entity =>
+            {
+                entity.HasKey(d => d.DeckId);
 
-            modelBuilder.Entity<DecisionEnabler>()
-                .HasKey(de => de.DecisionEnablerId);
+                entity.HasOne(d => d.User)
+                      .WithOne()
+                      .HasForeignKey<Deck>(d => d.UserId);
+            });
 
+            // Card Configuration
+            modelBuilder.Entity<Card>(entity =>
+            {
+                entity.HasKey(c => c.CardId);
+                entity.Property(c => c.CardType).HasConversion<string>();
+
+                entity.HasMany(c => c.DecisionEnablers)
+                      .WithOne(de => de.Card)
+                      .HasForeignKey(de => de.CardId);
+
+                entity.HasMany(c => c.DecisionEnablerOfThis)
+                      .WithOne(de => de.CardEnabler)
+                      .HasForeignKey(de => de.EnablerId);
+            });
+            
+            // Game Configuration
             modelBuilder.Entity<Game>(entity =>
             {
-                entity.HasKey(ga => ga.GameId);
+                entity.HasKey(g => g.GameId);
+                entity.Property(g => g.GameId).ValueGeneratedOnAdd();
 
-                entity.Property(g => g.GameId)
-                      .ValueGeneratedOnAdd();
+                entity.Property(g => g.GameStatus)
+                      .HasConversion<string>()
+                      .IsRequired(false);
 
+                // Foreign Keys
                 entity.HasOne(g => g.User)
                       .WithMany()
                       .HasForeignKey(g => g.UserId);
-            
+
                 entity.HasOne(g => g.Deck)
                       .WithMany()
                       .HasForeignKey(g => g.DeckId);
 
-                entity.HasOne(g => g.Board)
+                // --- POPRAWKA: Poprawna konfiguracja dwóch relacji do plansz (Board) ---
+                entity.HasOne(g => g.TeamBoard)
+                      .WithMany() // Zakładając, że jedna plansza może być użyta w wielu grach
+                      .HasForeignKey(g => g.TeamBoardId);
+                
+                entity.HasOne(g => g.RivalBoard)
                       .WithMany()
-                      .HasForeignKey(g => g.BoardId);
+                      .HasForeignKey(g => g.RivalBoardId);
 
+                // Relationships to other entities that reference Game
                 entity.HasMany(g => g.Teams)
                       .WithOne(t => t.Game)
                       .HasForeignKey(t => t.GameId)
                       .OnDelete(DeleteBehavior.Cascade);
                 
-                entity.Property(g => g.GameStatus)
-                      .HasConversion<string>()
-                      .IsRequired(false);
-            });   
-
-            modelBuilder.Entity<GameBoard>()
-                .HasKey(gb => gb.GameBoardId);
-
-            modelBuilder.Entity<GameLog>()
-                .HasKey(gl => gl.GameLogId);
-
-            modelBuilder.Entity<GameProcess>()
-                .HasKey(gp => gp.GameProcessId);
-
-            modelBuilder.Entity<Item>()
-                .HasKey(it => it.ItemsId);
-
-            modelBuilder.Entity<Team>(entity =>
-            {
-                entity.HasKey(tm => tm.TeamId);
-
-                entity.Property(t => t.TeamId)
-                      .ValueGeneratedOnAdd();
-
+                entity.HasMany(g => g.GameBoards)
+                      .WithOne(gb => gb.Game)
+                      .HasForeignKey(gb => gb.GameId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                      
+                entity.HasMany(g => g.GameLogs)
+                      .WithOne(gl => gl.Game)
+                      .HasForeignKey(gl => gl.GameId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // Team Configuration
+            modelBuilder.Entity<Team>(entity =>
+            {
+                entity.HasKey(t => t.TeamId);
+                entity.Property(t => t.TeamId).ValueGeneratedOnAdd();
+            });
 
+            // GameBoard Configuration
+            modelBuilder.Entity<GameBoard>(entity =>
+            {
+                entity.HasKey(gb => gb.GameBoardId);
 
-            modelBuilder.Entity<Card>()
-                .HasKey(c => c.CardId);
+                entity.HasOne(gb => gb.Team)
+                      .WithMany()
+                      .HasForeignKey(gb => gb.TeamId);
 
-            base.OnModelCreating(modelBuilder);
+                entity.HasOne(gb => gb.GameProcess)
+                      .WithMany()
+                      .HasForeignKey(gb => gb.GameProcessId);
+                
+                entity.HasOne(gb => gb.Board)
+                      .WithMany()
+                      .HasForeignKey(gb => gb.BoardId);
+            });
 
-    // Klucze Obce
-        //Deck
-            modelBuilder.Entity<Deck>()
-                .HasOne(d => d.User)
-                .WithOne()
-                .HasForeignKey<Deck>(d => d.UserId);
-        //Cards
-            modelBuilder.Entity<Card>()
-                .HasMany(c => c.DecisionEnablers)
-                .WithOne(de => de.Card)
-                .HasForeignKey(de => de.CardId)
-                .HasPrincipalKey(c => c.CardId);
-            modelBuilder.Entity<Card>()
-                .HasMany(c => c.DecisionEnablerOfThis)
-                .WithOne(de => de.CardEnabler)
-                .HasForeignKey(de => de.EnablerId)
-                .HasPrincipalKey(c => c.CardId);
+            // GameLog Configuration
+            modelBuilder.Entity<GameLog>(entity =>
+            {
+                entity.HasKey(gl => gl.GameLogId);
 
-        //Games
-            modelBuilder.Entity<Game>()
-                .HasOne(g => g.User)
-                .WithMany()
-                .HasForeignKey(g => g.UserId);
+                entity.HasOne(gl => gl.Team)
+                      .WithMany()
+                      .HasForeignKey(gl => gl.TeamId);
+
+                entity.HasOne(gl => gl.Card)
+                      .WithMany()
+                      .HasForeignKey(gl => gl.CardId);
+                
+                entity.HasOne(gl => gl.Deck)
+                      .WithMany()
+                      .HasForeignKey(gl => gl.DeckId);
+
+                entity.HasOne(gl => gl.Feedback)
+                      .WithMany()
+                      .HasForeignKey(gl => gl.FeedbackId);
+                
+                entity.HasOne(gl => gl.Board)
+                      .WithMany()
+                      .HasForeignKey(gl => gl.BoardId);
+
+                entity.HasOne(gl => gl.GameProcess)
+                      .WithMany()
+                      .HasForeignKey(gl => gl.GameProcessId);
+            });
+
+            // Decision Configuration
+            modelBuilder.Entity<Decision>(entity =>
+            {
+                entity.HasKey(d => d.DecisionId);
+
+                entity.HasOne(d => d.Deck)
+                      .WithMany(deck => deck.Decisions)
+                      .HasForeignKey(d => d.DeckId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Card)
+                      .WithMany()
+                      .HasForeignKey(d => d.CardId);
+            });
+
+            // DecisionWeight Configuration
+            modelBuilder.Entity<DecisionWeight>(entity =>
+            {
+                entity.HasKey(dw => dw.DecisionWeightId);
+                entity.HasIndex(dw => dw.BoardId).IsUnique(false);
+
+                entity.HasOne(dw => dw.Card)
+                      .WithMany()
+                      .HasForeignKey(dw => dw.CardId);
+                
+                // --- POPRAWKA: Dodana brakująca relacja do Deck ---
+                entity.HasOne(dw => dw.Deck)
+                      .WithMany()
+                      .HasForeignKey(dw => dw.DeckId);
+                
+                // Relacja z Board - jeśli Board może mieć wiele DecisionWeight, zmień .WithOne() na .WithMany()
+                entity.HasOne(dw => dw.Board)
+                      .WithOne()
+                      .HasForeignKey<DecisionWeight>(dw => dw.BoardId);
+            });
             
-            modelBuilder.Entity<Game>()
-                .HasOne(g => g.Deck)
-                .WithMany()
-                .HasForeignKey(g => g.DeckId);
+            // DecisionEnabler Configuration
+            modelBuilder.Entity<DecisionEnabler>(entity =>
+            {
+                entity.HasKey(de => de.DecisionEnablerId);
+                
+                // --- POPRAWKA: Dodano konfigurację relacji, które nie są częścią Card ---
+                entity.HasOne(de => de.Game)
+                      .WithMany()
+                      .HasForeignKey(de => de.GameId);
+                      
+                entity.HasOne(de => de.Team)
+                      .WithMany()
+                      .HasForeignKey(de => de.TeamId);
+            });
 
-            modelBuilder.Entity<Game>()
-                .HasOne(g => g.Board)
-                .WithMany()
-                .HasForeignKey(g => g.BoardId);
-        //GameLogs
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gl => gl.Game)
-                .WithMany()
-                .HasForeignKey(gl => gl.GameId);
+            // Feedback Configuration
+            modelBuilder.Entity<Feedback>(entity =>
+            {
+                entity.HasKey(f => f.FeedbackId);
 
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gl => gl.Team)
-                .WithMany()
-                .HasForeignKey(gl => gl.TeamId);
+                entity.HasOne(f => f.Deck)
+                      .WithMany(deck => deck.Feedbacks)
+                      .HasForeignKey(f => f.DeckId)
+                      .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gl => gl.Card)
-                .WithMany()
-                .HasForeignKey(gl => gl.CardId);
-            
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gl => gl.Deck)
-                .WithMany()
-                .HasForeignKey(gl => gl.DeckId);
+                entity.HasOne(f => f.Card)
+                      .WithMany()
+                      .HasForeignKey(f => f.CardId);
+            });
 
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gl => gl.Feedback)
-                .WithMany()
-                .HasForeignKey(gl => gl.FeedbackId);
-        //Decisions
-            modelBuilder.Entity<Decision>()
-                .HasOne(decision => decision.Deck)
-                .WithMany(deck => deck.Decisions)
-                .HasForeignKey(decision => decision.DeckId)
-                .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Decision>()
-                .HasOne(d => d.Card)
-                .WithMany()
-                .HasForeignKey(d => d.CardId);
-        //DecisionWeights
-            modelBuilder.Entity<DecisionWeight>()
-                .HasOne(dw => dw.Card)
-                .WithMany()
-                .HasForeignKey(dw => dw.CardId)
-                .HasPrincipalKey(c => c.CardId);
-            modelBuilder.Entity<DecisionWeight>()
-                .HasOne(dw => dw.Board)
-                .WithOne()
-                .HasForeignKey<DecisionWeight>(dw => dw.BoardId);
-        //GameLogSpec
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gls => gls.Team)
-                .WithMany()
-                .HasForeignKey(gls => gls.TeamId);
+            // Item Configuration
+            modelBuilder.Entity<Item>(entity =>
+            {
+                entity.HasKey(i => i.ItemsId);
 
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gls => gls.Board)
-                .WithMany()
-                .HasForeignKey(gls => gls.BoardId);
+                entity.HasOne(i => i.Deck)
+                      .WithMany(deck => deck.Items)
+                      .HasForeignKey(i => i.DeckId)
+                      .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<GameLog>()
-                .HasOne(gls => gls.GameProcess)
-                .WithMany()
-                .HasForeignKey(gls => gls.GameProcessId);
+                entity.HasOne(i => i.Card)
+                      .WithMany()
+                      .HasForeignKey(i => i.CardId);
+            });
 
-        //GameBoard
-            modelBuilder.Entity<GameBoard>()
-                .HasOne(gb => gb.Team)
-                .WithMany()
-                .HasForeignKey(gb => gb.TeamId);
-
-            modelBuilder.Entity<GameBoard>()
-                .HasOne(gb => gb.Game)
-                .WithMany()
-                .HasForeignKey(gb => gb.GameId);
-
-            modelBuilder.Entity<GameBoard>()
-                .HasOne(gb => gb.GameProcess)
-                .WithMany()
-                .HasForeignKey(gb => gb.GameProcessId);
-            
-            modelBuilder.Entity<GameBoard>()
-                .HasOne(gb => gb.Board)
-                .WithMany()
-                .HasForeignKey(gb => gb.BoardId);
-        //Feedback
-            modelBuilder.Entity<Feedback>()
-                .HasOne(fb => fb.Card)
-                .WithMany()
-                .HasForeignKey(fb => fb.CardId);
-            modelBuilder.Entity<Feedback>()
-                .HasOne(feedback => feedback.Deck)
-                .WithMany(deck => deck.Feedbacks)
-                .HasForeignKey(feedback => feedback.DeckId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-        // Board
-            modelBuilder.Entity<Board>()
-                .HasOne(b => b.User)
-                .WithMany()
-                .HasForeignKey(b => b.UserId);
-
-        //Item
-            modelBuilder.Entity<Item>()
-                .HasOne(i => i.Card)
-                .WithMany()
-                .HasForeignKey(i =>i.CardId);
-            modelBuilder.Entity<Item>()
-                .HasOne(item => item.Deck)
-                .WithMany(deck => deck.Items)
-                .HasForeignKey(item => item.DeckId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-    //Inne
-            modelBuilder.Entity<Card>()
-                .Property(c => c.CardType)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Game>()
-                .Property(g => g.GameStatus)
-                .HasConversion<string>()
-                .IsRequired(false);
-
-            modelBuilder.Entity<DecisionWeight>()
-                .HasIndex(dw => dw.BoardId)
-                .IsUnique(false);
-        
+            // GameProcess Configuration
+            modelBuilder.Entity<GameProcess>(entity =>
+            {
+                entity.HasKey(gp => gp.GameProcessId);
+                
+                // --- POPRAWKA: Dodano brakującą konfigurację relacji ---
+                entity.HasOne(gp => gp.Game)
+                      .WithMany() // Zakładając, że gra może mieć wiele procesów
+                      .HasForeignKey(gp => gp.GameId);
+                      
+                entity.HasOne(gp => gp.Team)
+                      .WithMany() // Zakładając, że drużyna może mieć wiele procesów
+                      .HasForeignKey(gp => gp.TeamId);
+            });
         }
-
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-{
-    if (!optionsBuilder.IsConfigured)
-    {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .Build();
-
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-    }
-}
     }
 }
