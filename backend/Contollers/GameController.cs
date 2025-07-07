@@ -4,20 +4,30 @@ using backend.Data;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
+
+public class ProcessDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string ShortName { get; set; } = string.Empty;
+}
 public class TeamDto
 {
     public string Name { get; set; } = string.Empty;
     public string Colour { get; set; } = string.Empty;
+    public bool IsAbleToMakeDecisions { get; set; }
+    
 }
 public class CreateGameDto
 {
     public string GameName { get; set; } = string.Empty;
-    public string GameDescription { get; set; } = string.Empty;
     public int BoardId { get; set; }
+    public int RivalBoardId { get; set; }
     public int DeckId { get; set; }
+    public bool GameMode { get; set; }
     public int NumberOfTeams { get; set; }
     public int StartBits { get; set; }
     public List<TeamDto> Teams { get; set; } = new List<TeamDto>();
+    public List<ProcessDto> Process { get; set; } = new List<ProcessDto>();
 }
 
 public class GameListItemDto
@@ -72,30 +82,15 @@ namespace backend.Controllers
                 return BadRequest(new { message = "Brak dostępnych licencji do utworzenia nowej gry." });
             }
 
-            var boardExists = await _context.Boards.AnyAsync(b => b.BoardId == gameDto.BoardId);
-            if (!boardExists)
-            {
-                return BadRequest($"Plansza o ID {gameDto.BoardId} nie istnieje.");
-            }
-
-            var deckExists = await _context.Decks.AnyAsync(d => d.DeckId == gameDto.DeckId);
-            if (!deckExists)
-            {
-                return BadRequest($"Talia o ID {gameDto.DeckId} nie istnieje.");
-            }
-
-            if (gameDto.Teams == null || gameDto.Teams.Count != gameDto.NumberOfTeams || gameDto.Teams.Count < 1 || gameDto.Teams.Count > 15)
-            {
-                return BadRequest("Nieprawidłowe dane drużyn lub niezgodna liczba drużyn.");
-            }
-
             var newGame = new Game
             {
                 GameDesc = gameDto.GameName,
                 TeamBoardId = gameDto.BoardId,
+                RivalBoardId = gameDto.RivalBoardId,
                 DeckId = gameDto.DeckId,
                 GameStatus = GameStatus.During,
                 UserId = userId,
+                IsOnline = gameDto.GameMode,
                 Teams = new List<Team>()
             };
 
@@ -107,31 +102,62 @@ namespace backend.Controllers
                     TeamName = teamDto.Name,
                     TeamColor = teamDto.Colour,
                     TeamBud = gameDto.StartBits,
-                    TeamToken = TokenGenerator.GenerateRandomAlphanumericToken(6)
+                    TeamToken = TokenGenerator.GenerateRandomAlphanumericToken(6),
+                    IsIndependent= teamDto.IsAbleToMakeDecisions,
+                    GameProcesses = new List<GameProcess>()
                 };
+
+                foreach (var processDto in gameDto.Process)
+                {
+                    var newProcess = new GameProcess
+                    {
+                        ProcessDesc = processDto.ShortName,
+                        ProcessLongDesc = processDto.Name,
+                        Team = gameTeam,
+                        Game = newGame,
+                        
+                        
+                    };
+                    gameTeam.GameProcesses.Add(newProcess);
+                }
                 newGame.Teams.Add(gameTeam);
             }
 
             _context.Games.Add(newGame);
+            await _context.SaveChangesAsync();
+
+            var gameBoardsToCreate = new List<GameBoard>();
+             foreach (var team in newGame.Teams)
+            {
+                // a) Stwórz 5 wpisów dla planszy głównej, po jednym dla każdego z unikalnych procesów tej drużyny
+                foreach (var process in team.GameProcesses)
+                {
+                    gameBoardsToCreate.Add(new GameBoard
+                    {
+                        GameId = newGame.GameId,
+                        TeamId = team.TeamId,
+                        BoardId = newGame.TeamBoardId,
+                        GameProcessId = process.GameProcessId,
+                        PozX = 0,
+                        PozY = 0
+                    });
+                }
+        
+                // b) Stwórz 1 wpis dla planszy konkurencji (bez procesu)
+                gameBoardsToCreate.Add(new GameBoard
+                {
+                    GameId = newGame.GameId,
+                    TeamId = team.TeamId,
+                    BoardId = newGame.RivalBoardId,
+                    GameProcessId = null,
+                    PozX = 0,
+                    PozY = 0
+                });
+            }
+            await _context.GameBoards.AddRangeAsync(gameBoardsToCreate);
 
             user.LicensesOwned--;
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-
-            foreach (var teamInGame in newGame.Teams)
-            {
-                var newGameBoardEntry = new GameBoard
-                {
-                    GameId = newGame.GameId,
-                    TeamId = teamInGame.TeamId,
-                    BoardId = newGame.TeamBoardId,
-                    PozX = 0,
-                    PozY = 0,
-                    GameProcessId = null
-                };
-                _context.GameBoards.Add(newGameBoardEntry);
-            }
-            await _context.SaveChangesAsync();
 
             try
             {

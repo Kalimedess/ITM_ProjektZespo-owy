@@ -105,6 +105,11 @@ namespace backend.Data
                       .WithOne(t => t.Game)
                       .HasForeignKey(t => t.GameId)
                       .OnDelete(DeleteBehavior.Cascade);
+                  
+                entity.HasMany(g => g.GameProcesses)
+                      .WithOne(p => p.Game)
+                      .HasForeignKey(p => p.GameId)
+                      .OnDelete(DeleteBehavior.Restrict);
                 
                 entity.HasMany(g => g.GameBoards)
                       .WithOne(gb => gb.Game)
@@ -120,8 +125,12 @@ namespace backend.Data
             // Team Configuration
             modelBuilder.Entity<Team>(entity =>
             {
-                entity.HasKey(t => t.TeamId);
-                entity.Property(t => t.TeamId).ValueGeneratedOnAdd();
+                  entity.HasKey(t => t.TeamId);
+                  entity.Property(t => t.TeamId).ValueGeneratedOnAdd();
+                  entity.HasMany(t => t.GameProcesses)
+                      .WithOne(p => p.Team)
+                      .HasForeignKey(p => p.TeamId)
+                      .OnDelete(DeleteBehavior.Cascade); 
             });
 
             // GameBoard Configuration
@@ -253,20 +262,6 @@ namespace backend.Data
                       .HasForeignKey(i => i.CardId);
             });
 
-            // GameProcess Configuration
-            modelBuilder.Entity<GameProcess>(entity =>
-            {
-                entity.HasKey(gp => gp.GameProcessId);
-                
-                // --- POPRAWKA: Dodano brakującą konfigurację relacji ---
-                entity.HasOne(gp => gp.Game)
-                      .WithMany() // Zakładając, że gra może mieć wiele procesów
-                      .HasForeignKey(gp => gp.GameId);
-                      
-                entity.HasOne(gp => gp.Team)
-                      .WithMany() // Zakładając, że drużyna może mieć wiele procesów
-                      .HasForeignKey(gp => gp.TeamId);
-            });
         }
     }
 }

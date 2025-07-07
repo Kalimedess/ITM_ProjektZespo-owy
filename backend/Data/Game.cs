@@ -18,7 +18,7 @@ namespace backend.Data
 
         public int DeckId { get; set; }
         public Deck Deck { get; set; }
-        
+
         public int UserId { get; set; }
         public User User { get; set; }
 
@@ -26,10 +26,11 @@ namespace backend.Data
         public GameStatus? GameStatus { get; set; }
 
         public bool IsOnline { get; set; }
-        
+
         public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
         public virtual ICollection<GameBoard> GameBoards { get; set; } = new List<GameBoard>();
         public virtual ICollection<GameLog> GameLogs { get; set; } = new List<GameLog>();
+        public virtual ICollection<GameProcess> GameProcesses { get; set; } = new List<GameProcess>();
     }
 
     public enum GameStatus

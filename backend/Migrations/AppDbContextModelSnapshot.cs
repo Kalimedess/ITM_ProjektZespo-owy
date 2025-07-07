@@ -422,15 +422,20 @@ namespace backend.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameProcessId"));
 
-                    b.Property<int?>("GameId")
+                    b.Property<int>("GameId")
                         .HasColumnType("int");
 
                     b.Property<string>("ProcessDesc")
                         .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("ProcessLongDesc")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int?>("TeamId")
+                    b.Property<int>("TeamId")
                         .HasColumnType("int");
 
                     b.HasKey("GameProcessId");
@@ -491,7 +496,7 @@ namespace backend.Migrations
                     b.Property<int>("GameId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsSuggested")
+                    b.Property<bool>("IsIndependent")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int>("TeamBud")
@@ -796,12 +801,16 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Data.GameProcess", b =>
                 {
                     b.HasOne("backend.Data.Game", "Game")
-                        .WithMany()
-                        .HasForeignKey("GameId");
+                        .WithMany("GameProcesses")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("backend.Data.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId");
+                        .WithMany("GameProcesses")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Game");
 
@@ -860,7 +869,14 @@ namespace backend.Migrations
 
                     b.Navigation("GameLogs");
 
+                    b.Navigation("GameProcesses");
+
                     b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("backend.Data.Team", b =>
+                {
+                    b.Navigation("GameProcesses");
                 });
 #pragma warning restore 612, 618
         }
