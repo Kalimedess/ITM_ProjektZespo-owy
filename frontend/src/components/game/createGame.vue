@@ -540,7 +540,7 @@
       BoardId: selectedBoardId.value,
       RivalBoardId: selectedOponentBoardId.value,
       DeckId: selectedDeckId.value,
-      GameMode: selectedGameMode.value, // Rodzaj rozgrywki zdalna / stacjonarna
+      GameMode: selectedGameMode.value === 'stationary' ? false : true, // Rodzaj rozgrywki zdalna / stacjonarna
       NumberOfTeams: numberOfTeams.value,
       StartBits: Number(numberOfBits.value),
       Teams: teams.value.map(team => ({
