@@ -8,13 +8,12 @@ namespace backend.Data
         public int CardId { get; set; }
         [Column(TypeName ="ENUM('Decision', 'Item')")]
         public CardType CardType { get; set; }
-
-        public ICollection<DecisionEnabler> DecisionEnablers { get; set; }
-        public ICollection<DecisionEnabler> DecisionEnablerOfThis  { get; set; }
-        
+        public ICollection<DecisionEnabler> DecisionEnablers { get; set; } = new List<DecisionEnabler>();
+        public ICollection<DecisionEnabler> DecisionEnablerOfThis  { get; set; } = new List<DecisionEnabler>();
     }
+    
     public enum CardType { 
         Decision,
-         Item
+        Item
     }
 }
