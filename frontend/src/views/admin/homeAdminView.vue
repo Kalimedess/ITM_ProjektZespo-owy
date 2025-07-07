@@ -88,6 +88,7 @@
     if (response.data && response.data.newStatus) {
         gameToUpdate.status = response.data.newStatus;
         toast.success(response.data.message || `Status gry ${gameToUpdate.name} zaktualizowany.`);
+        await fetchActiveGames();
     } else {
         await fetchActiveGames();
         toast.success(`Status gry ${gameToUpdate.name} zaktualizowany (lista odświeżona).`);
