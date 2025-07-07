@@ -16,16 +16,20 @@
 
       <div class="flex flex-row justify-center space-x-2">
         <div class="rounded-full bg-accent h-3 w-3"></div>
-        <div class="rounded-full h-3 w-3" :class="step === 2 ? 'bg-accent' : 'bg-tertiary'"></div>
+        <div class="rounded-full h-3 w-3" :class="step >= 2 ? 'bg-accent' : 'bg-tertiary'"></div>
+        <div class="rounded-full h-3 w-3" :class="step === 3 ? 'bg-accent' : 'bg-tertiary'"></div>
       </div>
 
       <!--Krok 1-->
       <form class="mt-3" @submit.prevent="handleSubmit">
         <div v-if="step === 1" :class="direction === 'backwards' ? 'animate-fade-left' : ''">
+
+          <!--Nazwa Gry-->
           <div class="space-y-1 mb-1 sm:mb-2">
             <label for="gameName" class="block font-bold text-left text-xs sm:text-sm">Nazwa Gry</label>
             <input 
-              type="text" 
+              type="text"
+              maxlength="25" 
               v-model="gameName" 
               id="gameName" 
               class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4" 
@@ -34,6 +38,7 @@
             />
           </div>
           
+          <!--Wybór Planszy Stołu-->
           <div class="mb-1 sm:mb-2">
             <label for="selectBoard" class="block font-bold text-left text-xs mb-1">Wybierz planszę</label>
             <select v-model="selectedBoardId" id="selectBoard" required class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
@@ -42,6 +47,17 @@
             </select>
           </div>
 
+          <!-- Wybór Plansza konkurencji nw czy to będzie pobieranie z osobnej tabelii czy wybory jak przy wyborze planszy-->
+           <div class="mb-1 sm:mb-2">
+            <label for="selectOpponentBoard" class="block font-bold text-left text-xs mb-1">Wybierz planszę konkurencji</label>
+            <select v-model="selectedOponentBoardId" id="selectOpponentBoard" required class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
+              <option value="" disabled>Wybierz planszę konkurencji</option>
+              <option v-for="board in data.boards" :key="board.boardId" :value="board.boardId">{{ board.name }}</option>
+            </select>
+          </div>
+          
+
+          <!--Wybór talii kart-->
           <div class="mb-1 sm:mb-2">
             <label for="selectDeck" class="block font-bold text-left text-xs mb-1">Wybierz talię kart</label>
             <select v-model="selectedDeckId" required id="selectDeck" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
@@ -221,22 +237,99 @@
               type="button" 
               class="bg-tertiary hover:bg-accent text-white w-full py-2 xl:py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60"
             >
-              <div class="flex items-center justify-center gap-2">
+            <div class="flex items-center justify-center gap-2">
                 <font-awesome-icon :icon="faArrowLeft" class="h-4 text-center" />
                 <p class="ml-2">Wstecz</p>
-              </div>
+            </div>
             </button>
-
             <button 
-              type="submit" 
+              @click="handleNextStep"
+              type="button" 
               class="bg-tertiary hover:bg-accent text-white w-full py-2 xl:py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60"
             >
               <div class="flex items-center justify-center gap-2">
-                <p>Utwórz nową grę</p>
+                <font-awesome-icon :icon="faArrowRight" class="h-4 text-center" />
+                <p class="ml-2">Dalej</p>
               </div>
             </button>
           </div>
         </div>
+
+      <!--Krok 3-->
+      <div v-if="step === 3" :class="direction === 'forwards' ? 'animate-fade-right' : 'animate-fade-left'">
+      <div class="mb-6">
+        <label for="selectProcess" class="block text-left text-xs sm:text-sm font-bold text-white mb-2">
+          Wybierz proces do edycji:
+        </label>
+        <select 
+          v-model="selectedProcessId" 
+          id="selectProcess" 
+          class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4"
+        >
+          <option value="" disabled>Wybierz proces</option>
+          <option v-for="process in processes" :key="process.id" :value="process.id">
+            {{ process.shortName }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Edycja wybranego procesu -->
+        <div v-if="selectedProcess" class="p-4 rounded-lg bg-tertiary border border-lgray-accent mb-4">
+          <h3 class="font-bold text-lg mb-4 text-white">
+            Edytujesz: <span class="text-accent">{{ selectedProcess.shortName }}</span>
+          </h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label :for="'editProcessShort-' + selectedProcess.id" class="block text-sm font-medium text-gray-300 mb-1">
+                Skrót procesu
+              </label>
+              <input
+                :id="'editProcessShort-' + selectedProcess.id"
+                type="text"
+                maxlength="7"
+                v-model="selectedProcess.shortName"
+                class="w-full bg-primary border-2 border-lgray-accent rounded-md px-3 py-2 text-white"
+              />
+            </div>
+            
+            <div>
+              <label :for="'editProcessFull-' + selectedProcess.id" class="block text-sm font-medium text-gray-300 mb-1">
+                Pełna nazwa procesu
+              </label>
+              <input
+                :id="'editProcessFull-' + selectedProcess.id"
+                type="text"
+                v-model="selectedProcess.fullName"
+                maxlength="20"
+                class="w-full bg-primary border-2 border-lgray-accent rounded-md px-3 py-2 text-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button 
+            @click="handlePreviousStep"
+            type="button" 
+            class="bg-tertiary hover:bg-accent text-white w-full py-2 xl:py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <font-awesome-icon :icon="faArrowLeft" class="h-4 text-center" />
+              <p class="ml-2">Wstecz</p>
+            </div>
+          </button>
+
+          <button 
+            type="submit" 
+            class="bg-tertiary hover:bg-accent text-white w-full py-2 xl:py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <p>Utwórz nową grę</p>
+            </div>
+          </button>
+        </div>
+      </div>
       </form>
     </div>
   </div>
@@ -255,6 +348,7 @@
   const toast = useToast();
 
   const selectedBoardId = ref(null);
+  const selectedOponentBoardId = ref(null);
   const selectedDeckId = ref(null);
   const selectedGameMode = ref('stationary');
   const numberOfTeams = ref(1);
@@ -264,8 +358,17 @@
   const direction = ref('');
   const currentlyEditingTeamId = ref(0);
   const showTip = ref(false);
+  const selectedProcessId = ref(null);
 
   const teams = ref([]);
+
+  const processes = ref([
+    { id: 1, shortName: 'O2C', fullName: 'Order to Cash' },
+    { id: 2, shortName: 'P2V', fullName: 'Purchase to Validate' },
+    { id: 3, shortName: 'M2S', fullName: 'Manufacturing to Supply' },
+    { id: 4, shortName: 'OPP', fullName: 'Operational Production Planning' },
+    { id: 5, shortName: 'MM', fullName: 'Material Management' }
+  ]);
 
   const defaultColors = [
     '#E63946', '#F1FAEE', '#A8DADC', '#457B9D', '#1D3557', '#F4A261',
@@ -275,6 +378,11 @@
   const selectedTeam = computed(() => {
     if (currentlyEditingTeamId.value === null) return null;
     return teams.value.find(team => team.id === currentlyEditingTeamId.value);
+  });
+
+  const selectedProcess = computed(() => {
+    if (selectedProcessId.value === null) return null;
+    return processes.value.find(process => process.id === selectedProcessId.value);
   });
 
   const updateTeamsArray = (count) => {
@@ -324,6 +432,9 @@
     
     if (!selectedBoardId.value) {
       errors.push('Wybierz planszę');
+    }
+    if (!selectedOponentBoardId.value) {
+      errors.push('Wybierz planszę konkurencji');
     }
     if (!selectedDeckId.value) {
       errors.push('Wybierz talię kart');
@@ -385,10 +496,21 @@
   const closeModal = () => {
     gameName.value = '';
     selectedBoardId.value = null;
+    selectedOponentBoardId.value =  null;
     selectedDeckId.value = null;
     numberOfTeams.value = 1;
     step.value = 1;
     numberOfBits.value = 1;
+    selectedProcessId.value = null;
+
+    processes.value = [
+      { id: 1, shortName: 'O2C', fullName: 'Order to Cash' },
+      { id: 2, shortName: 'P2V', fullName: 'Purchase to Validate' },
+      { id: 3, shortName: 'M2S', fullName: 'Manufacturing to Supply' },
+      { id: 4, shortName: 'OPP', fullName: 'Operational Production Planning' },
+      { id: 5, shortName: 'MM', fullName: 'Material Management' }
+    ];
+
     emits('close');
     emits('gameCreated');
   };
@@ -404,23 +526,39 @@
         toast.error(`Nazwy drużyn nie mogą być puste (Drużyna ${teamNameErrors.map(t => t.id + 1).join(', ')})`);
         return;
     }
+
     if (numberOfBits.value < 1 || numberOfBits.value > 100000) {
         toast.error("Liczba bitów na start musi być pomiędzy 1 a 100000.");
         return;
     }
 
+
+
+    //Sprawdź czy tu payload jest okej wszystkie zmienne itp 
     const gamePayload = {
       GameName: gameName.value,
       BoardId: selectedBoardId.value,
+      RivalBoardId: selectedOponentBoardId.value,
       DeckId: selectedDeckId.value,
+      GameMode: selectedGameMode.value, // Rodzaj rozgrywki zdalna / stacjonarna
       NumberOfTeams: numberOfTeams.value,
       StartBits: Number(numberOfBits.value),
       Teams: teams.value.map(team => ({
         Name: team.name,
         Colour: team.colour,
         IsAbleToMakeDecisions: team.isAbleToMakeDecisions // To jest zmienna: podejmowania decyzji z tableta lub sugestii kolejnego działania
+      })),
+      //Procesy
+      Process: processes.value.map(process => ({
+          Name: process.fullName,
+          ShortName: process.shortName,
       }))
+
     };
+
+    console.log('🚀 Game Payload:', gamePayload);
+    console.log('📋 OpponentBoardId:', selectedOponentBoardId.value);
+    console.log('🎯 BoardId:', selectedBoardId.value);
 
     try {
       const response = await apiClient.post(`/api/games/create`, gamePayload, { withCredentials: true });
