@@ -95,6 +95,8 @@ import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
 import apiClient from '@/assets/plugins/axios';
 
+
+
 const currentPanel = ref('menu')
 
     const formData = reactive({

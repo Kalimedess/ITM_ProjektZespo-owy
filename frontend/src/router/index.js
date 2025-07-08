@@ -14,6 +14,9 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
+import decisionPanel from '@/views/game/decisionPanelView.vue'
+import alwaysSucceed from '@/views/game/alwaysSucceedView.vue'
+import blockCards from '@/views/game/blockCardsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -72,7 +75,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
-          path: '',
+          path:'',
+          name:'decision-panel',
+          component:decisionPanel,
+        },
+        {
+          path: 'statistics',
           name: 'admin-game-statistics',
           component: gameStatistics,
         },
@@ -80,6 +88,16 @@ const router = createRouter({
           path: 'editbits',
           name: 'edit-bits',
           component: editBitsView,
+        },
+        {
+          path: 'alwayssucceed',
+          name: 'always-succeed',
+          component: alwaysSucceed,
+        },
+        {
+          path: 'blockcards',
+          name: 'block-cards',
+          component: blockCards,
         }
 
       ]
