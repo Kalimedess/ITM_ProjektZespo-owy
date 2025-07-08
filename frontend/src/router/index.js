@@ -14,6 +14,7 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
+import adminGameView from '@/views/admin/adminGameView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,7 +33,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin-dashboard',
       component: adminDashboardView,
-      meta: { requiresAuth: true },
+      //meta: { requiresAuth: true },
       children: [
         {
           path:'',
@@ -69,10 +70,10 @@ const router = createRouter({
     {
       path: '/admin/game',
       component: adminGameDashboardView,
-      meta: { requiresAuth: true },
+      //meta: { requiresAuth: true },
       children: [
         {
-          path: '',
+          path: 'admingamestatistics',
           name: 'admin-game-statistics',
           component: gameStatistics,
         },
@@ -80,6 +81,11 @@ const router = createRouter({
           path: 'editbits',
           name: 'edit-bits',
           component: editBitsView,
+        },
+        {
+          path: '',
+          name: 'admin-tables',
+          component: adminGameView,
         }
 
       ]
