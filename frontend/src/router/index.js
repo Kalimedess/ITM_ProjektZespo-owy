@@ -33,7 +33,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin-dashboard',
       component: adminDashboardView,
-      //meta: { requiresAuth: true },
+      meta: { requiresAuth: true },
       children: [
         {
           path:'',
@@ -70,7 +70,7 @@ const router = createRouter({
     {
       path: '/admin/game',
       component: adminGameDashboardView,
-      //meta: { requiresAuth: true },
+      meta: { requiresAuth: true },
       children: [
         {
           path: 'admingamestatistics',
