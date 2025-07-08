@@ -145,6 +145,7 @@ namespace backend.Controllers
                     .ThenInclude(g => g.Deck) // Talia używana w grze
                 .Include(t => t.Game)
                     .ThenInclude(g => g.GameBoards) // Plansza używana w grze
+                //  
                 .FirstOrDefaultAsync(t => t.TeamToken == teamToken);
 
             Console.Write("Znaleziono drużynę");
@@ -198,28 +199,30 @@ namespace backend.Controllers
                 teamColor = team.TeamColor,
 
                 // Pozycja pionka z GameBoard, jeśli istnieje, inaczej domyślne
-                teamPositionX = gameBoardState?.PozX ?? 0,
-                teamPositionY = gameBoardState?.PozY ?? 0,
+                // teamPositionX = gameBoardState?.PozX ?? 0,
+                // teamPositionY = gameBoardState?.PozY ?? 0,
 
                 deckId = team.Game.DeckId,
                 deckName = team.Game.Deck.DeckName,
 
-                
 
-                boardConfig = new
-                {
-                    boardId = gameBoardState.BoardId, 
-                    Name = team.Game.TeamBoard.Name,
-                    LabelsUp = team.Game.TeamBoard.LabelsUp?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
-                    LabelsRight = team.Game.TeamBoard.LabelsRight?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
-                    DescriptionDown = team.Game.TeamBoard.DescriptionDown,
-                    DescriptionLeft = team.Game.TeamBoard.DescriptionLeft,
-                    Rows = team.Game.TeamBoard.Rows,
-                    Cols = team.Game.TeamBoard.Cols,
-                    CellColor = team.Game.TeamBoard.CellColor,
-                    BorderColor = team.Game.TeamBoard.BorderColor,
-                    BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
-                },
+
+                // boardConfig = new
+                // {
+                //     boardId = team.Game.TeamBoardId,
+                //     Name = team.Game.TeamBoard.Name,
+                //     LabelsUp = team.Game.TeamBoard.LabelsUp?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                //     LabelsRight = team.Game.TeamBoard.LabelsRight?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                //     DescriptionDown = team.Game.TeamBoard.DescriptionDown,
+                //     DescriptionLeft = team.Game.TeamBoard.DescriptionLeft,
+                //     Rows = team.Game.TeamBoard.Rows,
+                //     Cols = team.Game.TeamBoard.Cols,
+                //     CellColor = team.Game.TeamBoard.CellColor,
+                //     BorderColor = team.Game.TeamBoard.BorderColor,
+                //     BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
+                // },
+
+                // DRUGI BOARD CONFIG DLA RYWALI BOARDA ZROBIC
 
                 // currentTurn = team.Game.CurrentTurn, // Jeśli Game ma takie pole
                 // currentQuestion = gameBoardState?.CurrentQuestionText, // Jeśli GameBoard lub GameProcess ma pytanie
