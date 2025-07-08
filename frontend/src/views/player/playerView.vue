@@ -23,6 +23,7 @@
           :game-id="gameData.gameId"
           :board-id="gameData.boardConfig?.boardId"
           :current-budget="currentGlobalBudget"
+          :showing-decision-cards="showingDecisionCards"
           @card-action-completed="handleCardActionCompleted"
           
         />

@@ -6,12 +6,47 @@
     <div v-else-if="cards[currentIndex]" class="relative"></div>
     <div class="relative">
       
+      <!-- Opcje (wybór przedmiotów lub decyzji) -->
+      <div class="inline-flex border rounded-lg overflow-hidden">
+        <button
+          :class="showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'"
+          @click="showingDecisionCards = true"
+          class="px-4 py-2 font-medium transition"
+        >
+          Decyzje
+        </button>
+        <button
+          :class="!showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'"
+          @click="showingDecisionCards = false"
+          class="px-4 py-2 font-medium transition"
+        >
+          Przedmioty
+        </button>
+      </div>
+      
+      <!-- Wskaźniki (zawijane) -->
+      <div class="flex flex-wrap justify-center gap-2 mt-6">
+        <select
+          v-model="currentIndex"
+          @change="goToCard(currentIndex)"
+          class="w-full py-5 border rounded-t-2xl text-center"
+        >
+          <option
+            v-for="(card, index) in cards"
+            :key="index"
+            :value="index"
+          >
+            {{ index + 1 }}: {{ cards[index].title }}
+        </option>
+      </select>
+      </div>
+
       <div
         @mousedown="startHold"
         @mouseup="cancelHold"
         @mouseleave="cancelHold"
         :class="[
-          'w-full h-64 bg-gradient-to-br from-lime-400 via-lime-500 to-lime-600 rounded-2xl shadow-2xl text-white transition-transform duration-200 ease-in-out',
+          'w-full h-64 bg-gradient-to-br from-lime-400 via-lime-500 to-lime-600 rounded-b-2xl shadow-2xl text-white transition-transform duration-200 ease-in-out',
           cardClicked ? 'scale-105' : 'scale-100'
         ]"
       >
@@ -19,7 +54,7 @@
           <!-- Lewy przycisk -->
           <button
             @click.stop="prevCard"
-            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-l-2xl transition"
+            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-bl-2xl transition"
             aria-label="Poprzednia karta"
             :disabled="cards.length <= 1"
           >
@@ -40,28 +75,13 @@
           <!-- Prawy przycisk -->
           <button
             @click.stop="nextCard"
-            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-r-2xl transition"
+            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-br-2xl transition"
             aria-label="Następna karta"
             :disabled="cards.length <= 1"
           >
             <p>></p>
           </button>
         </div>
-      </div>
-
-      <!-- Wskaźniki (zawijane) -->
-      <div class="flex flex-wrap justify-center gap-2 mt-6">
-        <button
-          v-for="(card) in cards"
-          :key="card.id"
-          @click="goToCardByDisplayOrder(card.displayOrder)"
-          class="w-8 h-8 text-sm font-medium rounded-full flex items-center justify-center transition-all duration-300 border-2"
-          :class="card.displayOrder === cards[currentIndex].displayOrder
-            ? 'bg-primary text-white border-white scale-110'
-            : 'bg-gray-200 text-gray-700 border-gray-400 hover:bg-gray-300'"
-        >
-          {{ card.id}}
-        </button>
       </div>
 
       <!-- Przyciski akcji -->
@@ -81,8 +101,8 @@
   import { ref, computed, watch} from 'vue'
   import apiClient from '@/assets/plugins/axios';
 
-
   const cards = ref([]);
+  const showingDecisionCards = ref(true);
   const currentIndex = ref(0);
   const loading = ref(true);
   const fetchError = ref(null);
@@ -110,12 +130,13 @@
           type: Number,
           default: 0
         }
-
+        
   });
   
   const emit = defineEmits(['card-action-completed']);
 
   const deckIdToFetch = computed(() => props.deckId);
+
   
   async function fetchCards() {
     if (!deckIdToFetch.value) {
