@@ -21,35 +21,45 @@ public class RegisterRequest {
     public string ConfirmationToken{ get; set; } = string.Empty;
 }
 
+public class ResetPasswordRequest {
+    public string Email { get; set; } = string.Empty;
+}
 
-namespace backend.Controllers {
+namespace backend.Controllers
+{
 
     [Route("api/auth")]
     [ApiController]
-    public class AuthController : ControllerBase {
+    public class AuthController : ControllerBase
+    {
         private readonly AppDbContext _context;
         private readonly EmailService _emailService;
         private readonly JwtService _jwtService;
 
-        public AuthController(AppDbContext context, EmailService emailService, JwtService jwtService) {
+        public AuthController(AppDbContext context, EmailService emailService, JwtService jwtService)
+        {
             _context = context;
             _emailService = emailService;
             _jwtService = jwtService;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request) {
-            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password)) {
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            {
                 return BadRequest("Username and password are required.");
             }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Username || u.Name == request.Username);
 
-            if(user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password)) {
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+            {
                 return Unauthorized("Invalid credentials");
             }
 
-            if (!user.EmailConfirmed) {
+            if (!user.EmailConfirmed)
+            {
                 return BadRequest("E-mail nie został potwierdzony. Sprawdź skrzynkę pocztową.");
             }
 
@@ -67,13 +77,16 @@ namespace backend.Controllers {
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            return Ok(new {success = true, 
-                            user = new {
-                                id = user.UserId,
-                                name = user.Name, 
-                                email = user.Email
-                                }
-                        });
+            return Ok(new
+            {
+                success = true,
+                user = new
+                {
+                    id = user.UserId,
+                    name = user.Name,
+                    email = user.Email
+                }
+            });
         }
 
         [HttpPost("logout")]
@@ -84,16 +97,51 @@ namespace backend.Controllers {
             return Ok(new { success = true, message = "Wylogowano pomyślnie" });
         }
 
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+            {
+                return BadRequest("Email not found.");
+            }
+
+
+            var ResetPasswordToken = Guid.NewGuid().ToString();
+            user.ConfirmationToken = ResetPasswordToken;
+            await _context.SaveChangesAsync();
+            var ResetPasswordLink = Url.Action(nameof(ConfirmEmail), "Auth", new { token = ResetPasswordToken }, Request.Scheme);
+
+            if (string.IsNullOrEmpty(ResetPasswordLink))
+            {
+                ResetPasswordLink = $"{(Request.IsHttps ? "https" : "http")}://{Request.Host}/resetPassword/{ResetPasswordToken}";
+            }
+
+            try
+            {
+                await _emailService.SendEmailAsync(request.Email, "reset hasla", $"Reset Password: {ResetPasswordLink}");
+                return Ok(new { success = true, message = "Reset Password test" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending reset email: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "failed to send reset email.");
+            }
+            
+        }    
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request) {
-            if(await _context.Users.AnyAsync(u => u.Email == request.Email)) {
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            {
                 return BadRequest("Email already exist.");
             }
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
             var confirmationToken = Guid.NewGuid().ToString();
 
-            var user = new User {
+            var user = new User
+            {
                 Name = request.Username,
                 Email = request.Email,
                 Password = hashedPassword,
@@ -212,14 +260,14 @@ namespace backend.Controllers {
                 }
             }
 
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
 
             var confirmationLink = Url.Action(nameof(ConfirmEmail), "Auth", new { token = confirmationToken }, Request.Scheme);
 
             if (string.IsNullOrEmpty(confirmationLink))
             {
-                 confirmationLink = $"{(Request.IsHttps ? "https" : "http")}://{Request.Host}/api/auth/confirm?token={confirmationToken}";
+                confirmationLink = $"{(Request.IsHttps ? "https" : "http")}://{Request.Host}/api/auth/confirm?token={confirmationToken}";
             }
 
 
@@ -239,7 +287,8 @@ namespace backend.Controllers {
         [HttpGet("confirm")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
         {
-            if (string.IsNullOrEmpty(token)) {
+            if (string.IsNullOrEmpty(token))
+            {
                 return BadRequest("Invalid token.");
             }
             var user = await _context.Users.FirstOrDefaultAsync(u => u.ConfirmationToken == token);
@@ -249,8 +298,9 @@ namespace backend.Controllers {
                 return BadRequest("Invalid or expired confirmation token.");
             }
 
-            if (user.EmailConfirmed) {
-                return Ok(new { success = true, message = "Email already confirmed."});
+            if (user.EmailConfirmed)
+            {
+                return Ok(new { success = true, message = "Email already confirmed." });
             }
 
             user.EmailConfirmed = true;
@@ -260,7 +310,7 @@ namespace backend.Controllers {
             return Ok(new { success = true, message = "Email confirmed successfully. You can now log in." });
         }
 
-        
+
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> Me()
@@ -274,7 +324,7 @@ namespace backend.Controllers {
 
             if (!int.TryParse(userIdString, out int userId))
             {
-                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Invalid user ID format in claims." });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Invalid user ID format in claims." });
             }
 
             var user = await _context.Users.FindAsync(userId);
@@ -285,7 +335,8 @@ namespace backend.Controllers {
                 return Unauthorized(new { message = "User not found or session expired." });
             }
 
-            return Ok(new {
+            return Ok(new
+            {
                 id = user.UserId,
                 name = user.Name,
                 email = user.Email

@@ -91,29 +91,44 @@
 <script setup>
 
     import { ref,defineEmits } from 'vue';
+    import { useToast } from 'vue-toastification';
+    import apiClient from '@/assets/plugins/axios';
 
     const email = ref('');
     const isEmailSent = ref(false);
     const canResend = ref(true);
     const countdown = ref(0);
-
+    const toast = useToast();
 
     import { faEnvelopeCircleCheck,faUserLock } from '@fortawesome/free-solid-svg-icons';
     ;
 
     const emit = defineEmits(['backToLogin'])
 
-    const handleSendEmail = () => {
+    const handleSendEmail = async () => {
+  try {
+    const response = await apiClient.post('/api/auth/reset-password', {
+      Email: email
+    });
 
-        //Sprawdzenie czy użytkownik z takim e-mailem istnieje itp. i samo wysłanie maila jeżeli wszystko okej to przechodzi dalej
+    if (response.data.success) {
+      console.log('✅ Wysłano email do zmiany hasła');
 
-        if(!isEmailSent.value){
-            isEmailSent.value = true;
-        }
+      if (!isEmailSent.value) {
+        isEmailSent.value = true;
+      }
 
-        startCooldown();
+      startCooldown();
     }
+  } catch (error) {
+    toast.error('Nieprawidłowy e-mail. Spróbuj ponownie!', {
+      position: 'top-center',
+    });
 
+    // Bezpieczne logowanie błędu
+    console.error("Wystąpił błąd:", error.message || error.toString());
+  }
+};
 
     const startCooldown = () => {
 
