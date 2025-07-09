@@ -14,6 +14,7 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
+import adminGameView from '@/views/admin/adminGameView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -73,6 +74,11 @@ const router = createRouter({
       children: [
         {
           path: '',
+          name: 'admin-game-View',
+          component: adminGameView,
+        },
+        {
+          path: 'admingamestatistics',
           name: 'admin-game-statistics',
           component: gameStatistics,
         },

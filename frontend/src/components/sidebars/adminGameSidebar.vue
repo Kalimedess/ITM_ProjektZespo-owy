@@ -26,6 +26,17 @@
                         <span v-if="isSideBarOpen">Home</span>
                     </RouterLink>
                 </li>
+
+                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
+                    <RouterLink 
+                        to="/admin/game"
+                        class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
+                    >
+                        <font-awesome-icon :icon="faHouse" class="h-4 text-accent"/>
+                        <span v-if="isSideBarOpen">Stoły</span>
+                    </RouterLink>
+                </li>
                 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
                         @click="handleGameStats">
