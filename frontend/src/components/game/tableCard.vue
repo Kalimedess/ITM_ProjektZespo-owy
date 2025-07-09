@@ -19,7 +19,7 @@
     <div class="flex flex-col gap-2">
       <button 
         class="w-full flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300"
-        @click="showQr = true">
+        @click="openQrForTeam(table.token)">
         <font-awesome-icon :icon="faQrcode" class="h-4 mr-2 text-accent"/>  
         Pokaż kod QR do gry
       </button>
@@ -62,44 +62,6 @@
       </div>
     </div>
   </Transition>
-
-  <!-- Modal STATYSTYKI -->
-  <Transition
-    enter-active-class="transition-all duration-300 ease-out"
-    enter-from-class="opacity-0"
-    enter-to-class="opacity-100"
-    leave-active-class="transition-all duration-300 ease-in"
-    leave-from-class="opacity-100"
-    leave-to-class="opacity-0">
-    <div v-if="showStatsModal" class="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div class="absolute inset-0 bg-black/70" @click="showStatsModal = false"></div>
-      <div class="bg-primary text-white rounded-lg relative z-10 border-2 border-accent 
-                  p-4 sm:p-6 md:p-8 
-                  w-full max-w-xs sm:max-w-sm md:max-w-md">
-        <button 
-          @click="showStatsModal = false" 
-          class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
-          <font-awesome-icon :icon="faXmark" class="h-4 text-white hover:text-accent transition-colors" />
-        </button>
-        <h2 class="text-lg sm:text-xl font-bold text-center mb-4">Zmień statystyki drużyny</h2>
-        <form @submit.prevent="updateStats">
-          <div class="flex flex-col gap-4">
-            <label class="flex flex-col">
-              Nazwa drużyny:
-              <input v-model="teamStats.name" type="text" class="mt-1 px-2 py-1 rounded text-black" />
-            </label>
-            <label class="flex flex-col">
-              Punkty:
-              <input v-model.number="teamStats.points" type="number" class="mt-1 px-2 py-1 rounded text-black" />
-            </label>
-            <button type="submit" class="bg-accent py-2 px-4 rounded hover:bg-opacity-80 transition">
-              Zapisz zmiany
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </Transition>
 </template>
 
 <script setup>
@@ -120,7 +82,6 @@ const props = defineProps({
 });
 
 const showQr = ref(false);
-const showStatsModal = ref(false);
 
 const qrSize = computed(() => {
   const width = window.innerWidth;
@@ -130,9 +91,13 @@ const qrSize = computed(() => {
   return 350;
 });
 
-//przeniesć po tokenie druzyny
-const gameUrl = computed(() => {
-  return `${window.location.origin}/player/${teamtoken}`;
-});
+const gameUrl = ref('');
+
+//Dodać logike żeby pobierało token dla dostępnych drużyn z bazy danych 
+
+function openQrForTeam(token) {
+  gameUrl.value = `${window.location.origin}/player/${token}`;
+  showQr.value = true;
+}
 
 </script>
