@@ -7,7 +7,7 @@
             <div></div>
             <h1 v-if="isSideBarOpen" class="text-xl font-bold text-white font-nasalization">DIGITAL WARS</h1>
             <div>
-                <button @click="isSideBarOpen = !isSideBarOpen">
+                <button @click="handleSidebar">
                     <font-awesome-icon :icon="isSideBarOpen ? faArrowLeft : faArrowRight" class="h-4" />
                 </button>
             </div>
@@ -28,18 +28,14 @@
                 </li>
                 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-                        @click="isGameStatsDropdownOpen = !isGameStatsDropdownOpen">
-                    <div class="flex justify-between items-center px-4 py-3 rounded-md">
+                        @click="handleGameStats">
+
+                    <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center' ">
                         <div>
-                            <font-awesome-icon :icon="faChartLine" class="h-4 mr-2 text-accent" />
-                            Statystyki Gry
+                            <font-awesome-icon :icon="faChartLine" class="h-4 text-accent" :class="isSideBarOpen ? 'mr-4 ' : 'mr-0' "/>
+                            <span v-if="isSideBarOpen">Statystyki stołów</span>
                         </div>
-                        <div v-if="isGameStatsDropdownOpen">
-                            <font-awesome-icon :icon="faArrowUp" class="h-4" />
-                        </div>
-                        <div v-else>
-                            <font-awesome-icon :icon="faArrowDown" class="h-4" />
-                        </div>
+                            <font-awesome-icon v-if="isSideBarOpen" :icon="isGameStatsDropdownOpen  ? faArrowUp : faArrowDown" class="h-4"/>   
                     </div>
 
                     <div v-show="isGameStatsDropdownOpen" class="flex flex-col py-1 space-y-1">
@@ -76,21 +72,16 @@
                 </li>
 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-            @click="isStatsDropdownOpen = !isStatsDropdownOpen">
-          <div class="flex justify-between items-center px-4 py-3 rounded-md">
+            @click="handleGameManager">
+          <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center' ">
             <div>
-              <font-awesome-icon :icon="faChartLine" class="h-4 mr-2 text-accent" />
-              Panel sterowania grą
+              <font-awesome-icon :icon="faGamepad" class="h-4  text-accent" :class="isSideBarOpen ? 'mr-4' : 'mr-0' " />
+                <span v-if="isSideBarOpen">Panel sterowania grą</span>
             </div>
-            <div v-if="isStatsDropdownOpen">
-              <font-awesome-icon :icon="faArrowUp" class="h-4" />
-            </div>
-            <div v-else>
-              <font-awesome-icon :icon="faArrowDown" class="h-4" />
-            </div>
+                <font-awesome-icon v-if="isSideBarOpen" :icon="isGameManagerDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
           </div>
 
-                <div v-show="isStatsDropdownOpen" class="flex flex-col py-1 space-y-1">
+                <div v-show="isGameManagerDropdownOpen" class="flex flex-col py-1 space-y-1">
             <RouterLink 
               :to="{ path: '/admin/game/editbits'}"
               class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
@@ -120,36 +111,30 @@
                 </li>
                 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-                    @click="isDropdownOpen = !isDropdownOpen"
-                    v-if="isSideBarOpen">
-                    <div class="flex justify-between items-center px-4 py-3 rounded-md"  >
+                    @click="handleGameTableManager">
+                    <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center' ">
                     <div>
-                        <font-awesome-icon :icon="faGamepad" class="h-4 mr-2 text-accent"/>
-                        <span>Panel sterowania graczem</span>
+                        <font-awesome-icon :icon="faUsers" class="h-4 text-accent" :class="isSideBarOpen ? 'mr-4' : 'mr-0' "/>
+                        <span v-if="isSideBarOpen">Panel sterowania stołami</span>
                     </div>
-                    <div v-if="isDropdownOpen">
-                        <font-awesome-icon :icon="faArrowUp" class="h-4 "/> 
-                    </div>
-                    <div v-else>
-                        <font-awesome-icon :icon="faArrowDown" class="h-4 "/>
-                    </div> 
+                        <font-awesome-icon v-if="isSideBarOpen" :icon="isGameTableManagerDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
                     </div>
 
 
-                    <div v-show="isDropdownOpen" class="flex flex-col py-1 space-y-1">
+                    <div v-show="isGameTableManagerDropdownOpen" class="flex flex-col py-1 space-y-1">
                         <router-link 
                         to="/" 
                         class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
                         @click.stop
                         >
-                        Gracz 1
+                        Stół 1
                         </router-link>
                         <router-link 
                         to="/" 
                         class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
                         @click.stop
                         >
-                        Gracz 2
+                        Stół 2
                         </router-link>
                     </div>
                 </li>
@@ -194,12 +179,48 @@
 </template>
 
 <script setup>
-    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight} from '@fortawesome/free-solid-svg-icons'
+    import { icon } from '@fortawesome/fontawesome-svg-core';
+import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight, faUsers} from '@fortawesome/free-solid-svg-icons'
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
 
-    const isDropdownOpen = ref(false)
     const isSideBarOpen = ref(true);    
-    const isStatsDropdownOpen = ref(false)
+    const isGameManagerDropdownOpen = ref(false)
     const isGameStatsDropdownOpen = ref(false)
+    const isGameTableManagerDropdownOpen = ref(false);
+
+    const handleSidebar = () => {
+
+        isSideBarOpen.value = !isSideBarOpen.value;
+        isGameStatsDropdownOpen.value = false;
+        isGameManagerDropdownOpen.value = false;
+        isGameTableManagerDropdownOpen.value = false;
+    }
+
+    const handleGameStats = () => {
+
+        isGameStatsDropdownOpen.value = !isGameStatsDropdownOpen.value;
+
+        if(!isSideBarOpen.value) {
+            isSideBarOpen.value = true;
+        }
+    }
+
+    const handleGameManager = () => {
+
+        isGameManagerDropdownOpen.value = !isGameManagerDropdownOpen.value;
+
+        if(!isSideBarOpen.value) {
+            isSideBarOpen.value = true;
+        }
+    }
+
+    const handleGameTableManager = () => {
+
+        isGameTableManagerDropdownOpen.value = !isGameTableManagerDropdownOpen.value;
+
+        if(!isSideBarOpen.value) {
+            isSideBarOpen.value = true;
+        }
+    }
 </script>

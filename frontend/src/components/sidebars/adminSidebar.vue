@@ -7,7 +7,7 @@
             <div></div>
             <h1 v-if="isSideBarOpen" class="text-xl font-bold text-white font-nasalization">DIGITAL WARS</h1>
             <div>
-                <button @click="isSideBarOpen = !isSideBarOpen">
+                <button @click="handleSidebar">
                     <font-awesome-icon :icon="isSideBarOpen ? faArrowLeft : faArrowRight" class="h-4" />
                 </button>
             </div>
@@ -22,60 +22,23 @@
                         class="flex items-center gap-4 px-4 py-3 rounded-md"
                         :class="isSideBarOpen ? '': 'justify-center' "
                     >
-                        <font-awesome-icon :icon="faHouse" class="h-4 text-accent"/>
-                        <span v-if="isSideBarOpen">Strona Główna</span>
+                        <font-awesome-icon :icon="faGamepad" class="h-4 text-accent"/>
+                        <span v-if="isSideBarOpen">Aktywne gry</span>
                     </RouterLink>
                 </li>
                 
                 <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-                    @click="isDropdownOpen = !isDropdownOpen"
-                    v-if="isSideBarOpen">
-                    <div class="flex justify-between items-center px-4 py-3 rounded-md"  >
+                @click="handleStats">
+                <div class="flex  items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center' ">
                     <div>
-                        <font-awesome-icon :icon="faGamepad" class="h-4 mr-2 text-accent"/>
-                        <span>Gry w Sesji</span>
-                    </div>
-                    <div v-if="isDropdownOpen">
-                        <font-awesome-icon :icon="faArrowUp" class="h-4 "/> 
-                    </div>
-                    <div v-else>
-                        <font-awesome-icon :icon="faArrowDown" class="h-4 "/>
-                    </div> 
+                    <font-awesome-icon :icon="faChartLine" class="h-4 text-accent"  :class="isSideBarOpen ? 'mr-4' : 'mr-0'"/>
+                        <span v-if="isSideBarOpen">Statystyki gier</span>
                     </div>
 
-
-                    <div v-show="isDropdownOpen" class="flex flex-col py-1 space-y-1">
-                        <router-link 
-                        to="/" 
-                        class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-                        @click.stop
-                        >
-                        Gra 1
-                        </router-link>
-                        <router-link 
-                        to="/" 
-                        class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-                        @click.stop
-                        >
-                        Gra 2
-                        </router-link>
+                    <div v-if="isSideBarOpen">
+                        <font-awesome-icon :icon="isStatsDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
                     </div>
-                </li>
-
-                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-            @click="isStatsDropdownOpen = !isStatsDropdownOpen">
-          <div class="flex justify-between items-center px-4 py-3 rounded-md">
-            <div>
-              <font-awesome-icon :icon="faChartLine" class="h-4 mr-2 text-accent" />
-              Statystyki Gier
-            </div>
-            <div v-if="isStatsDropdownOpen">
-              <font-awesome-icon :icon="faArrowUp" class="h-4" />
-            </div>
-            <div v-else>
-              <font-awesome-icon :icon="faArrowDown" class="h-4" />
-            </div>
-          </div>
+                </div>
 
                 <div v-show="isStatsDropdownOpen" class="flex flex-col py-1 space-y-1">          
                      
@@ -155,7 +118,21 @@
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
 
-    const isDropdownOpen = ref(false)
     const isSideBarOpen = ref(true);    
     const isStatsDropdownOpen = ref(false)
+
+    const handleSidebar = () => {
+        isSideBarOpen.value = !isSideBarOpen.value;
+        isStatsDropdownOpen.value = false;
+    }
+
+    const handleStats = () => {
+        isStatsDropdownOpen.value = !isStatsDropdownOpen.value
+
+        if(!isSideBarOpen.value) {
+            isSideBarOpen.value = true;
+        }
+    }
+
+    
 </script>
