@@ -291,30 +291,48 @@ namespace backend.Controllers
             var team = await _context.Teams.FirstOrDefaultAsync(t => t.TeamId == data.TeamId);
             if (team == null) return NotFound($"Drużyna o ID {data.TeamId} nie została znaleziona.");
 
-            // ZMIANA: SPRAWDZAMY, CZY KARTA JEST PRZEDMIOTEM
-            var isItem = await _context.Items.AnyAsync(i => i.CardId == selectedCard);
-            
             bool finalStatus;
             double finalCost = data.Cost;
 
-            if (isItem)
+            // KROK 1: Sprawdź, czy istnieje specjalny enabler (NAJWYŻSZY PRIORYTET).
+            var specialEnabler = await _context.DecisionEnablers.FirstOrDefaultAsync(de =>
+                de.CardId == selectedCard &&
+                de.GameId == data.GameId &&
+                de.TeamId == data.TeamId &&
+                de.EnablerId == null);
+
+            if (specialEnabler != null)
             {
-                // JEŚLI TO PRZEDMIOT, ZAWSZE USTAWIAJ SUKCES I ZACHOWAJ KOSZT
+                // ZNALEZIONO SPECJALNY ENABLER: Wymuś sukces i oznacz enabler do usunięcia.
                 finalStatus = true;
+                _context.DecisionEnablers.Remove(specialEnabler);
             }
             else
             {
-                // JEŚLI TO DECYZJA, UŻYJ WYNIKU Z FRONTENDU
-                finalStatus = wasSuccess;
-                if (!finalStatus) // Jeśli decyzja była nieudana, koszt jest zerowy
+                // KROK 2: BRAK SPECJALNEGO ENABLERA -> Użyj standardowej logiki.
+                
+                // >>> TUTAJ JEST POPRAWIONY WARUNEK, KTÓRY ZNIKNĄŁ <<<
+                var isItem = await _context.Items.AnyAsync(i => i.CardId == selectedCard);
+
+                if (isItem)
                 {
-                    finalCost = 0;
+                    // JEŚLI TO PRZEDMIOT, ZAWSZE USTAWIAJ SUKCES.
+                    finalStatus = true;
+                }
+                else
+                {
+                    // JEŚLI TO DECYZJA, UŻYJ WYNIKU Z FRONTENDU.
+                    finalStatus = wasSuccess;
+                    if (!finalStatus) // Jeśli decyzja była nieudana, koszt jest zerowy.
+                    {
+                        finalCost = 0;
+                    }
                 }
             }
 
-            // Szukamy feedbacku na podstawie OSTATECZNEGO statusu
+            // Pozostała część metody jest identyczna i używa poprawnie obliczonych `finalStatus` i `finalCost`.
             var feedback = await _context.Feedbacks
-                 .FirstOrDefaultAsync(f => f.CardId == selectedCard && f.DeckId == data.DeckId && f.Status == finalStatus);
+                .FirstOrDefaultAsync(f => f.CardId == selectedCard && f.DeckId == data.DeckId && f.Status == finalStatus);
 
             var gameLogEntry = new GameLog
             {
@@ -323,13 +341,10 @@ namespace backend.Controllers
                 GameId = data.GameId,
                 CardId = selectedCard,
                 DeckId = data.DeckId,
-                // Używamy BoardId z danych wejściowych, które jest już poprawne
                 BoardId = data.BoardId, 
                 GameProcessId = data?.GameProcessId,
                 FeedbackId = feedback?.FeedbackId,
-                // Używamy ostatecznego kosztu
                 Cost = finalCost,
-                // Używamy ostatecznego statusu
                 Status = finalStatus, 
                 MoveX = 0,
                 MoveY = 0
@@ -338,6 +353,7 @@ namespace backend.Controllers
 
             team.TeamBud -= (int)finalCost;
 
+            // Zapisze wszystkie zmiany (log, budżet ORAZ ewentualne usunięcie enablera) w jednej transakcji.
             await _context.SaveChangesAsync();
 
             if (feedback != null)
@@ -356,7 +372,6 @@ namespace backend.Controllers
             }
             else
             {
-                // Zwracamy ogólną wiadomość, która pasuje i do przedmiotów i do decyzji bez feedbacku
                 return Ok(new { 
                     message = $"Akcja karty przetworzona.", 
                     newTeamBudget = team.TeamBud 
