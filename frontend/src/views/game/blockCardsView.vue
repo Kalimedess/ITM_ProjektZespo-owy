@@ -8,20 +8,29 @@
       <option v-for="table in tables" :key="table" :value="table">Stół {{ table }}</option>
     </select>
 
+    <!-- Wybór karty (tylko jeśli wybrano stół) -->
     <div v-if="selectedTable">
-      <div
-        v-for="card in cards"
-        :key="card.id"
-        class="flex justify-between items-center bg-secondary-light p-2 my-2 rounded"
-      >
-        <span>{{ card.name }}</span>
-        <button
-          @click="toggleCard(card.id)"
-          class="px-3 py-1 rounded font-bold"
-          :class="isBlocked(card.id) ? 'bg-red-500 hover:bg-red-600' : 'bg-lime-500 hover:bg-lime-600'"
+      <select v-model="selectedCardId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
+        <option disabled value="">-- Wybierz kartę --</option>
+        <option
+          v-for="card in blockedCardsForTable"
+          :key="card.id"
+          :value="card.id"
         >
-          {{ isBlocked(card.id) ? 'Odblokuj' : 'Zablokuj' }}
+          {{ card.name }}
+        </option>
+      </select>
+
+      <!-- Przycisk odblokowywania -->
+      <div class="text-center">
+        <button
+          v-if="selectedCardId"
+          @click="unblockCard(selectedCardId)"
+          class="px-4 py-2 rounded font-bold bg-red-500 hover:bg-red-600"
+        >
+          Odblokuj kartę
         </button>
+        <p v-else class="text-sm text-gray-300">Brak wybranej karty do odblokowania.</p>
       </div>
     </div>
 
@@ -30,10 +39,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const tables = [1, 2, 3, 4]
 const selectedTable = ref('')
+const selectedCardId = ref('')
 const blockedCards = ref({})
 
 const cards = [
@@ -47,26 +57,20 @@ onMounted(() => {
   blockedCards.value = saved ? JSON.parse(saved) : {}
 })
 
-function toggleCard(cardId) {
-  if (!selectedTable.value) return
+const blockedCardsForTable = computed(() => {
+  if (!selectedTable.value) return []
+  const blockedIds = blockedCards.value[selectedTable.value] || []
+  return cards.filter(card => blockedIds.includes(card.id))
+})
 
+function unblockCard(cardId) {
   const tableId = selectedTable.value
-  if (!blockedCards.value[tableId]) {
-    blockedCards.value[tableId] = []
-  }
+  const index = blockedCards.value[tableId]?.indexOf(cardId)
 
-  const index = blockedCards.value[tableId].indexOf(cardId)
-  if (index === -1) {
-    blockedCards.value[tableId].push(cardId)
-  } else {
+  if (index !== -1) {
     blockedCards.value[tableId].splice(index, 1)
+    localStorage.setItem('blockedCards', JSON.stringify(blockedCards.value))
+    selectedCardId.value = ''
   }
-
-  localStorage.setItem('blockedCards', JSON.stringify(blockedCards.value))
-}
-
-function isBlocked(cardId) {
-  if (!selectedTable.value) return false
-  return blockedCards.value[selectedTable.value]?.includes(cardId)
 }
 </script>
