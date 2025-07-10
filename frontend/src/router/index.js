@@ -15,6 +15,7 @@ import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
 import resetPasswordView from '@/views/resetPasswordView.vue'
+import confirmEmailView from '@/views/confirmEmailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +34,11 @@ const router = createRouter({
       path:'/resetPassword/:token',
       name:'reset-password',
       component:resetPasswordView,
+    },
+    {
+      path:'/confirm/:token',
+      name:'confirm-email',
+      component: confirmEmailView,
     },
     { 
       path: '/admin',
