@@ -25,7 +25,7 @@
         {{ game.status === 'During' ? 'Wstrzymaj grę' : 'Wznów grę' }}
       </button>
       <RouterLink 
-        :to="`/admin/game`"
+        :to="`/admin/game/${game.id}`"
         class="flex flex-auto items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300">
         <font-awesome-icon :icon="faMagnifyingGlass" class="h-4 mr-2 text-accent"/>     
         Otwórz grę
