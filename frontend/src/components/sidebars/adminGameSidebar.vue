@@ -187,7 +187,8 @@ import {
   faFileSignature,
   faHouse,
   faArrowLeft,
-  faArrowRight
+  faArrowRight,
+  faUsers
 } from '@fortawesome/free-solid-svg-icons'
 
 const isSideBarOpen = ref(true)

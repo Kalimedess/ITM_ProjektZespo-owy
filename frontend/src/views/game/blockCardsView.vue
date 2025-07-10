@@ -1,76 +1,132 @@
 <template>
   <div class="max-w-xl mx-auto bg-secondary text-white p-6 rounded shadow-md mt-10">
-    <h2 class="text-2xl font-bold mb-4 text-center">Zarządzanie zablokowanymi kartami</h2>
+    <h2 class="text-2xl font-bold mb-4 text-center text-lime-400">Zarządzanie kartami</h2>
 
-    <!-- Wybór stołu -->
-    <select v-model="selectedTable" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
-      <option disabled value="">-- Wybierz stół --</option>
-      <option v-for="table in tables" :key="table" :value="table">Stół {{ table }}</option>
-    </select>
-
-    <!-- Wybór karty (tylko jeśli wybrano stół) -->
-    <div v-if="selectedTable">
-      <select v-model="selectedCardId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
-        <option disabled value="">-- Wybierz kartę --</option>
-        <option
-          v-for="card in blockedCardsForTable"
-          :key="card.id"
-          :value="card.id"
-        >
-          {{ card.name }}
+    <!-- 1. Wybór Drużyny -->
+    <div v-if="!loading.teams" class="mb-4">
+      <select v-model="selectedTeamId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full">
+        <option :value="null">-- Wybierz drużynę --</option>
+        <option v-for="team in teams" :key="team.teamId" :value="team.teamId">
+          {{ team.teamName }}
         </option>
       </select>
+    </div>
+    <div v-if="loading.teams" class="text-center">Ładowanie drużyn...</div>
 
-      <!-- Przycisk odblokowywania -->
-      <div class="text-center">
-        <button
-          v-if="selectedCardId"
-          @click="unblockCard(selectedCardId)"
-          class="px-4 py-2 rounded font-bold bg-red-500 hover:bg-red-600"
-        >
-          Odblokuj kartę
-        </button>
-        <p v-else class="text-sm text-gray-300">Brak wybranej karty do odblokowania.</p>
-      </div>
+    <!-- 2. Wybór Karty Decyzji -->
+    <div v-if="!loading.cards" class="mb-4">
+      <select v-model="selectedCardId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full">
+        <option :value="null">-- Wybierz kartę --</option>
+        <option v-for="card in decisionCards" :key="card.cardId" :value="card.cardId">
+          {{ card.cardName }}
+        </option>
+      </select>
+    </div>
+    <div v-if="loading.cards" class="text-center">Ładowanie kart decyzji...</div>
+    
+    <!-- Przycisk "Odblokuj kartę", który pojawia się po dokonaniu obu wyborów -->
+    <div class="text-center mt-6">
+      <button
+        v-if="selectedTeamId && selectedCardId"
+        @click="handleCardAction"
+        class="px-6 py-2 rounded font-bold bg-red-500 hover:bg-red-600 text-white"
+      >
+        Odblokuj kartę
+      </button>
+      <p v-else class="text-sm text-gray-400">Wybierz drużynę i kartę, aby kontynuować.</p>
     </div>
 
-    <p v-else class="text-center text-gray-300 mt-4">Wybierz stół, aby zarządzać blokadami kart.</p>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import apiClient from '@/assets/plugins/axios';
+import { useToast } from 'vue-toastification';
 
-const tables = [1, 2, 3, 4]
-const selectedTable = ref('')
-const selectedCardId = ref('')
-const blockedCards = ref({})
+const route = useRoute();
+const toast = useToast();
+const gameId = route.params.gameId;
 
-const cards = [
-  { id: 1, name: "Stworzenie profilu organizacji" },
-  { id: 2, name: "Przeprowadź szkolenie techniczne" },
-  { id: 3, name: "Zarządzanie danymi" }
-]
+// --- Stan komponentu ---
+const teams = ref([]);
+const decisionCards = ref([]);
 
-onMounted(() => {
-  const saved = localStorage.getItem('blockedCards')
-  blockedCards.value = saved ? JSON.parse(saved) : {}
-})
+const selectedTeamId = ref(null);
+const selectedCardId = ref(null);
 
-const blockedCardsForTable = computed(() => {
-  if (!selectedTable.value) return []
-  const blockedIds = blockedCards.value[selectedTable.value] || []
-  return cards.filter(card => blockedIds.includes(card.id))
-})
+const loading = reactive({
+  teams: true,
+  cards: true,
+});
 
-function unblockCard(cardId) {
-  const tableId = selectedTable.value
-  const index = blockedCards.value[tableId]?.indexOf(cardId)
-
-  if (index !== -1) {
-    blockedCards.value[tableId].splice(index, 1)
-    localStorage.setItem('blockedCards', JSON.stringify(blockedCards.value))
-    selectedCardId.value = ''
+// --- Funkcje do pobierania danych z API ---
+const fetchTeams = async () => {
+  if (!gameId) return;
+  loading.teams = true;
+  try {
+    const response = await apiClient.get(`/api/player/game/${gameId}/teams-management`);
+    teams.value = response.data;
+  } catch (error) {
+    toast.error("Nie udało się pobrać listy drużyn.");
+  } finally {
+    loading.teams = false;
   }
-}
+};
+
+const fetchDecisionCards = async () => {
+  if (!gameId) return;
+  loading.cards = true;
+  try {
+    const response = await apiClient.get(`/api/player/game/${gameId}/decision-cards`);
+    decisionCards.value = response.data;
+  } catch (error) {
+    toast.error("Nie udało się pobrać listy kart decyzji.");
+  } finally {
+    loading.cards = false;
+  }
+};
+
+const handleCardAction = async () => {
+  if (!selectedTeamId.value || !selectedCardId.value) {
+    toast.warning("Proszę wybrać drużynę i kartę.");
+    return;
+  }
+
+  const teamName = teams.value.find(t => t.teamId === selectedTeamId.value)?.teamName;
+  const cardName = decisionCards.value.find(c => c.cardId === selectedCardId.value)?.cardName;
+
+  try {
+    // Przygotuj dane do wysłania w ciele żądania
+    const payload = {
+      cardId: selectedCardId.value,
+      teamId: selectedTeamId.value
+    };
+
+    // Wyślij żądanie POST do naszego nowego endpointu
+    const response = await apiClient.post(`/api/player/game/${gameId}/unlock-card`, payload);
+
+    toast.success(response.data.message || `Pomyślnie odblokowano kartę "${cardName}" dla drużyny ${teamName}.`);
+
+    // Opcjonalnie: wyczyść wybór po udanej akcji
+    // selectedTeamId.value = null;
+    // selectedCardId.value = null;
+
+  } catch (error) {
+    // Sprawdź, czy błąd to 'Conflict' (409) i wyświetl odpowiedni komunikat
+    if (error.response && error.response.status === 409) {
+        toast.warning(error.response.data.message || "Ta karta jest już odblokowana.");
+    } else {
+        toast.error("Wystąpił błąd podczas odblokowywania karty.");
+    }
+    console.error("Błąd podczas akcji na karcie:", error);
+  }
+};
+
+// --- Cykl życia komponentu ---
+onMounted(() => {
+  fetchTeams();
+  fetchDecisionCards();
+});
 </script>
