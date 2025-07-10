@@ -18,14 +18,6 @@
 
       <div class="w-100 h-0.5 mb-1 sm:mb-2 md:mb-3 lg:mb-4 bg-accent"></div>
       
-      <div class="text-red-500 mt-2 mb-2" v-show="errorPasswordsNotMatch">
-        <p>Podane hasła się nie zgadzają ❗</p>
-      </div>
-  
-      <div class="text-red-500 mt-2 mb-2" v-show="!passwordValid">
-        <p>Hasło nie spełnia wymagań ❗</p>
-      </div>
-      
       <form @submit.prevent="handleChangePassword">
         <label for="register-password" class="block font-bold text-xs sm:text-sm text-left mb-1">
             Nowe hasło
@@ -69,7 +61,7 @@
             focus-within:border-accent focus-within:ring-1 focus-within:ring-accent mb-3
           ">
             <input 
-              :type="showPassword ? 'text' : 'password'" 
+              :type="showConfirmPassword ? 'text' : 'password'" 
               id="register-confirm-password" 
               v-model="changePasswordData.confirmPassword" 
               class="w-full px-3 py-2 bg-transparent focus:outline-none focus:ring-0 text-white flex-grow"
@@ -107,9 +99,11 @@
         
         <button 
           type="submit" 
-          class="bg-tertiary hover:bg-accent text-white w-full py-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60 mb-5"
+          class="text-white w-full py-4 rounded-lg font-medium transition-all duration-300 shadow-sm shadow-accent/40 mb-5"
+          :class="allPasswordRequirementsMet ? 'bg-accent/50 hover:shadow-lg hover:shadow-accent/60 hover:bg-accent' : 'bg-tertiary' "
+          :disabled="!allPasswordRequirementsMet || isLoading"
         >
-          Zmień hasło
+          {{ isLoading ? 'Zmiana hasła...' : 'Zmień hasło' }}
         </button>
       </form>
     </div>
@@ -185,8 +179,8 @@
 
     const showPassword = ref(false);
     const showConfirmPassword = ref(false);
-    const errorPasswordsNotMatch = ref(false);
-    const passwordValid = ref(true);
+    
+    const isLoading = ref(false);
     
     const changePasswordData = ref({
         password: '',
@@ -203,36 +197,37 @@
         };
     });
 
+    const allPasswordRequirementsMet = computed(() => {
+      const req = passwordRequirements.value;
+      return req.length && req.uppercase && req.lowercase && req.digit && req.special &&
+      changePasswordData.value.password.trim() !== '' &&
+      changePasswordData.value.confirmPassword.trim() !== '';
+    });
+
     const handleReturnToLogin = () => {
        sessionStorage.setItem('showLoginAfterRedirect', 'true');
        router.push('/')
     }
     
     const handleChangePassword = async () => {
-        passwordValid.value = true;
-        errorPasswordsNotMatch.value = changePasswordData.value.password !== changePasswordData.value.confirmPassword;
+
+        toast.clear(); // Czyszczenie toastów przed nową zmianą hasła, żeby uniknąć zalania komunikatami
+
+        const errorPasswordsNotMatch = changePasswordData.value.password !== changePasswordData.value.confirmPassword;
     
-        if(errorPasswordsNotMatch.value) {
-            passwordValid.value = true;
-            toast.error("Hasła się nie zgadzają!");
+        if(errorPasswordsNotMatch) {
+            toast.error("Hasła się nie zgadzają!", {
+                position: "top-center",
+              });
             return;
         }
     
-        const req = passwordRequirements.value;
-        passwordValid.value = req.length && req.uppercase && req.lowercase && req.digit && req.special;
-    
-        if(!passwordValid.value) {   
-        toast.error("Podane hasło nie spełnia wymagań!", {
-            position: 'top-center'
-        });
-        return;
-        }
-        
         try {
-  const response = await apiClient.post('/api/password/reset', {
-    token: token.value,
-    newPassword: changePasswordData.value.password
-  });
+          isLoading.value = true;
+          const response = await apiClient.post('/api/password/reset', {
+            token: token.value,
+            newPassword: changePasswordData.value.password
+        });
 
   if (response.data.success) {
     console.log('✅ Hasło zmienione pomyślnie!');
@@ -247,6 +242,11 @@
     position: "top-center",
   });
 }
+
+finally {
+  isLoading.value = false;
+}
+
 
     };
 
