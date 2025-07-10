@@ -18,6 +18,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 //Konfiguracja komunikatów
 const toastOptions = {
+    maxToasts: 3, 
+    newestOnTop: true,
     position: 'top-right',
     timeout: 3000,
     closeOnClick: true,

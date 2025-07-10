@@ -70,14 +70,14 @@
         <button 
             @click="handleSendEmail"
             class="
-            bg-tertiary  text-white w-full rounded-lg font-medium 
+            text-white w-full rounded-lg font-medium 
             transition-all duration-300 shadow-sm
             shadow-accent/40
             py-2.5 sm:py-3 
             text-sm sm:text-base md:text-lg
             mt-5
             "
-            :class="canResend ? 'hover:shadow-lg hover:shadow-accent/60 hover:bg-accent' : '' "
+            :class="canResend ? 'bg-accent/50 hover:shadow-lg hover:shadow-accent/60 hover:bg-accent' : 'bg-tertiary' "
             :disabled="!canResend"
         >
             {{ canResend ? 'Wyślij ponownie' : `Wyślij ponownie ${countdown}s` }}
