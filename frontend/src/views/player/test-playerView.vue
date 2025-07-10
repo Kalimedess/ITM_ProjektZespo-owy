@@ -32,7 +32,7 @@
       </template>
     </Suspense>
     </div>
-      <!-- Środkowa kolumna: plansza jako punkt centralny -->
+      <!-- Środkowa kolumna: plansza -->
         <div class="w-1/3 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4">
             <div class="flex justify-center space-x-2 mb-4">
                 <button
