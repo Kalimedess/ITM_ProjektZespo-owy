@@ -1,13 +1,11 @@
 <template>
-  <div class="px-3 py-2 sm:px-4 sm:py-2 md:px-6 md:py-3">
+
+  <!--Formularz rejestracji użytkownika-->
+  <div   class="px-3 py-2 sm:px-4 sm:py-2 md:px-6 md:py-3">
     <h2 class="text-lg sm:text-xl md:text-2xl font-nasalization mb-2 sm:mb-3 text-center">
       Utwórz nowe konto
     </h2>
     
-    <div v-show="errorPasswordsNotMatch || !passwordValid" class="bg-red-500/20 border border-red-500 rounded-md p-2 sm:p-3 text-xs sm:text-sm">
-      <p v-if="errorPasswordsNotMatch" class="text-red-400">Podane hasła się nie zgadzają ❗</p>
-      <p v-if="!passwordValid" class="text-red-400">Hasło nie spełnia wymagań ❗</p>
-    </div>
     
     <form @submit.prevent="handleRegister" class="space-y-3 sm:space-y-4">
       <div class="space-y-1">
@@ -118,9 +116,11 @@
       
       <button 
         type="submit" 
-        class="bg-tertiary hover:bg-accent text-white w-full rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg shadow-accent/40 hover:shadow-accent/60 py-2.5 sm:py-3 text-sm sm:text-base md:text-lg"
+        class=" text-white w-full rounded-lg font-medium transition-all duration-300 shadow-sm  shadow-accent/40 py-2.5 sm:py-3 text-sm sm:text-base md:text-lg"
+        :disabled="!isRegisterFormValid || isLoading"
+        :class="isRegisterFormValid ? 'bg-accent/50 hover:shadow-lg hover:shadow-accent/60 hover:bg-accent' : 'bg-tertiary' "
       >
-        Zarejestruj się
+        {{ isLoading ? 'Rejestracja...' : 'Zarejestruj się' }}
       </button>
     </form>
   </div>
@@ -133,13 +133,34 @@ import { useToast } from 'vue-toastification';
 import passwordStrength from './passwordStrength.vue';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
+
 const toast = useToast();
-const emit = defineEmits(['register', 'close', 'switchToLogin']);
+const emit = defineEmits(['register', 'close', 'switchToConfirmEmail']);
 
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
-const errorPasswordsNotMatch = ref(false);
-const passwordValid = ref(true);
+const isLoading = ref(false);
+
+//Funckcja do sprawdzania poprawności adresu e-mail
+const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
+const isRegisterFormValid = computed(() => {
+  const req = passwordRequirements.value;
+
+  return registerData.value.username.trim() !== '' &&
+         registerData.value.email.trim() !== '' &&
+         registerData.value.password.trim() !== '' &&
+         registerData.value.confirmPassword.trim() !== '' &&
+         validateEmail(registerData.value.email) &&
+        req.length && req.uppercase && req.lowercase && req.digit && req.special;
+});
+
 
 const registerData = ref({
   username: '',
@@ -159,26 +180,20 @@ const passwordRequirements = computed(() => {
 });
 
 const handleRegister = async () => {
-  passwordValid.value = true;
-  errorPasswordsNotMatch.value = registerData.value.password !== registerData.value.confirmPassword;
 
-  if(errorPasswordsNotMatch.value) {
-    passwordValid.value = true;
-    toast.error("Hasła się nie zgadzają!");
-    return;
-  }
+  toast.clear();
 
-  const req = passwordRequirements.value;
-  passwordValid.value = req.length && req.uppercase && req.lowercase && req.digit && req.special;
+  const errorPasswordsNotMatch = registerData.value.password !== registerData.value.confirmPassword;
 
-  if(!passwordValid.value) {   
-    toast.error("Podane hasło nie spełnia wymagań!", {
-      position: 'top-center'
+  if(errorPasswordsNotMatch) {
+    toast.error("Podane hasła się nie zgadzają!",{
+      position: 'top-center',
     });
     return;
   }
-  
+
   try {
+    isLoading.value = true;
     const response = await apiClient.post('/api/auth/register', {
       username: registerData.value.username,
       email: registerData.value.email,
@@ -190,13 +205,24 @@ const handleRegister = async () => {
       toast.success("Pomyślnie zarejestrowano!", {
           position: 'top-center',
       });
-              emit('switchToLogin');
+          emit('switchToConfirmEmail',registerData.value.email);
       }
   } catch(error) {
-    console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
-    toast.error("Wystąpił błąd! Spróbuj ponownie", {
-      position: "top-center",
-    });
+      if(error.response?.data) {
+        if (error.response.data === 'Email already exist.') {
+          toast.error("Ten e-mail jest już zarejestrowany!", {
+            position: 'top-center',
+          });
+        }
+        else {
+          toast.error("Wystąpił błąd podczas rejestracji. Spróbuj ponownie.", {
+            position: 'top-center',
+          });
+        }
+      }
+  }
+  finally {
+    isLoading.value = false;
   }
 };
 </script>

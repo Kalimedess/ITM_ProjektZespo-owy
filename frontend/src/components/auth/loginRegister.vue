@@ -17,7 +17,7 @@
         >
           <font-awesome-icon :icon="faXmark" class="h-5 text-white hover:text-accent transition-all duration-100" />
         </button>
-        <div class="flex mb-1 sm:mb-2 md:mb-3 lg:mb-4 gap-3" v-if="activeView !== 'forgotPassword' ">
+        <div class="flex mb-1 sm:mb-2 md:mb-3 lg:mb-4 gap-3" v-if="activeView === 'login' || activeView === 'register'">
           <button 
             class="text-white w-full py-4 rounded-lg font-medium"
             :class="activeView === 'login' ? 'bg-accent font-semibold shadow-lg shadow-accent/70' : 'bg-tertiary transition delay-150 duration-300 ease-in-out hover:-translate-y-2 hover:scale-105 hover:bg-accent/70'"
@@ -35,7 +35,7 @@
           </button>
         </div>
 
-        <div class="w-100 h-0.5 mb-1 sm:mb-2 md:mb-3 lg:mb-4 bg-accent" v-if="activeView !== 'forgotPassword' "></div>
+        <div class="w-100 h-0.5 mb-1 sm:mb-2 md:mb-3 lg:mb-4 bg-accent" v-if="activeView === 'login' || activeView === 'register'" ></div>
 
         <LoginForm 
           v-if="activeView === 'login'"
@@ -47,12 +47,18 @@
         <RegisterForm 
           v-if="activeView === 'register'" 
           @close="closeModal"
-          @switchToLogin="activeView = 'login'"
+          @switchToConfirmEmail="handleSwitchToConfirmEmail"
           class="animate-fade-right"
         />
 
         <ForgotPassword  
           v-if="activeView === 'forgotPassword'"
+          @back-to-login="handleBackToLogin"
+        />
+
+        <ConfirmEmail 
+          v-if="activeView === 'confirmEmail'" 
+          :email="emailToConfirm"
           @back-to-login="handleBackToLogin"
         />
 
@@ -66,6 +72,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import LoginForm from '@/components/auth/loginForm.vue';
 import RegisterForm from '@/components/auth/registerForm.vue';
 import ForgotPassword from './forgotPassword.vue';
+import ConfirmEmail from './confirmEmail.vue';
 
 const props = defineProps({
   isVisible: {
@@ -82,6 +89,8 @@ const props = defineProps({
 const emit = defineEmits(['register', 'close', 'switchToLogin']);
 
 const activeView = ref(props.initialView);
+
+const emailToConfirm = ref('');
 
 
 
@@ -105,6 +114,11 @@ const handleForgotPassword = () => {
 
 const handleBackToLogin = () => {
   activeView.value = 'login';
+}
+
+const handleSwitchToConfirmEmail = (email) => {
+  activeView.value = 'confirmEmail';
+  emailToConfirm.value = email;
 }
 
 </script>
