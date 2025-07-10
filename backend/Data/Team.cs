@@ -6,7 +6,7 @@ namespace backend.Data
     {
         public int TeamId { get; set; }
         public int GameId { get; set; }
-        public Game Game { get; set; }
+        public Game Game { get; set; } = null!;
 
         [MaxLength(7)]
         public string TeamColor { get; set; } = string.Empty;
@@ -17,5 +17,9 @@ namespace backend.Data
 
         [MaxLength(6)]
         public string? TeamToken { get; set; } = string.Empty;
+
+        public bool IsIndependent { get; set; }
+
+        public virtual ICollection<GameProcess> GameProcesses { get; set; } = new List<GameProcess>();
     }
 }

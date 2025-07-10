@@ -77,8 +77,8 @@
             @click="handleGameManager">
           <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center' ">
             <div>
-              <font-awesome-icon :icon="faGamepad" class="h-4  text-accent" :class="isSideBarOpen ? 'mr-4' : 'mr-0' " />
-                <span v-if="isSideBarOpen">Panel sterowania stołem</span>
+              <font-awesome-icon :icon="faChartLine" class="h-4 mr-2 text-accent" />
+              Panel sterowania grą
             </div>
                 <font-awesome-icon v-if="isSideBarOpen" :icon="isGameManagerDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
           </div>
@@ -111,8 +111,8 @@
                     @click="handleGameTableManager">
                     <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center' ">
                     <div>
-                        <font-awesome-icon :icon="faUsers" class="h-4 text-accent" :class="isSideBarOpen ? 'mr-4' : 'mr-0' "/>
-                        <span v-if="isSideBarOpen">Panel sterowania grą</span>
+                        <font-awesome-icon :icon="faGamepad" class="h-4 mr-2 text-accent"/>
+                        <span>Panel sterowania graczem</span>
                     </div>
                         <font-awesome-icon v-if="isSideBarOpen" :icon="isGameTableManagerDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
                     </div>
@@ -187,6 +187,7 @@
 </template>
 
 <script setup>
+    import { icon } from '@fortawesome/fontawesome-svg-core';
 import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight, faUsers} from '@fortawesome/free-solid-svg-icons'
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
