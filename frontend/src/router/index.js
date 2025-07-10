@@ -70,29 +70,38 @@ const router = createRouter({
     },
     {
       path: '/admin/game',
+      name: 'admin-game-dashboard',
       component: adminGameDashboardView,
       meta: { requiresAuth: true },
       children: [
         {
-          path:'',
-          name:'decision-panel',
-          component:decisionPanel,
+          path: '/admin/game/:gameId',
+          name: 'decision-panel',
+          component: decisionPanel,
+          props: true,
+          meta: { requiresAuth: true }
         },
         {
-          path: 'statistics',
+          path: '/admin/game/:gameId/statistics',
           name: 'admin-game-statistics',
           component: gameStatistics,
+          props: true,
+          meta: { requiresAuth: true }
         },
         {
-          path: 'editbits',
+          path: '/admin/game/:gameId/editbits',
           name: 'edit-bits',
           component: editBitsView,
+          props: true,
+          meta: { requiresAuth: true }
         },
         {
-          path: 'blockcards',
+          path: '/admin/game/:gameId/blockcards',
           name: 'block-cards',
           component: blockCards,
-        }
+          props: true,
+          meta: { requiresAuth: true }
+        },
 
       ]
     },

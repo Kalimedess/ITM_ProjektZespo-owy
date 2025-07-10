@@ -25,19 +25,9 @@
         <font-awesome-icon :icon="game.status === 'During' ? faCircleStop : faCirclePlay" class="h-4 text-accent mr-2"/>
         {{ game.status === 'During' ? 'Wstrzymaj grę' : 'Wznów grę' }}
       </button>
-    
-       <button 
-        @click="requestStatusChange(game.id,'End')"
-        class="flex flex-auto items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300" @dblclick.stop>
-          <font-awesome-icon :icon="faPowerOff" class="h-4 mr-2 text-accent"/>  
-          Zakończ grę
-      </button>
-    </div>
-    
-    <RouterLink 
-        :to="`/admin/game`"
-        @dblclick.stop
-        class="w-full flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300">
+      <RouterLink 
+        :to="`/admin/game/${game.id}`"
+        class="flex flex-auto items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300">
         <font-awesome-icon :icon="faMagnifyingGlass" class="h-4 mr-2 text-accent"/>     
         Otwórz grę
     </RouterLink>
