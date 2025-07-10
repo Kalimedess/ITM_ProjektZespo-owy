@@ -62,8 +62,15 @@ namespace backend.Controllers
 
             if (!user.EmailConfirmed)
             {
-                return BadRequest("E-mail nie został potwierdzony. Sprawdź skrzynkę pocztową.");
+                // wygeneruj nowy token
+                user.ConfirmationToken = Guid.NewGuid().ToString();
+                await _context.SaveChangesAsync();
+
+                await SendConfirmationEmail(user.Email);
+
+                return BadRequest("E-mail nie został potwierdzony. Wysłano ponownie link aktywacyjny.");
             }
+
 
             var claims = JwtService.GenerateToken(user);
 
@@ -131,7 +138,33 @@ namespace backend.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "failed to send reset email.");
             }
             
-        }    
+        }  
+        private async Task<bool> SendConfirmationEmail(string email)
+{
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    var confirmationLink = Url.Action(nameof(ConfirmEmail), "Auth", new { token = user.ConfirmationToken }, Request.Scheme);
+    
+    if (string.IsNullOrEmpty(confirmationLink))
+    {
+        confirmationLink = $"{(Request.IsHttps ? "https" : "http")}://{Request.Host}/api/auth/confirm?token={user.ConfirmationToken}";
+    }
+
+    try
+    {
+        await _emailService.SendEmailAsync(user.Email, "Potwierdzenie rejestracji", $"Kliknij w link aby aktywować konto: {confirmationLink}");
+        return true;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error sending confirmation email: {ex.Message}");
+        return false;
+    }
+}
+
+
+
+
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -265,25 +298,15 @@ namespace backend.Controllers
 
             await _context.SaveChangesAsync();
 
-
-            var confirmationLink = Url.Action(nameof(ConfirmEmail), "Auth", new { token = confirmationToken }, Request.Scheme);
-
-            if (string.IsNullOrEmpty(confirmationLink))
+            if (await SendConfirmationEmail(user.Email))
             {
-                confirmationLink = $"{(Request.IsHttps ? "https" : "http")}://{Request.Host}/api/auth/confirm?token={confirmationToken}";
-            }
-
-
-            try
-            {
-                await _emailService.SendEmailAsync(user.Email, "Potwierdzenie rejestracji", $"Kliknij w link aby aktywować konto: {confirmationLink}");
                 return Ok(new { success = true, message = "Registration successful. Please check your email." });
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"Error sending confirmation email: {ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Registration succeeded but failed to send confirmation email.");
             }
+
         }
 
 
