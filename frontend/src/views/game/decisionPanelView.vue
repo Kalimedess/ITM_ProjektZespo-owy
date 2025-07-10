@@ -30,16 +30,15 @@
       </div>
 
       <!-- Plansza -->
-      <div class="mt-6 w-full flex justify-center ">
-      
-      <GameBoard
-      :config="formData"
-      :game-mode="true"
-      :pos-x="7"
-      :pos-y="7"
-      :pawn-color="'#000000'"
-      />
-    </div>
+      <div class="mt-6 w-full flex justify-center">
+        <GameBoard
+          :config="formData"
+          :game-mode="true"
+          :pos-x="7"
+          :pos-y="7"
+          :pawn-color="'#000000'"
+        />
+      </div>
     </div>
 
     <!-- Prawa kolumna: historia decyzji -->

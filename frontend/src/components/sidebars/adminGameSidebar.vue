@@ -91,18 +91,13 @@
               Zmień ilość bitów stołu
             </RouterLink>
           
-            <RouterLink 
-              :to="{ path: '/admin/game/alwayssucceed' }"
-              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-              @click.stop>
-              Zagrana karta zawsze się powodzi
-            </RouterLink>            
+                      
             
             <RouterLink 
               :to="{ path: '/admin/game/blockcards'}"
               class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
               @click.stop>
-              Zablokuj/Odblokuj kartę
+              Odblokuj kartę
             </RouterLink>
             </div>
                 </li>
