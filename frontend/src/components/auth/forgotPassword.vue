@@ -108,7 +108,7 @@
     const handleSendEmail = async () => {
   try {
     const response = await apiClient.post('/api/auth/reset-password', {
-      Email: email
+      Email: email.value
     });
 
     if (response.data.success) {

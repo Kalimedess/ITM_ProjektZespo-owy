@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-    import { ref, computed} from 'vue';
+    import { ref, computed, onMounted } from 'vue';
     import { useToast } from 'vue-toastification';
     import passwordStrength from '@/components/auth/passwordStrength.vue';
     import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -158,6 +158,27 @@
     
     const toast = useToast();
     const router = useRouter();
+
+    import { useRoute } from 'vue-router';
+    import apiClient from '@/assets/plugins/axios';
+
+    const route = useRoute();
+    const token = ref('');
+
+    onMounted(async () => {
+      token.value = route.params.token;
+
+      try {
+      const res = await apiClient.get(`/api/password/validate-token?token=${token.value}`);
+        isTokenValid.value = res.data.valid;
+      } catch (err) {
+        isTokenValid.value = false;
+        toast.error('Token wygasł lub jest nieprawidłowy.', {
+        position: 'top-center',
+        });
+      }
+    });
+
 
     //Ta zmienna przechowuję czy token jest poprawny (nie istnieje albo wygasł) domyślnie false
     const isTokenValid = ref(false);
@@ -208,20 +229,25 @@
         }
         
         try {
-            //Tu będzie możliwość zmiany hasła
-    
-        if(response.data.success) {
-            console.log('✅ Zarejestrowano pomyślnie!');
-            toast.success("Pomyślnie zmieniono hasło!", {
-                position: 'top-center',
-            });
-            }
-        } catch(error) {
-        console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
-        toast.error("Wystąpił błąd! Spróbuj ponownie", {
-            position: "top-center",
-        });
-        }
+  const response = await apiClient.post('/api/password/reset', {
+    token: token.value,
+    newPassword: changePasswordData.value.password
+  });
+
+  if (response.data.success) {
+    console.log('✅ Hasło zmienione pomyślnie!');
+    toast.success("Pomyślnie zmieniono hasło!", {
+      position: 'top-center',
+    });
+    router.push('/');
+  }
+} catch (error) {
+  console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
+  toast.error("Wystąpił błąd! Spróbuj ponownie", {
+    position: "top-center",
+  });
+}
+
     };
 
 </script>

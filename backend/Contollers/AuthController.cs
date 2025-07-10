@@ -33,12 +33,14 @@ namespace backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly JwtService _jwtService;
 
-        public AuthController(AppDbContext context, EmailService emailService, JwtService jwtService)
+        public AuthController(AppDbContext context, EmailService emailService, JwtService jwtService, IConfiguration configuration)  
         {
             _context = context;
+            _configuration = configuration;
             _emailService = emailService;
             _jwtService = jwtService;
         }
@@ -110,7 +112,8 @@ namespace backend.Controllers
             var ResetPasswordToken = Guid.NewGuid().ToString();
             user.ConfirmationToken = ResetPasswordToken;
             await _context.SaveChangesAsync();
-            var ResetPasswordLink = Url.Action(nameof(ConfirmEmail), "Auth", new { token = ResetPasswordToken }, Request.Scheme);
+            var frontendBaseUrl = _configuration.GetValue<string>("CorsSettings:AllowedOrigins:0");
+            var ResetPasswordLink = $"{frontendBaseUrl}/resetPassword/{ResetPasswordToken}";
 
             if (string.IsNullOrEmpty(ResetPasswordLink))
             {
