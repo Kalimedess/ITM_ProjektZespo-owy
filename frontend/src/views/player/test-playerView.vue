@@ -1,88 +1,119 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-primary">
+  <div class="flex flex-col min-h-screen bg-primary relative overflow-hidden">
     <!-- Górny pasek -->
     <PlayerNavbar
-      :team-name="gameData?.teamName" 
+      :team-name="gameData?.teamName"
       :nav-bg-color="gameData?.teamColor"
     />
 
-    <!-- Główna zawartość -->
-    <div class="flex flex-1 mt-2">
-      
-      <!-- Lewa kolumna: wybór kart -->
-      <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4">
-        <RouterView />
-        <QuestionBox />
-        <Suspense>
-      <template #default>
-        <CardCarousel
-            ref="cardCarouselRef"
-            v-if="gameData && gameData.deckId"
-            :deck-id="gameData.deckId"
-            :team-id="gameData.teamId"
-            :game-id="gameData.gameId"
-            :board-id="gameData.boardConfig?.boardId"
-            :current-budget="currentGlobalBudget"
-            :show-descriptions="isOnline"
-            @card-action-completed="handleCardActionCompleted"
-        />
-      </template>
-      <template #fallback>
-        <div>Ładowanie karuzeli kart... (Fallback ze Suspense)</div>
-      </template>
-    </Suspense>
-    </div>
-      <!-- Środkowa kolumna: plansza -->
-        <div class="w-1/3 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4">
-            <div class="flex justify-center space-x-2 mb-4">
-                <button
-                @click="currentBoard = 'player'"
-                :class="currentBoard === 'player' ? 'bg-black text-white' : 'bg-white text-black'"
-                class="px-4 py-1 rounded-md border"
-                >
-                Twoja plansza
-                </button>
-                <button
-                @click="currentBoard = 'market'"
-                :class="currentBoard === 'market' ? 'bg-black text-white' : 'bg-white text-black'"
-                class="px-4 py-1 rounded-md border"
-                >
-                Plansza rynku
-                </button>
-            </div>
-
-            <GameBoard
-                v-if="currentBoard === 'player'"
-                :config="formData"
-                :gameMode="true"
-                :posX="posX"
-                :posY="posY"
-                :pawnColor="gameData?.teamColor"
-            />
-
-            <!-- tu dodać plansza rywali -->
-            
+    <!-- Główna sekcja: kontener flex -->
+    <div class="flex flex-1 flex-row relative overflow-hidden">
+      <!-- Lewy panel jako połowa szerokości -->
+      <Transition name="fade-slide" appear>
+        <div
+          v-if="leftOpen"
+          class="absolute left-0 top-0 w-1/2 h-full bg-secondary border-r border-gray-400 shadow-lg z-40 overflow-auto p-4 transition-all duration-500 ease-in-out"
+        >
+          <RouterView />
+          <QuestionBox />
+          <Suspense>
+            <template #default>
+              <CardCarousel
+                ref="cardCarouselRef"
+                v-if="gameData && gameData.deckId"
+                :deck-id="gameData.deckId"
+                :team-id="gameData.teamId"
+                :game-id="gameData.gameId"
+                :board-id="gameData.boardConfig?.boardId"
+                :current-budget="currentGlobalBudget"
+                :show-descriptions="isOnline"
+                @card-action-completed="handleCardActionCompleted"
+              />
+            </template>
+            <template #fallback>
+              <div>Ładowanie karuzeli kart... (Fallback ze Suspense)</div>
+            </template>
+          </Suspense>
         </div>
-      <!-- Prawa kolumna: decyzje -->
-        <div class="flex-1 ml-4 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 w-1/3 mr-4 flex flex-col space-y-4">
-         
-        <PlayerMenu 
-         ref="playerMenuRef"
-            v-if="currentPanel === 'menu' && gameData"
-            :game-id="gameData?.gameId"
-            :team-id="gameData?.teamId"
+      </Transition>
+
+      <!-- Główna zawartość: plansza, zawsze renderowana -->
+      <div
+        class="transition-all duration-300 h-full bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 z-30"
+        :class="[
+          leftOpen ? 'w-1/2 ml-auto' : '',
+          rightOpen ? 'w-1/2 mr-auto' : '',
+          (!leftOpen && !rightOpen) ? 'w-1/2 mx-auto' : ''
+        ]"
+      >
+        <div class="flex justify-center space-x-2 mb-4">
+          <button
+            @click="currentBoard = 'player'"
+            :class="currentBoard === 'player' ? 'bg-black text-white' : 'bg-white text-black'"
+            class="px-4 py-1 rounded-md border"
+          >
+            Twoja plansza
+          </button>
+          <button
+            @click="currentBoard = 'market'"
+            :class="currentBoard === 'market' ? 'bg-black text-white' : 'bg-white text-black'"
+            class="px-4 py-1 rounded-md border"
+          >
+            Plansza rynku
+          </button>
+        </div>
+
+        <div class="flex justify-between items-center mb-4">
+          <!-- Lewy przycisk -->
+          <button
+            @click="showLeftPanel"
+            class="bg-gray-800 text-white px-4 py-2 rounded-md"
+          >
+            Panel kart
+          </button>
+
+          <!-- Prawy przycisk -->
+          <button
+            @click="showRightPanel"
+            class="bg-gray-800 text-white px-4 py-2 rounded-md"
+          >
+            Panel decyzji
+          </button>
+        </div>
+
+        <GameBoard
+          v-if="currentBoard === 'player'"
+          :config="formData"
+          :gameMode="true"
+          :posX="posX"
+          :posY="posY"
+          :pawnColor="gameData?.teamColor"
+        />
+      </div>
+
+      <!-- Prawy panel jako połowa szerokości -->
+      <div
+        v-if="rightOpen"
+        class="absolute right-0 top-0 w-1/2 h-full bg-secondary border-l border-gray-400 shadow-lg z-40 overflow-auto p-4"
+      >
+        <PlayerMenu
+          ref="playerMenuRef"
+          v-if="currentPanel === 'menu' && gameData"
+          :game-id="gameData?.gameId"
+          :team-id="gameData?.teamId"
           @budget-changed-in-menu="handleBudgetChangeFromMenu"
         />
-        </div>
-
+      </div>
     </div>
 
     <!-- Stopka -->
     <div class="mt-2">
-      <Footer/>
+      <Footer />
     </div>
   </div>
 </template>
+
+
 
 <script setup>
 import { reactive, ref, watch} from 'vue'
@@ -200,6 +231,50 @@ const handleBudgetChangeFromMenu = (newBudgetFromMenu) => {
 //funkcja odpowiedzialna za pokazywanie tekstu na kartach
 const isOnline = ref(true)
 
+//funckja pokazujaca aktualną planszę
 const currentBoard = ref('player')
 
+//logika rozsuwania paneli
+
+const leftOpen = ref(false)
+const rightOpen = ref(true)
+
+function toggleLeftPanel() {
+  leftOpen.value = !leftOpen.value
+  if (!leftOpen.value && !rightOpen.value) {
+    rightOpen.value = true // Nigdy nie pokazuj tylko planszy — zawsze jeden panel
+  }
+}
+
+function toggleRightPanel() {
+  rightOpen.value = !rightOpen.value
+  if (!rightOpen.value && !leftOpen.value) {
+    leftOpen.value = true // Nigdy nie pokazuj tylko planszy — zawsze jeden panel
+  }
+}
+
+function showLeftPanel() {
+  rightOpen.value = false
+  leftOpen.value = true
+}
+
+function showRightPanel() {
+  leftOpen.value = false
+  rightOpen.value = true
+}
+
 </script>
+<style scoped>
+  .fade-slide-enter-active,
+  .fade-slide-leave-active {
+    transition: all 0.5s ease;
+  }
+  .fade-slide-enter-from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  .fade-slide-leave-to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+</style>
