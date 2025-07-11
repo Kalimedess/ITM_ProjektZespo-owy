@@ -26,11 +26,12 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
-     import { faPowerOff,faPlus } from '@fortawesome/free-solid-svg-icons'
-     import { faCircleStop } from '@fortawesome/free-regular-svg-icons'
-     import { useToast } from 'vue-toastification';
-     import apiClient from '@/assets/plugins/axios';
+  import { ref } from 'vue';
+  import { faPowerOff,faPlus } from '@fortawesome/free-solid-svg-icons'
+  import { faCircleStop } from '@fortawesome/free-regular-svg-icons'
+  import { useToast } from 'vue-toastification';
+  import apiServices from '@/services/apiServices';
+  import apiConfig from '@/services/apiConfig';
 
      const toast = useToast();
 
@@ -52,7 +53,7 @@
 
       isStoppingGames.value = true;
       try {
-        const response = await apiClient.post('/api/games/stop-all');
+        const response = await apiServices.post(apiConfig.games.stopAll);
 
         if (response.status === 200 || response.status === 204) {
           toast.success('Wszystkie gry zostały zatrzymane.');
@@ -78,7 +79,7 @@
 
       isEndingGames.value = true;
       try {
-        const response = await apiClient.post('/api/games/end-all');
+        const response = await apiServices.post(apiConfig.games.endAll);
 
         if (response.status === 200 || response.status === 204) {
           toast.success('Wszystkie gry zostały zakończone.');
