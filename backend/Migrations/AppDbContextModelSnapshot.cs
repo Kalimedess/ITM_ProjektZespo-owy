@@ -229,8 +229,7 @@ namespace backend.Migrations
 
                     b.HasKey("DeckId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Decks");
                 });
@@ -650,8 +649,9 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Data.Deck", b =>
                 {
                     b.HasOne("backend.Data.User", "User")
-                        .WithOne()
-                        .HasForeignKey("backend.Data.Deck", "UserId");
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });

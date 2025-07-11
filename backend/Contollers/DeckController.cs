@@ -30,7 +30,7 @@ public class FeedbacksData
 
 namespace backend.Controllers
 {
-    [Route("api/deck")]
+    [Route("api/admin/deck")]
     [ApiController]
     public class DeckController : ControllerBase
     {
@@ -117,6 +117,8 @@ namespace backend.Controllers
                         }
 
                         await dbTransaction.CommitAsync();
+
+                        await _context.SaveChangesAsync();
 
                         // 9. Zwrócenie sukcesu
                         return Ok(new { message = "Dane zapisane pomyślnie", fed = feedbacksWithPdfReport });
@@ -392,13 +394,12 @@ namespace backend.Controllers
 
 
         [Authorize]
-        [HttpGet("edit")]
+        [HttpGet("get")]
         public async Task<ActionResult<IEnumerable<object>>> GetDecks()
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int userId = 0;
 
-            if (!int.TryParse(userIdString, out userId))
+            if (!int.TryParse(userIdString, out int userId))
             {
                 return Unauthorized("Nieprawidłowy identyfikator użytkownika.");
             }

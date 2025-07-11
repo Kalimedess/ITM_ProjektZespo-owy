@@ -17,7 +17,7 @@
         <input 
           type="email" 
           id="email" 
-          v-model="loginData.email" 
+          v-model="loginData.username" 
           class="w-full px-3 py-2 bg-tertiary border border-gray-600 rounded-md text-white focus:outline-none focus:border-accent text-sm sm:text-base"
           required
         />
@@ -71,38 +71,35 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
-import apiClient from '@/assets/plugins/axios';
+import { ref,nextTick} from 'vue';
 import { useToast } from 'vue-toastification';
 import router from '@/router';
-import { faEye, faEyeSlash, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import { useAuthStore } from '@/stores/auth';
+
+import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
 
 const authStore = useAuthStore();
 
 const toast = useToast();
-const emit = defineEmits(['login', 'close']);
 
 const showPassword = ref(false);
 const errorLogin = ref(false);
 
 const loginData = ref({
-  email: '',
+  username: '',
   password: ''
 });
 
 const handleLogin = async () => {
   try {
-    const response = await apiClient.post('/api/auth/login', {
-      username: loginData.value.email, 
-      password: loginData.value.password
-    }, {
-      withCredentials: true
-    });
+    const response = await apiService.post(apiConfig.auth.login, loginData.value);
 
     if (response.data.success) {
       console.log('✅ Zalogowano pomyślnie');
       authStore.setAuthenticated(true);
+      await nextTick();
       router.push('/admin');
     }
   } catch (error) {

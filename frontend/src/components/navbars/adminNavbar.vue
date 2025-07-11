@@ -9,8 +9,8 @@
             <div @click="toggleDropdown" class="cursor-pointer">
                 <font-awesome-icon :icon="faCircleUser" class="h-8 text-white hover:text-accent transition-all duration-300"/>
             </div>
-            <div class="text-white ml-3 hidden sm:block">
-              {{ username }}
+            <div class="text-white ml-3 hidden sm:block cursor-pointer hover:text-accent" @click="toggleDropdown">
+                {{ username }}
             </div>      
         </div>
 
@@ -36,13 +36,14 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import axios from 'axios'
 import logo from '@/assets/logos/ITM_poziom_biale.png'
 import { faCircleUser,faRightFromBracket,faGear } from '@fortawesome/free-solid-svg-icons'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { RouterLink } from 'vue-router';
 import adminSettings from '../admin/adminSettings.vue'
+import apiServices from '@/services/apiServices'
+import apiConfig from '@/services/apiConfig'
 
 const authStore = useAuthStore()
 
@@ -68,9 +69,7 @@ const handleClickOutside = (event) => {
 
 const logout = async () => {
   try {
-    await axios.post('http://localhost:5023/api/auth/logout', {}, {
-      withCredentials: true
-    });
+    await apiServices.post(apiConfig.auth.logout);
     authStore.setAuthenticated(false);
     router.push('/');
     isDropdownOpen.value = false;
@@ -81,11 +80,11 @@ const logout = async () => {
 
 const fetchUser = async () => {
     try {
-        const res = await axios.get('http://localhost:5023/api/auth/me', { withCredentials: true })
+        const res = await apiServices.get(apiConfig.auth.me);
         username.value = res.data.name
         email.value = res.data.email
-    } catch (err) {
-        console.error('Nie udało się pobrać danych użytkownika')
+    } catch (error) {
+        console.error('Nie udało się pobrać danych użytkownika', error)
     }
 }
 
