@@ -99,7 +99,7 @@ onMounted(async () => {
   const token = route.query.token;    
   if (token) {
     try {
-      const response = await axios.get(`/api/auth/confirm?token=${token}`);
+      const response = await axios.get(apiConfig.auth.confirmEmail(token));
       if (response.data.success) {
         isTokenValid.value = true;
       }

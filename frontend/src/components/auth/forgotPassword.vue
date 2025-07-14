@@ -107,7 +107,7 @@
 
     const handleSendEmail = async () => {
   try {
-    const response = await apiClient.post('/api/auth/reset-password', {
+    const response = await apiService.post(apiConfig.auth.forgotPassword,{
       Email: email.value
     });
 

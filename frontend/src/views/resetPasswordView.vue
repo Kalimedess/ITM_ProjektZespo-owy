@@ -224,7 +224,7 @@
     
         try {
           isLoading.value = true;
-          const response = await apiClient.post('/api/password/reset', {
+          const response = await apiClient.post(apiConfig.auth.resetPassword, {
             token: token.value,
             newPassword: changePasswordData.value.password
         });
