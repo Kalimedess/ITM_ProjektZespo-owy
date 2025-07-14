@@ -13,13 +13,13 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
-<<<<<<< HEAD
+
 import resetPasswordView from '@/views/resetPasswordView.vue'
 import confirmEmailView from '@/views/confirmEmailView.vue'
-=======
+
 import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
->>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
