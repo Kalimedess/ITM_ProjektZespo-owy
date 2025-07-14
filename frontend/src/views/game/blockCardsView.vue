@@ -18,7 +18,7 @@
       <select v-model="selectedCardId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full">
         <option :value="null">-- Wybierz kartę --</option>
         <option v-for="card in decisionCards" :key="card.cardId" :value="card.cardId">
-          {{ card.cardName }}
+          {{ card.cardId }} - {{ card.cardName }}
         </option>
       </select>
     </div>
