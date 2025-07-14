@@ -72,18 +72,10 @@
 </template>
 
 <script setup>
-<<<<<<< HEAD
 import { ref, defineEmits, computed, nextTick } from 'vue';
-import apiClient from '@/assets/plugins/axios';
 import { useToast } from 'vue-toastification';
 import router from '@/router';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-=======
-import { ref,nextTick} from 'vue';
-import { useToast } from 'vue-toastification';
-import router from '@/router';
-import { faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
->>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
 import { useAuthStore } from '@/stores/auth';
 
 import apiConfig from '@/services/apiConfig.js';
@@ -92,10 +84,8 @@ import apiService from '@/services/apiServices.js';
 const authStore = useAuthStore();
 
 const toast = useToast();
-<<<<<<< HEAD
+  
 const emit = defineEmits(['login', 'close','forgotPassword']);
-=======
->>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
 
 const showPassword = ref(false);
 
@@ -123,9 +113,6 @@ const isLoginFormValid = computed(() => {
   loginData.value.password !== '' && 
   validateEmail(loginData.value.email);
 });
-
-
-
 
 const handleLogin = async () => {
 
