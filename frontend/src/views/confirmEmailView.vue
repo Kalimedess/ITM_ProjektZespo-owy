@@ -94,8 +94,20 @@ const handleReturnToLogin = () => {
 };
 
 onMounted(async () => {
-    
-
+  
+  const route = useRoute();
+  const token = route.query.token;    
+  if (token) {
+    try {
+      const response = await axios.get(`/api/auth/confirm?token=${token}`);
+      if (response.data.success) {
+        isTokenValid.value = true;
+      }
+    } catch (error) {
+      console.error('Błąd potwierdzania tokenu:', error);
+      isTokenValid.value = false;
+    }
+  }
     //Odliczanie czasu do przekierowania z powrotem do logowania tylko jeżeli token jest poprawny
     if(isTokenValid.value) {
         const interval = setInterval(() => {

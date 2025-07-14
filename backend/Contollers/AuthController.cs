@@ -124,7 +124,7 @@ namespace backend.Controllers
 
             if (string.IsNullOrEmpty(ResetPasswordLink))
             {
-                ResetPasswordLink = $"{(Request.IsHttps ? "https" : "http")}://{Request.Host}/resetPassword/{ResetPasswordToken}";
+                ResetPasswordLink = $"{frontendBaseUrl}/resetPassword/{ResetPasswordToken}";
             }
 
             try
@@ -142,12 +142,13 @@ namespace backend.Controllers
         private async Task<bool> SendConfirmationEmail(string email)
 {
     var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-    var confirmationLink = Url.Action(nameof(ConfirmEmail), "Auth", new { token = user.ConfirmationToken }, Request.Scheme);
+    var frontendBaseUrl = _configuration.GetValue<string>("CorsSettings:AllowedOrigins:0");
+    var confirmationLink = $"{frontendBaseUrl}/confirm/{user.ConfirmationToken}";
     
     if (string.IsNullOrEmpty(confirmationLink))
-    {
-        confirmationLink = $"{(Request.IsHttps ? "https" : "http")}://{Request.Host}/api/auth/confirm?token={user.ConfirmationToken}";
-    }
+            {
+                confirmationLink = $"{frontendBaseUrl}/confirm/{user.ConfirmationToken}";
+            }
 
     try
     {
