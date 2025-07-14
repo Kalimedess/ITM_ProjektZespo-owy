@@ -7,29 +7,24 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
+DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "../.env"));
 
-builder.Services.AddCors(options =>
+// Pobierz URL frontendu ze zmiennej środowiskowej
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+
+if (!string.IsNullOrEmpty(frontendUrl))
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    builder.Services.AddCors(options =>
     {
-        if (allowedOrigins != null && allowedOrigins.Any())
+        options.AddDefaultPolicy(policy =>
         {
-            policy.WithOrigins(allowedOrigins)
-                  .AllowAnyMethod()
+            policy.WithOrigins(frontendUrl)
                   .AllowAnyHeader()
-                  .AllowCredentials();
-        }
-        else
-        {
-            Console.WriteLine("OSTRZEŻENIE: Brak skonfigurowanych dozwolonych źródeł CORS w appsettings.json. Zastosowano domyślne dla localhost:5173.");
-            policy.WithOrigins("http://localhost:5173")
                   .AllowAnyMethod()
-                  .AllowAnyHeader()
                   .AllowCredentials();
-        }
+        });
     });
-});
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
@@ -76,7 +71,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-app.UseCors("AllowFrontend");
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

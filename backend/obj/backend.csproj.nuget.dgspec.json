@@ -1,25 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {}
+    "D:\\Repozytoria\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {
+    "D:\\Repozytoria\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+        "projectUniqueName": "D:\\Repozytoria\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\Wiktoria\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\obj\\",
+        "projectPath": "D:\\Repozytoria\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\makro\\.nuget\\packages\\",
+        "outputPath": "D:\\Repozytoria\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\Wiktoria\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\makro\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -50,6 +57,10 @@
             "ClosedXML": {
               "target": "Package",
               "version": "[0.104.2, )"
+            },
+            "DotNetEnv": {
+              "target": "Package",
+              "version": "[3.1.1, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
@@ -101,7 +112,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.406/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -96,7 +96,9 @@ import boardInfo from '@/components/editBoard/boardInfo.vue';
 import boardColorSettings from '@/components/editBoard/boardColorSettings.vue';
 import boardLabelsEditors from '@/components/editBoard/boardLabelsEditors.vue';
 import boardDescriptions from '@/components/editBoard/boardDescriptions.vue';
-import apiClient from '@/assets/plugins/axios';
+
+import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
 
 const selectedBoardId = ref(null);
 const activeView = ref('add');
@@ -147,7 +149,7 @@ const arrayToString = (arr) => {
 
 const fetchBoardsFromAPI = async () => {
   try {
-    const response = await apiClient.get(`/api/Board/get`);
+    const response = await apiService.get(apiConfig.boards.getAll);
     data.boards = response.data;
     if (data.boards.length === 0 && activeView.value === 'edit') {
         toast.info("Brak plansz do edycji, przełączam na dodawanie.");
@@ -228,7 +230,7 @@ const saveBoard = async () => {
     let response;
     
     if (activeView.value === 'add') {
-      response = await apiClient.post(`/api/Board/add`, payload, { withCredentials: true });
+      response = await apiService.post(apiConfig.boards.create, payload);
       toast.success(`Plansza "${response.data.name}" dodana pomyślnie!`);
       await fetchBoardsFromAPI();
       resetForm();
@@ -238,7 +240,7 @@ const saveBoard = async () => {
         toast.warning('Wybierz planszę do edycji!');
         return;
       }
-      response = await apiClient.put(`/api/Board/edit/${selectedBoardId.value}`, payload, { withCredentials: true });
+      response = await apiService.put(apiConfig.boards.update(selectedBoardId.value), payload);
       
       toast.success(`Plansza "${response.data.name}" zaktualizowana pomyślnie!`);
       await fetchBoardsFromAPI();
@@ -264,7 +266,7 @@ const deleteBoard = async () => {
     try {
       // --- TUTAJ JEST ZMIANA ---
       // Zmieniamy URL, aby pasował do nowego endpointu w backendzie: /api/Board/delete/{id}
-      await apiClient.delete(`/api/Board/delete/${selectedBoardId.value}`, { withCredentials: true });
+      await apiService.delete(apiConfig.boards.delete(selectedBoardId.value));
       
       toast.success('Plansza została usunięta pomyślnie!');
       

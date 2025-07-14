@@ -123,8 +123,11 @@
 import { faSave,faFileExcel} from '@fortawesome/free-solid-svg-icons';
 import dropDown from '@/components/dropDown.vue';
 import { reactive, ref, watch, computed } from 'vue';
-import apiClient from '@/assets/plugins/axios';
 import { onMounted } from 'vue';
+
+import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
+
 
 const selectedDeck = ref(null);
 const selectedCard = ref(null);
@@ -180,7 +183,7 @@ async function handleFileChange(event) {
     formData.append("file", file);
 
     try {
-        const response = await apiClient.post("/api/deck/upload", formData, {
+        const response = await apiService.post(apiConfig.admin.deck.upload, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             },
@@ -211,12 +214,7 @@ watch(selectedDeck, async (deckId) => {
     }
 
     try {
-        const response = await apiClient.get("/api/deck/decisions", {
-            params: {
-                deckId: selectedDeck.value
-            },
-            withCredentials: true
-        });
+        const response = await apiService.get(apiConfig.admin.deck.decisions, {deckId: selectedDeck.value});
         cardsData.splice(0, cardsData.length, ...response.data);
     } catch (error) {
         console.error("Błąd przy pobieraniu kart z talii:", error);
@@ -237,9 +235,7 @@ watch(selectedCard, (newValue) => {
 
 onMounted(async () => {
     try {
-        const response = await apiClient.get("/api/deck/edit", {
-            withCredentials: true
-        });
+        const response = await apiService.get(apiConfig.admin.deck.getAll);
         decksData.splice(0, decksData.length, ...response.data);
     } catch (error) {
         console.error("Błąd przy pobieraniu talii:", error);

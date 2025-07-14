@@ -13,7 +13,7 @@
         <input 
           type="email" 
           id="email" 
-          v-model="loginData.email" 
+          v-model="loginData.username" 
           class="w-full px-3 py-2 bg-tertiary border border-gray-600 rounded-md text-white focus:outline-none focus:border-accent text-sm sm:text-base"
           required
         />
@@ -72,17 +72,30 @@
 </template>
 
 <script setup>
+<<<<<<< HEAD
 import { ref, defineEmits, computed, nextTick } from 'vue';
 import apiClient from '@/assets/plugins/axios';
 import { useToast } from 'vue-toastification';
 import router from '@/router';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+=======
+import { ref,nextTick} from 'vue';
+import { useToast } from 'vue-toastification';
+import router from '@/router';
+import { faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+>>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
 import { useAuthStore } from '@/stores/auth';
+
+import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
 
 const authStore = useAuthStore();
 
 const toast = useToast();
+<<<<<<< HEAD
 const emit = defineEmits(['login', 'close','forgotPassword']);
+=======
+>>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
 
 const showPassword = ref(false);
 
@@ -90,7 +103,7 @@ const showPassword = ref(false);
 const isLoading = ref(false);
 
 const loginData = ref({
-  email: '',
+  username: '',
   password: ''
 });
 
@@ -128,17 +141,15 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    const response = await apiClient.post('/api/auth/login', {
-      username: loginData.value.email, 
-      password: loginData.value.password
-    }, {
-      withCredentials: true
-    });
+    const response = await apiService.post(apiConfig.auth.login, loginData.value);
 
     if (response.data.success) {
       console.log('✅ Zalogowano pomyślnie');
       authStore.setAuthenticated(true);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
       await nextTick();
       router.push('/admin');
     }
