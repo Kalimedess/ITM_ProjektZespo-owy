@@ -225,28 +225,28 @@ namespace backend.Controllers
                 teamColor = team.TeamColor,
 
                 // Pozycja pionka z GameBoard, jeśli istnieje, inaczej domyślne
-                teamPositionX = gameBoardState?.PozX ?? 0,
-                teamPositionY = gameBoardState?.PozY ?? 0,
+                // teamPositionX = gameBoardState?.PozX ?? 0,
+                // teamPositionY = gameBoardState?.PozY ?? 0,
 
                 deckId = team.Game.DeckId,
                 deckName = team.Game.Deck.DeckName,
 
 
 
-                boardConfig = new
-                {
-                    boardId = gameBoardState.BoardId,
-                    Name = team.Game.TeamBoard.Name,
-                    LabelsUp = team.Game.TeamBoard.LabelsUp?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
-                    LabelsRight = team.Game.TeamBoard.LabelsRight?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
-                    DescriptionDown = team.Game.TeamBoard.DescriptionDown,
-                    DescriptionLeft = team.Game.TeamBoard.DescriptionLeft,
-                    Rows = team.Game.TeamBoard.Rows,
-                    Cols = team.Game.TeamBoard.Cols,
-                    CellColor = team.Game.TeamBoard.CellColor,
-                    BorderColor = team.Game.TeamBoard.BorderColor,
-                    BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
-                },
+                // boardConfig = new
+                // {
+                //     boardId = gameBoardState.BoardId, 
+                //     Name = team.Game.TeamBoard.Name,
+                //     LabelsUp = team.Game.TeamBoard.LabelsUp?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                //     LabelsRight = team.Game.TeamBoard.LabelsRight?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                //     DescriptionDown = team.Game.TeamBoard.DescriptionDown,
+                //     DescriptionLeft = team.Game.TeamBoard.DescriptionLeft,
+                //     Rows = team.Game.TeamBoard.Rows,
+                //     Cols = team.Game.TeamBoard.Cols,
+                //     CellColor = team.Game.TeamBoard.CellColor,
+                //     BorderColor = team.Game.TeamBoard.BorderColor,
+                //     BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
+                // },
 
                 // currentTurn = team.Game.CurrentTurn, // Jeśli Game ma takie pole
                 // currentQuestion = gameBoardState?.CurrentQuestionText, // Jeśli GameBoard lub GameProcess ma pytanie
@@ -281,7 +281,7 @@ namespace backend.Controllers
 
             if (!gameLogs.Any())
             {
-                return NotFound(new { message = "No game logs found for GameId: {GameId}, TeamId: {TeamId}", logData.GameId, logData.TeamId });
+                return Ok(new { message = "No game logs found for GameId: {GameId}, TeamId: {TeamId}", logData.GameId, logData.TeamId });
                 // Zwróć pustą listę zamiast 404, jeśli brak logów jest normalnym stanem
                 // return NotFound(new { message = "Nie znaleziono logów dla podanej gry i drużyny." });
             }
@@ -289,7 +289,7 @@ namespace backend.Controllers
             return Ok(gameLogs);
         }
 
-        [HttpGet("getTeamBit")]
+        [HttpGet("getCurrency")]
         public async Task<IActionResult> GetTeamBit(int teamId)
         {
             var team = await _context.Teams.FindAsync(teamId);

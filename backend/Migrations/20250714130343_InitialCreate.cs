@@ -108,7 +108,8 @@ namespace backend.Migrations
                         name: "FK_Decks_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserId");
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -550,8 +551,7 @@ namespace backend.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Decks_UserId",
                 table: "Decks",
-                column: "UserId",
-                unique: true);
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Feedbacks_CardId",

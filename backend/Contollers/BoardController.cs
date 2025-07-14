@@ -45,7 +45,7 @@ namespace backend.Controllers
 
 
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/board")]
     public class BoardController : ControllerBase
     {
         private readonly AppDbContext _context;
