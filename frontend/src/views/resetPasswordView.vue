@@ -165,7 +165,7 @@
       token.value = route.params.token;
 
       try {
-      const res = await apiClient.get(apiConfig.auth.validateResetToken(token.value));
+      const res = await apiService.get(apiConfig.auth.validateResetToken(token.value));
         isTokenValid.value = res.data.valid;
       } catch (err) {
         isTokenValid.value = false;
@@ -226,7 +226,7 @@
     
         try {
           isLoading.value = true;
-          const response = await apiClient.post(apiConfig.auth.resetPassword, {
+          const response = await apiService.post(apiConfig.auth.resetPassword, {
             token: token.value,
             newPassword: changePasswordData.value.password
         });
