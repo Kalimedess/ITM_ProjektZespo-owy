@@ -15,15 +15,18 @@ public class AdminPanelController : ControllerBase
         _context = context;
     }
 
+    
     [Authorize]
-    [HttpGet("teams")] 
-    public async Task<ActionResult<IEnumerable<object>>> GetTeams()
+    [HttpGet("teams/by-game/{gameId}")]
+    public async Task<ActionResult<IEnumerable<object>>> GetTeamsByGame(int gameId)
     {
         var teams = await _context.Teams
-            .Select(team => new {
-                id = team.TeamId,
-                name = team.TeamName,
-                color = team.TeamColor
+            .Where(t => t.GameId == gameId)
+            .Select(t => new
+            {
+                id = t.TeamId,
+                name = t.TeamName,
+                color = t.TeamColor
             })
             .ToListAsync();
 

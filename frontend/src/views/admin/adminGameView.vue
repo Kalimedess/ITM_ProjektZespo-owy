@@ -19,9 +19,12 @@
 
 <script setup>
     import tableCard from '@/components/game/tableCard.vue'
-    import { ref, onMounted } from 'vue'
+    import { ref, onMounted, watch } from 'vue'
     import axios from 'axios'
+    import { useRoute } from 'vue-router'
 
+    defineProps(['gameId'])
+    
     const getGameColor = (gameId) => {
         
         const colors = [
@@ -39,18 +42,22 @@
         return colors[gameId - 1 % 9];
     }
 
-    const tables = ref([])
+  const tables = ref([])
+  const route = useRoute()
+  const gameId = ref(Number(route.params.id))
 
-    const getTeams = async () => {
-      try {
-        const response = await axios.get('http://localhost:5023/api/adminpanel/teams', {
-          withCredentials: true
-        })
-        tables.value = response.data
-      } catch (error) {
-        console.error('Błąd przy pobieraniu drużyn:', error)
-      }
+
+
+const getTeams = async () => {
+  try {
+    console.log('Fetching teams for gameId:', gameId.value)
+    const response = await axios.get(`http://localhost:5023/api/adminpanel/teams/by-game/${gameId.value}`, {
+      withCredentials: true
+    })
+    tables.value = response.data
+  } catch (error) {
+    console.error('Błąd przy pobieraniu drużyn:', error)
+  }
 }
-
-onMounted(getTeams)
+      onMounted(getTeams)
 </script>

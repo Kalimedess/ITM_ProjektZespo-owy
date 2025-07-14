@@ -15,6 +15,7 @@ import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
 import adminGameView from '@/views/admin/adminGameView.vue'
+import AdminGameView from '@/views/admin/adminGameView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -86,8 +87,8 @@ const router = createRouter({
           path: 'editbits',
           name: 'edit-bits',
           component: editBitsView,
-        }
-
+        },
+       
       ]
     },
     {
@@ -106,6 +107,14 @@ const router = createRouter({
       name:'decision-history',
       component: decisionHistoryView,
     },
+    {
+      path: '/admin/game/:id',
+      name: 'AdminGameView',
+      component: AdminGameView,
+      props: true,
+      meta: { requiresAuth: true }
+  },
+   
   ]
 })
 
