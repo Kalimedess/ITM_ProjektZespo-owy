@@ -4,10 +4,6 @@
       Zaloguj się do konta
     </h2>
     
-    <div v-show="errorLogin" class="bg-red-500/20 border border-red-500 rounded-md p-2 sm:p-3 text-xs sm:text-sm">
-      <p class="text-red-400">Nieprawidłowy e-mail lub hasło. Spróbuj ponownie ❗</p>
-    </div>
-    
     <form @submit.prevent="handleLogin" class="space-y-3 sm:space-y-4">
       
       <div class="space-y-1">
@@ -51,30 +47,35 @@
       </div>
       
       <div class="text-xs sm:text-sm text-right">
-        <a href="#" class="text-accent hover:text-purple-300 transition-colors">Zapomniałem hasła</a>
+        <span class="text-accent hover:text-purple-300 transition-colors cursor-pointer"
+        @click="emit('forgotPassword')">
+        Zapomniałem hasła
+      </span>
       </div>
       
       <button 
         type="submit" 
         class="
-          bg-tertiary hover:bg-accent text-white w-full rounded-lg font-medium 
-          transition-all duration-300 shadow-sm hover:shadow-lg 
-          shadow-accent/40 hover:shadow-accent/60
+          text-white w-full rounded-lg font-medium 
+          transition-all duration-300 shadow-sm 
+          shadow-accent/40 
           py-2.5 sm:py-3 
           text-sm sm:text-base md:text-lg
         "
+        :class="isLoginFormValid ? 'bg-accent/50 hover:shadow-lg hover:shadow-accent/60 hover:bg-accent' : 'bg-tertiary' "
+        :disabled="!isLoginFormValid  || isLoading"
       >
-        Zaloguj się
+        {{ isLoading ? 'Logowanie...' : 'Zaloguj się' }}
       </button>
     </form>
   </div>
 </template>
 
 <script setup>
-import { ref,nextTick} from 'vue';
+import { ref, defineEmits, computed, nextTick } from 'vue';
 import { useToast } from 'vue-toastification';
 import router from '@/router';
-import { faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useAuthStore } from '@/stores/auth';
 
 import apiConfig from '@/services/apiConfig.js';
@@ -83,16 +84,49 @@ import apiService from '@/services/apiServices.js';
 const authStore = useAuthStore();
 
 const toast = useToast();
+  
+const emit = defineEmits(['login', 'close','forgotPassword']);
 
 const showPassword = ref(false);
-const errorLogin = ref(false);
+
+//Zmienna zapobiegająca wielokrotnemu wysyłaniu żądania logowania
+const isLoading = ref(false);
 
 const loginData = ref({
   username: '',
   password: ''
 });
 
+//Funckcja do sprawdzania poprawności adresu e-mail
+const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
+
+//Sprawdzenie poprawności formularza logowania, jeżeli pola są puste lub e-mail jest niepoprawny, przycisk będzie zablokowany
+const isLoginFormValid = computed(() => {
+  return loginData.value.email !== '' && 
+  loginData.value.password !== '' && 
+  validateEmail(loginData.value.email);
+});
+
 const handleLogin = async () => {
+
+  toast.clear(); // Czyszczenie toastów przed nowym logowaniem, żeby uniknąć zalania komunikatami
+
+  if (!isLoginFormValid.value) {
+    toast.error('Proszę wprowadzić poprawny e-mail i hasło.', {
+      position: 'top-center',
+    });
+    return;
+  }
+
+  isLoading.value = true;
+
   try {
     const response = await apiService.post(apiConfig.auth.login, loginData.value);
 
@@ -103,11 +137,42 @@ const handleLogin = async () => {
       router.push('/admin');
     }
   } catch (error) {
-    errorLogin.value = true;
-    toast.error('Nieprawidłowy e-mail lub hasło. Spróbuj ponownie!', {
-      position: 'top-center',
-    });
+    
+    // Sprawdzamy czy mamy response z serwera
+    if (error.response?.data) {
+      
+      // Niepoprawne dane logowania
+      if (error.response.data === 'Invalid credentials') {
+        toast.error('Nieprawidłowy e-mail lub hasło. Spróbuj ponownie!', {
+          position: 'top-center',
+        });
+      }
+      
+      // Niezweryfikowany e-mail
+      else if (error.response.data === 'E-mail nie został potwierdzony. Wysłano ponownie link aktywacyjny.') {
+        toast.warning('E-mail nie został potwierdzony. Wysłano ponownie link aktywacyjny. Sprawdź skrzynkę pocztową!', {
+          position: 'top-center',
+        });
+      }
+      
+      // Inne błędy z serwera
+      else {
+        toast.error('Wystąpił błąd podczas logowania. Spróbuj ponownie!', {
+          position: 'top-center',
+        });
+      }
+      
+    } else {
+      // Błędy sieci 
+      toast.error('Brak połączenia z serwerem. Sprawdź połączenie internetowe.', {
+        position: 'top-center',
+      });
+    }
     console.error('❌ Wystąpił błąd:', error.response?.data || error.message);
   }
+  finally {
+    isLoading.value = false;
+  }
 };
+
 </script>

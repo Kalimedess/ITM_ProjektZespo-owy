@@ -1148,3 +1148,5 @@ D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\ref\backend.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\DotNetEnv.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Sprache.dll
+C:\Users\Wiktoria\Desktop\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\DotNetEnv.dll
+C:\Users\Wiktoria\Desktop\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Sprache.dll

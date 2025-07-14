@@ -5,7 +5,11 @@ const endpoints = {
     login: '/auth/login',
     register: '/auth/register',
     logout: '/auth/logout',
-    me: '/auth/me' // Get current user
+    me: '/auth/me', // Get current user
+    forgotPassword: '/auth/reset-password',
+    resetPassword: '/auth/reset-password',
+    confirmEmail: (token) => `/auth/confirm?token=${token}`,
+    validateResetToken: (token) => `/auth/validate-token?token=${token}`,
   },
   admin: {
     deck: {
