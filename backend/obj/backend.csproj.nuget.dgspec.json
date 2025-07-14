@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {}
+    "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {
+    "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+        "projectUniqueName": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\Wiktoria\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\obj\\",
+        "projectPath": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\Ja\\.nuget\\packages\\",
+        "outputPath": "H:\\ITM_ProjektZespo-owy\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Wiktoria\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Ja\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -105,7 +105,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.410/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
