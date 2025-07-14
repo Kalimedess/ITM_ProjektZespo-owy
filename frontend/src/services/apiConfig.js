@@ -9,7 +9,7 @@ const endpoints = {
     forgotPassword: '/auth/reset-password',
     resetPassword: '/auth/reset-password',
     confirmEmail: (token) => `/auth/confirm?token=${token}`,
-
+    validateResetToken: (token) => `/auth/validate-token?token=${token}`,
   },
   admin: {
     deck: {

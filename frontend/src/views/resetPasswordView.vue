@@ -149,8 +149,10 @@
     import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
     import { faCircleXmark} from '@fortawesome/free-regular-svg-icons';
     import { useRouter } from 'vue-router';
-    
+    import apiConfig from '@/services/apiConfig.js';
+    import apiService from '@/services/apiServices.js';
     const toast = useToast();
+    
     const router = useRouter();
 
     import { useRoute } from 'vue-router';
@@ -163,7 +165,7 @@
       token.value = route.params.token;
 
       try {
-      const res = await apiClient.get(`/api/password/validate-token?token=${token.value}`);
+      const res = await apiClient.get(apiConfig.auth.validateResetToken(token.value));
         isTokenValid.value = res.data.valid;
       } catch (err) {
         isTokenValid.value = false;

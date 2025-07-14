@@ -146,10 +146,6 @@ const handleLogin = async () => {
     if (response.data.success) {
       console.log('✅ Zalogowano pomyślnie');
       authStore.setAuthenticated(true);
-<<<<<<< HEAD
-
-=======
->>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
       await nextTick();
       router.push('/admin');
     }

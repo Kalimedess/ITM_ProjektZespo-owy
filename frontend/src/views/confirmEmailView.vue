@@ -80,6 +80,8 @@ import { faUserCheck } from '@fortawesome/free-solid-svg-icons';
 import { faCircleXmark } from '@fortawesome/free-regular-svg-icons';
 import { onMounted, ref, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
 
 const router = useRouter();
 
@@ -99,7 +101,7 @@ onMounted(async () => {
   const token = route.query.token;    
   if (token) {
     try {
-      const response = await axios.get(apiConfig.auth.confirmEmail(token));
+      const response = await apiService.get(apiConfig.auth.confirmEmail(token));
       if (response.data.success) {
         isTokenValid.value = true;
       }
