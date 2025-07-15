@@ -111,7 +111,7 @@ const validateEmail = (email) => {
 const isLoginFormValid = computed(() => {
   return loginData.value.email !== '' && 
   loginData.value.password !== '' && 
-  validateEmail(loginData.value.email);
+  validateEmail(loginData.value.username);
 });
 
 const handleLogin = async () => {

@@ -18,18 +18,26 @@ build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = backend
 build_property.RootNamespace = backend
 <<<<<<< HEAD
+<<<<<<< HEAD
 build_property.ProjectDir = H:\ITM_ProjektZespo-owy-Grupson_Project\backend\
 =======
 build_property.ProjectDir = C:\Users\Wiktoria\Desktop\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\
 >>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
+=======
+build_property.ProjectDir = H:\ITM_ProjektZespo-owy\backend\
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
 <<<<<<< HEAD
+<<<<<<< HEAD
 build_property.MSBuildProjectDirectory = H:\ITM_ProjektZespo-owy-Grupson_Project\backend
 =======
 build_property.MSBuildProjectDirectory = C:\Users\Wiktoria\Desktop\Projekt Zespołowy\ITM_ProjektZespo-owy\backend
 >>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
+=======
+build_property.MSBuildProjectDirectory = H:\ITM_ProjektZespo-owy\backend
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 build_property._RazorSourceGeneratorDebug = 

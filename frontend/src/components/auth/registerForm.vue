@@ -133,12 +133,11 @@ import passwordStrength from './passwordStrength.vue';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 
-<<<<<<< HEAD
-=======
+
 import apiConfig from '@/services/apiConfig.js';
 import apiService from '@/services/apiServices.js';
 
->>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
+
 const toast = useToast();
 const emit = defineEmits(['register', 'close', 'switchToConfirmEmail']);
 
@@ -198,16 +197,11 @@ const handleRegister = async () => {
   }
 
   try {
-<<<<<<< HEAD
+
     isLoading.value = true;
-    const response = await apiClient.post('/api/auth/register', {
-      username: registerData.value.username,
-      email: registerData.value.email,
-      password: registerData.value.password
-    });
-=======
+    
     const response = await apiService.post(apiConfig.auth.register, registerData.value);
->>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
+
 
     if(response.data.success) {
       console.log('✅ Zarejestrowano pomyślnie!');

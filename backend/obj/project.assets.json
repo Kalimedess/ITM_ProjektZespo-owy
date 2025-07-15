@@ -12357,14 +12357,19 @@
   },
   "packageFolders": {
 <<<<<<< HEAD
+<<<<<<< HEAD
     "C:\\Users\\Admin\\.nuget\\packages\\": {}
 =======
     "C:\\Users\\Wiktoria\\.nuget\\packages\\": {}
 >>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
+=======
+    "C:\\Users\\Ja\\.nuget\\packages\\": {}
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
   },
   "project": {
     "version": "1.0.0",
     "restore": {
+<<<<<<< HEAD
 <<<<<<< HEAD
       "projectUniqueName": "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\backend.csproj",
       "projectName": "backend",
@@ -12376,14 +12381,21 @@
         "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
 =======
       "projectUniqueName": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+=======
+      "projectUniqueName": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
       "projectName": "backend",
-      "projectPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-      "packagesPath": "C:\\Users\\Wiktoria\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\obj\\",
+      "projectPath": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+      "packagesPath": "C:\\Users\\Ja\\.nuget\\packages\\",
+      "outputPath": "H:\\ITM_ProjektZespo-owy\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
+<<<<<<< HEAD
         "C:\\Users\\Wiktoria\\AppData\\Roaming\\NuGet\\NuGet.Config"
 >>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
+=======
+        "C:\\Users\\Ja\\AppData\\Roaming\\NuGet\\NuGet.Config"
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -12474,7 +12486,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.410/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
