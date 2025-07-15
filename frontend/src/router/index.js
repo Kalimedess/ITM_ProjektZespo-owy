@@ -13,26 +13,12 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
-<<<<<<< HEAD
-<<<<<<< HEAD
 import decisionPanel from '@/views/game/decisionPanelView.vue'
 import blockCards from '@/views/game/blockCardsView.vue'
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 import resetPasswordView from '@/views/resetPasswordView.vue'
 import confirmEmailView from '@/views/confirmEmailView.vue'
-
 import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
-<<<<<<< HEAD
->>>>>>> 7c8006530c79909b4a73b185519bc8461dac2749
->>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
-=======
-
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
