@@ -1,14 +1,12 @@
 <template>
   <div class="flex flex-col min-h-screen bg-primary relative overflow-hidden">
-    <!-- Górny pasek -->
     <PlayerNavbar
       :team-name="gameData?.teamName"
       :nav-bg-color="gameData?.teamColor"
     />
 
-    <!-- Główna sekcja: kontener flex -->
     <div class="flex flex-1 flex-row relative overflow-hidden">
-      <!-- Lewy panel jako połowa szerokości -->
+      <!-- Lewy panel -->
       <Transition name="fade-slide" appear>
         <div
           v-if="leftOpen"
@@ -37,7 +35,7 @@
         </div>
       </Transition>
 
-      <!-- Główna zawartość: plansza, zawsze renderowana -->
+      <!-- Plansza -->
       <div
         class="transition-all duration-300 h-full bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 z-30"
         :class="[
@@ -80,18 +78,25 @@
             Panel decyzji
           </button>
         </div>
-
+        <!-- Zamienić pawnCount na liczbe graczy w danym stole -->
+        <!-- Zamienić pawnPositions na pozycje pionkow w grze (w testgameboard jest lokiga dzielenia pionków na grid wiec podajemy 1,1 albo 1,2) -->
         <GameBoard
           v-if="currentBoard === 'player'"
           :config="formData"
           :gameMode="true"
-          :posX="posX"
-          :posY="posY"
           :pawnColor="gameData?.teamColor"
+          :pawnCount="5"  
+          :pawnPositions="[
+            { x: 1, y: 1, color: 'red' }, 
+            { x: 1, y: 1, color: 'green' }, 
+            { x: 1, y: 1, color: 'blue' },
+            { x: 1, y: 1, color: 'black' },
+            { x: 1, y: 1, color: 'white' },
+          ]"
         />
       </div>
 
-      <!-- Prawy panel jako połowa szerokości -->
+      <!-- Prawy panel -->
       <div
         v-if="rightOpen"
         class="absolute right-0 top-0 w-1/2 h-full bg-secondary border-l border-gray-400 shadow-lg z-40 overflow-auto p-4"
@@ -119,7 +124,7 @@
 import { reactive, ref, watch} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
-import GameBoard from '@/components/game/gameBoard.vue'
+import GameBoard from '@/components/game/testGameBoard.vue'
 import Footer from '@/components/footers/adminFooter.vue'
 import CardCarousel from '@/components/playerComponents/testCardCarousel.vue'
 import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
@@ -239,20 +244,6 @@ const currentBoard = ref('player')
 const leftOpen = ref(false)
 const rightOpen = ref(true)
 
-function toggleLeftPanel() {
-  leftOpen.value = !leftOpen.value
-  if (!leftOpen.value && !rightOpen.value) {
-    rightOpen.value = true // Nigdy nie pokazuj tylko planszy — zawsze jeden panel
-  }
-}
-
-function toggleRightPanel() {
-  rightOpen.value = !rightOpen.value
-  if (!rightOpen.value && !leftOpen.value) {
-    leftOpen.value = true // Nigdy nie pokazuj tylko planszy — zawsze jeden panel
-  }
-}
-
 function showLeftPanel() {
   rightOpen.value = false
   leftOpen.value = true
@@ -262,6 +253,8 @@ function showRightPanel() {
   leftOpen.value = false
   rightOpen.value = true
 }
+
+
 
 </script>
 <style scoped>
