@@ -120,6 +120,8 @@ import { RouterView } from 'vue-router'
 import apiClient from '@/assets/plugins/axios';
 import apiServices from '@/services/apiServices'
 
+
+
 const showingDecisionCards = ref(true);
 const currentPanel = ref('menu')
 
