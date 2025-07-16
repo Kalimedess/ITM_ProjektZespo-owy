@@ -23,10 +23,37 @@
             class="flex items-center gap-4 px-4 py-3 rounded-md"
             :class="isSideBarOpen ? '' : 'justify-center'"
           >
-            <font-awesome-icon :icon="faHouse" class="h-4 text-accent"/>
-            <span v-if="isSideBarOpen">Strona główna</span>
+            <font-awesome-icon :icon="faUsers" class="h-4 text-accent"/>
+            <span v-if="isSideBarOpen">Panel sterowania grą</span>
           </RouterLink>
         </li>
+
+        <!-- Panel stołu -->
+        <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
+            @click="handleGameManager">
+          <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center'">
+            <div>
+              <font-awesome-icon :icon="faGamepad" class="h-4 text-accent" :class="isSideBarOpen ? 'mr-4' : 'mr-0'" />
+              <span v-if="isSideBarOpen">Panel sterowania stołem</span>
+            </div>
+            <font-awesome-icon v-if="isSideBarOpen" :icon="isGameManagerDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
+          </div>
+
+          <div v-show="isGameManagerDropdownOpen" class="flex flex-col py-1 space-y-1">
+            <RouterLink 
+              :to="`/admin/game/${gameId}/editbits`"
+              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+              @click.stop
+            >Zmień ilość bitów stołu</RouterLink>
+
+            <RouterLink 
+              :to="`/admin/game/${gameId}/blockcards`"
+              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
+              @click.stop
+            >Odblokuj kartę</RouterLink>
+          </div>
+        </li>
+
 
         <!-- Statystyki -->
         <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
@@ -66,60 +93,8 @@
           </div>
         </li>
 
-        <!-- Panel stołu -->
-        <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-            @click="handleGameManager">
-          <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center'">
-            <div>
-              <font-awesome-icon :icon="faGamepad" class="h-4 text-accent" :class="isSideBarOpen ? 'mr-4' : 'mr-0'" />
-              <span v-if="isSideBarOpen">Panel sterowania stołem</span>
-            </div>
-            <font-awesome-icon v-if="isSideBarOpen" :icon="isGameManagerDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
-          </div>
 
-          <div v-show="isGameManagerDropdownOpen" class="flex flex-col py-1 space-y-1">
-            <RouterLink 
-              :to="`/admin/game/${gameId}/editbits`"
-              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-              @click.stop
-            >Zmień ilość bitów stołu</RouterLink>
 
-            <RouterLink 
-              :to="`/admin/game/${gameId}/blockcards`"
-              class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-              @click.stop
-            >Odblokuj kartę</RouterLink>
-          </div>
-        </li>
-
-    
-   <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
-            @click="handleGameTableManager">
-        <div class="flex items-center px-4 py-3 rounded-md" :class="isSideBarOpen ? 'justify-between' : 'justify-center' ">
-            <div>
-            <font-awesome-icon :icon="faUsers" class="h-4 text-accent" :class="isSideBarOpen ? 'mr-4' : 'mr-0' "/>
-            <span v-if="isSideBarOpen">Panel sterowania grą</span>
-            </div>
-            <font-awesome-icon v-if="isSideBarOpen" :icon="isGameTableManagerDropdownOpen ? faArrowUp : faArrowDown" class="h-4" />
-        </div>
-
-        <div v-show="isGameTableManagerDropdownOpen" class="flex flex-col py-1 space-y-1">
-            <router-link 
-            to="/" 
-            class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-            @click.stop
-            >
-            Stół 1
-            </router-link>
-            <router-link 
-            to="/" 
-            class="px-4 py-2 hover:bg-[#1c2942] rounded-md transition-all duration-200"
-            @click.stop
-            >
-            Stół 2
-            </router-link>
-        </div>
-        </li>
 
         <!-- Chat / decyzje -->
         <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
@@ -188,7 +163,8 @@ import {
   faHouse,
   faArrowLeft,
   faArrowRight,
-  faUsers
+  faUsers,
+  faFileLines
 } from '@fortawesome/free-solid-svg-icons'
 
 const isSideBarOpen = ref(true)
