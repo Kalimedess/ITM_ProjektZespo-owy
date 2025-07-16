@@ -1439,3 +1439,9 @@ H:\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\refint\backend.dll
 H:\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.pdb
 H:\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 H:\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\ref\backend.dll
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Initializers\DigitalWars_InicjalizacjaBazyDanych.xlsx
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Initializers\Test.pdf
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\DotNetEnv.dll
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Microsoft.Bcl.Memory.dll
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Sprache.dll
