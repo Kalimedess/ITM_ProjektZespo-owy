@@ -30,7 +30,6 @@ const endpoints = {
     endAll: '/games/end-all',
     getTeamsManagement: (gameId) => `/player/game/${gameId}/teams-management`,
     updateTeamBudget: (teamId) => `/player/team/${teamId}/budget`,
-    getTeamsManagement: (gameId) => `/player/game/${gameId}/teams-management`,
     getDecisionCards: (gameId) => `/player/game/${gameId}/decision-cards`,
     unlockCard: (gameId) => `/player/game/${gameId}/unlock-card`
   },
