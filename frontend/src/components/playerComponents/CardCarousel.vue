@@ -85,7 +85,8 @@
 
 <script setup>
   import { ref, computed, watch } from 'vue'
-  import apiClient from '@/assets/plugins/axios';
+  import apiConfig from '@/services/apiConfig';
+  import apiServices from '@/services/apiServices';
 
   const decisionCards = ref([]);
   const itemCards = ref([]);
@@ -136,9 +137,9 @@
     loading.value = true;
     fetchError.value = null;
     try {
-      const response = await apiClient.get(`/api/player/deck/${props.deckId}/unified-cards`, {
-        params: { gameId: props.gameId, teamId: props.teamId }
-      });
+      const response = await apiServices.get(apiConfig.player.getCards(props.deckId), {
+      params: { gameId: props.gameId, teamId: props.teamId }
+    });
 
       if (response.data && response.data.decisionCards && response.data.itemCards) {
         decisionCards.value = response.data.decisionCards;
@@ -201,9 +202,9 @@
 
     try {
         if(!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)){
-          await apiClient.post(`/api/player/success/${selectedCardData.id}`, propsToSend);
+          await apiServices.post(apiConfig.player.playCardSuccess(selectedCardData.id), propsToSend);
         } else {
-          await apiClient.post(`/api/player/failure/${selectedCardData.id}`, propsToSend);
+          await apiServices.post(apiConfig.player.playCardFailure(selectedCardData.id), propsToSend);
         }
 
         emit('card-action-completed', { success: true });
