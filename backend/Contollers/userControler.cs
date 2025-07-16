@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/admin")]
     public class UserController : ControllerBase
     {
         private readonly AppDbContext _context;

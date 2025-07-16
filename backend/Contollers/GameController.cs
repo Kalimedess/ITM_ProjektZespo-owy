@@ -36,10 +36,6 @@ public class GameListItemDto
     public string Name { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
 }
-public class UpdateGameStatusDto
-    {
-        public string NewStatus { get; set; } // Przyjmujemy string, np. "Paused", "During", "End"
-    }
 
 
 namespace backend.Controllers
@@ -223,7 +219,7 @@ namespace backend.Controllers
 
         [Authorize]
         [HttpPut("{gameId}/status")]
-        public async Task<IActionResult> UpdateGameStatus(int gameId, [FromBody] UpdateGameStatusDto statusDto)
+        public async Task<IActionResult> UpdateGameStatus(int gameId, [FromBody] string statusDto)
         {
             if (!ModelState.IsValid)
             {
@@ -248,9 +244,9 @@ namespace backend.Controllers
                 return Forbid("Nie masz uprawnień do zmiany statusu tej gry.");
             }
 
-            if (!Enum.TryParse<GameStatus>(statusDto.NewStatus, true, out GameStatus newGameStatus))
+            if (!Enum.TryParse<GameStatus>(statusDto, true, out GameStatus newGameStatus))
             {
-                return BadRequest($"Nieprawidłowa wartość statusu: {statusDto.NewStatus}. Dozwolone: During, Paused, End.");
+                return BadRequest($"Nieprawidłowa wartość statusu: {statusDto}. Dozwolone: During, Paused, End.");
             }
 
             if (game.GameStatus == GameStatus.End && newGameStatus != GameStatus.End)
