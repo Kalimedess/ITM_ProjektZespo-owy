@@ -1,0 +1,3 @@
+# Ignoruj katalogi obj i bin w folderze backend
+obj/
+bin/
