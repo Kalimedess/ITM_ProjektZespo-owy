@@ -12356,21 +12356,11 @@
     ]
   },
   "packageFolders": {
-<<<<<<< HEAD
-<<<<<<< HEAD
     "C:\\Users\\Admin\\.nuget\\packages\\": {}
-=======
-    "C:\\Users\\Wiktoria\\.nuget\\packages\\": {}
->>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
-=======
-    "C:\\Users\\Ja\\.nuget\\packages\\": {}
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-<<<<<<< HEAD
-<<<<<<< HEAD
       "projectUniqueName": "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\backend.csproj",
       "projectName": "backend",
       "projectPath": "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\backend.csproj",
@@ -12379,23 +12369,6 @@
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
-=======
-      "projectUniqueName": "C:\\Users\\Wiktoria\\Desktop\\Projekt Zespołowy\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-=======
-      "projectUniqueName": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
-      "projectName": "backend",
-      "projectPath": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-      "packagesPath": "C:\\Users\\Ja\\.nuget\\packages\\",
-      "outputPath": "H:\\ITM_ProjektZespo-owy\\backend\\obj\\",
-      "projectStyle": "PackageReference",
-      "configFilePaths": [
-<<<<<<< HEAD
-        "C:\\Users\\Wiktoria\\AppData\\Roaming\\NuGet\\NuGet.Config"
->>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
-=======
-        "C:\\Users\\Ja\\AppData\\Roaming\\NuGet\\NuGet.Config"
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -12486,8 +12459,16 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.410/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Wystąpił problem podczas czytania pliku pamięci podręcznej H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\obj\\project.nuget.cache: Invalid property identifier character: <. Path 'version', line 3, position 0."
+    }
+  ]
 }

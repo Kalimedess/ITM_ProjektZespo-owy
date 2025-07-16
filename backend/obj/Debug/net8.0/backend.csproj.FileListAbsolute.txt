@@ -1146,19 +1146,15 @@ D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.pdb
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\ref\backend.dll
-<<<<<<< HEAD
 H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Initializers\DigitalWars_InicjalizacjaBazyDanych.xlsx
 H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Initializers\Test.pdf
 H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Microsoft.Bcl.Memory.dll
-=======
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\DotNetEnv.dll
 D:\Repozytoria\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Sprache.dll
 C:\Users\Wiktoria\Desktop\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\DotNetEnv.dll
 C:\Users\Wiktoria\Desktop\Projekt Zespołowy\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Sprache.dll
-<<<<<<< HEAD
 >>>>>>> c72b036bf3caa831c9d8669e4b9173c3aee83d6d
-=======
 H:\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\appsettings.Development.json
 H:\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\appsettings.json
 H:\ITM_ProjektZespo-owy\backend\bin\Debug\net8.0\Initializers\DigitalWars_InicjalizacjaBazyDanych.xlsx
@@ -1449,3 +1445,5 @@ H:\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.pdb
 H:\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 H:\ITM_ProjektZespo-owy\backend\obj\Debug\net8.0\ref\backend.dll
 >>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\DotNetEnv.dll
+H:\ITM_ProjektZespo-owy-Grupson_Project\backend\bin\Debug\net8.0\Sprache.dll
