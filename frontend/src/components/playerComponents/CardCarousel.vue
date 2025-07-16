@@ -29,29 +29,29 @@
         @mouseup="cancelHold"
         @mouseleave="cancelHold"
         :class="[
-          'w-full h-64 bg-gradient-to-br from-lime-400 via-lime-500 to-lime-600 rounded-b-2xl shadow-2xl text-white transition-transform duration-200 ease-in-out',
-          cardClicked ? 'scale-105' : 'scale-100'
+          'w-full h-full bg-gradient-to-br from-transparent to-transparent rounded-b-2xl shadow-2xl text-white'
         ]"
+        style="--tw-gradient-from: #5DBB63; --tw-gradient-to: #607D3B;"
       >
         <div class="flex h-full">
           <!-- Lewy przycisk -->
           <button
             @click.stop="prevCard"
-            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-bl-2xl transition"
+            class="w-12 flex items-center justify-center py-5 hover:bg-black/20 rounded-bl-2xl transition"
             aria-label="Poprzednia karta"
             :disabled="displayCards.length <= 1"
           >
-            <p></p>
+            <p><</p>
           </button>
 
           <!-- Środek karty -->
-          <div class="flex-1 flex flex-col items-center justify-center px-6 text-center">
-            <h2 class="text-2xl font-bold mb-2">
+          <div class="flex-1 flex flex-col items-center justify-center px-6 text-center py-5">
+            <h2 class="text-3xl text-shadow-outline font-bold mb-2">
               {{ displayCards[currentIndex]?.title }}
             </h2>
             
             <!-- ZMIANA: Opis jest teraz renderowany warunkowo -->
-            <p v-if="props.isOnlineGame" class="text-base text-white/90 italic">
+            <p v-if="props.isOnlineGame" class="text-l text-white/90 font-bold">
               {{ displayCards[currentIndex]?.description }}
             </p>
             
@@ -61,7 +61,7 @@
           <!-- Prawy przycisk -->
           <button
             @click.stop="nextCard"
-            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-br-2xl transition"
+            class="w-12 flex items-center justify-center py-5 hover:bg-black/20 rounded-br-2xl transition"
             aria-label="Następna karta"
             :disabled="displayCards.length <= 1"
           >
