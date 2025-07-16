@@ -85,14 +85,9 @@
           :config="formData"
           :gameMode="true"
           :pawnColor="gameData?.teamColor"
-          :pawnCount="5"  
-          :pawnPositions="[
-            { x: 1, y: 1, color: 'red' }, 
-            { x: 1, y: 1, color: 'green' }, 
-            { x: 1, y: 1, color: 'blue' },
-            { x: 1, y: 1, color: 'black' },
-            { x: 1, y: 1, color: 'white' },
-          ]"
+          :pawnCount="pawnPositions.length"
+          :pawnPositions="pawnPositions"
+          
         />
       </div>
 
@@ -160,6 +155,8 @@ const currentGlobalBudget = ref(0);
 
 const playerMenuRef = ref(null);
 const cardCarouselRef = ref(null);
+const pawnPositions = ref([]);
+
 
 const fetchGameDataByToken = async (token) => {
   if (!token) {
@@ -179,6 +176,14 @@ const fetchGameDataByToken = async (token) => {
         teamPosX: parseInt(response.data.teamPositionX, 10),
         teamPosY: parseInt(response.data.teamPositionY, 10),
     };
+
+    const pawnsResponse = await apiClient.get(`/api/player/gameboard/teams/${gameData.value.gameId}`);
+    pawnPositions.value = pawnsResponse.data.map(p => ({
+      x: p.posX,
+      y: p.posY,
+      color: p.color || 'gray'
+    }));
+  
 
     formData.Name = gameData.value.boardConfig.name;
     formData.LabelsUp = gameData.value.boardConfig.labelsUp;

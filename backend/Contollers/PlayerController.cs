@@ -229,6 +229,43 @@ namespace backend.Controllers
             return Ok(sessionData);
         }
 
+        
+       [HttpGet("team-board")]
+        public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQuery] int teamId, [FromQuery] int boardId)
+        {
+            var boardData = await _context.GameBoards
+                .Where(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.BoardId == boardId && gb.GameProcessId != null)
+                .Select(gb => new
+                {
+                    gb.PozX,
+                    gb.PozY,
+                    gb.GameProcessId
+                })
+                .ToListAsync();
+
+            return Ok(boardData);
+        }
+
+        
+        [HttpGet("rival-board")]
+        public async Task<IActionResult> GetRivalBoardData([FromQuery] int gameId, [FromQuery] int boardId)
+        {
+            var boardData = await _context.GameBoards
+                .Where(gb => gb.GameId == gameId && gb.BoardId == boardId && gb.GameProcessId == null)
+                .Select(gb => new
+                {
+                    gb.PozX,
+                    gb.PozY,
+                    TeamColor = gb.Team.TeamColor
+                })
+                .ToListAsync();
+
+            return Ok(boardData);
+        }
+
+
+
+
         [HttpPost("getLogs")]
         public async Task<IActionResult> GetLogs([FromBody] LogData logData)
         {
