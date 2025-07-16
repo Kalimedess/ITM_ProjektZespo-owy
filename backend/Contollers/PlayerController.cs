@@ -33,6 +33,32 @@ public class LogData
     public int TeamId { get; set; }
 }
 
+// DTO do przesyłania danych o drużynie dla panelu zarządzania
+public class TeamManagementDto
+{
+    public int TeamId { get; set; }
+    public string TeamName { get; set; } = string.Empty;
+    public int TeamBud { get; set; }
+}
+
+// DTO do odbierania nowej wartości budżetu
+public class UpdateBudgetDto
+{
+    public int NewBudget { get; set; }
+}
+
+public class CardInfoDto
+{
+    public int CardId { get; set; }
+    public string CardName { get; set; } = string.Empty;
+}
+
+public class UnlockCardDto
+{
+    public int CardId { get; set; }
+    public int TeamId { get; set; }
+}
+
 namespace backend.Controllers
 {
     [Route("api/player/")]
@@ -103,7 +129,8 @@ namespace backend.Controllers
                 .ToList();
 
             var unifiedCards = allCardsTemp
-                .Select((c, index) => {
+                .Select((c, index) =>
+                {
                     List<int> enablersForCard = new List<int>();
                     if (enablersMap.TryGetValue(c.CardId, out var enablerList))
                     {
@@ -132,7 +159,7 @@ namespace backend.Controllers
         {
             if (string.IsNullOrWhiteSpace(teamToken) || teamToken.Length != 6) // TeamToken może mieć mniej niż 6, jeśli tak generujesz
             {
-                return BadRequest(new { message = "Nieprawidłowy format tokena drużyny."});
+                return BadRequest(new { message = "Nieprawidłowy format tokena drużyny." });
             }
 
             // Znajdź drużynę na podstawie tokena
@@ -204,7 +231,7 @@ namespace backend.Controllers
                 deckId = team.Game.DeckId,
                 deckName = team.Game.Deck.DeckName,
 
-                
+
 
                 // boardConfig = new
                 // {
@@ -267,7 +294,7 @@ namespace backend.Controllers
         {
             var team = await _context.Teams.FindAsync(teamId);
 
-            return Ok(new {teamBud = team.TeamBud});
+            return Ok(new { teamBud = team.TeamBud });
         }
 
 
@@ -337,5 +364,119 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("game/{gameId}/teams-management")]
+        public async Task<ActionResult<IEnumerable<TeamManagementDto>>> GetTeamsForManagement(int gameId)
+        {
+            var teams = await _context.Teams
+                .Where(t => t.GameId == gameId)
+                .Select(t => new TeamManagementDto
+                {
+                    TeamId = t.TeamId,
+                    TeamName = t.TeamName,
+                    TeamBud = t.TeamBud
+                })
+                .OrderBy(t => t.TeamName)
+                .ToListAsync();
+
+            if (teams == null)
+            {
+                return Ok(new List<TeamManagementDto>());
+            }
+
+            return Ok(teams);
+        }
+
+        [HttpPut("team/{teamId}/budget")]
+        public async Task<IActionResult> UpdateTeamBudget(int teamId, [FromBody] UpdateBudgetDto budgetDto)
+        {
+            if (budgetDto == null)
+            {
+                return BadRequest("Nie podano danych do aktualizacji.");
+            }
+
+            var team = await _context.Teams.FindAsync(teamId);
+
+            if (team == null)
+            {
+                return NotFound($"Drużyna o ID {teamId} nie została znaleziona.");
+            }
+
+            team.TeamBud = budgetDto.NewBudget;
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"Budżet drużyny '{team.TeamName}' został zaktualizowany.",
+                newBudget = team.TeamBud
+            });
+        }
+
+        [HttpGet("game/{gameId}/decision-cards")]
+        public async Task<ActionResult<IEnumerable<CardInfoDto>>> GetDecisionCardsForGame(int gameId)
+        {
+            // Znajdź grę, aby uzyskać DeckId
+            var game = await _context.Games.FindAsync(gameId);
+            if (game == null)
+            {
+                return NotFound($"Gra o ID {gameId} nie została znaleziona.");
+            }
+
+            if (game.DeckId == null)
+            {
+                return BadRequest($"Gra o ID {gameId} nie ma przypisanej talii.");
+            }
+
+            var deckId = game.DeckId;
+
+            // Pobierz tylko karty decyzji dla tej talii
+            var decisionCards = await _context.Decisions
+                .Where(d => d.DeckId == deckId)
+                .Select(d => new CardInfoDto
+                {
+                    CardId = d.CardId,
+                    CardName = d.DecisionShortDesc // Używamy krótkiego opisu jako nazwy
+                })
+                .OrderBy(c => c.CardName)
+                .ToListAsync();
+
+            return Ok(decisionCards);
+        }
+
+        [HttpPost("game/{gameId}/unlock-card")]
+        public async Task<IActionResult> UnlockCardForTeam(int gameId, [FromBody] UnlockCardDto unlockData)
+        {
+            if (unlockData == null)
+            {
+                return BadRequest("Brak danych do odblokowania karty.");
+            }
+
+            // Sprawdźmy, czy taki wpis już nie istnieje, aby uniknąć duplikatów
+            // Porównujemy też EnablerId, które musi być null
+            var alreadyExists = await _context.DecisionEnablers.AnyAsync(de =>
+                de.CardId == unlockData.CardId &&
+                de.TeamId == unlockData.TeamId &&
+                de.GameId == gameId &&
+                de.EnablerId == null);
+
+            if (alreadyExists)
+            {
+                // Zamiast błędu, możemy po prostu zwrócić sukces, bo cel został osiągnięty
+                return Ok(new { message = "Ta karta jest już odblokowana dla tej drużyny." });
+            }
+
+            // Tworzymy nowy wpis "odblokowujący"
+            var newEnabler = new DecisionEnabler
+            {
+                CardId = unlockData.CardId,
+                TeamId = unlockData.TeamId,
+                GameId = gameId,
+                EnablerId = null // Kluczowy element - EnablerId jest pusty (NULL)
+            };
+
+            _context.DecisionEnablers.Add(newEnabler);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = $"Karta (ID: {unlockData.CardId}) została pomyślnie odblokowana dla drużyny (ID: {unlockData.TeamId})." });
+        }
     }
 }

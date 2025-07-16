@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {}
+    "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\backend.csproj": {}
   },
   "projects": {
-    "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj": {
+    "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
+        "projectUniqueName": "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\Ja\\.nuget\\packages\\",
-        "outputPath": "H:\\ITM_ProjektZespo-owy\\backend\\obj\\",
+        "projectPath": "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "H:\\ITM_ProjektZespo-owy-Grupson_Project\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ja\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -105,7 +105,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.410/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
