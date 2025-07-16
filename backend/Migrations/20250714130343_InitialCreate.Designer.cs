@@ -12,13 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-<<<<<<<< HEAD:backend/Migrations/20250716105504_DigitalWars.Designer.cs
-    [Migration("20250716105504_DigitalWars")]
-    partial class DigitalWars
-========
     [Migration("20250714130343_InitialCreate")]
     partial class InitialCreate
->>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69:backend/Migrations/20250714130343_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -12356,47 +12356,24 @@
     ]
   },
   "packageFolders": {
-<<<<<<< HEAD
-    "C:\\Users\\Kalimedes\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
-=======
     "C:\\Users\\Ja\\.nuget\\packages\\": {}
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-<<<<<<< HEAD
-      "projectUniqueName": "C:\\Users\\Kalimedes\\source\\repos\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-      "projectName": "backend",
-      "projectPath": "C:\\Users\\Kalimedes\\source\\repos\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
-      "packagesPath": "C:\\Users\\Kalimedes\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Kalimedes\\source\\repos\\ITM_ProjektZespo-owy\\backend\\obj\\",
-=======
       "projectUniqueName": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
       "projectName": "backend",
       "projectPath": "H:\\ITM_ProjektZespo-owy\\backend\\backend.csproj",
       "packagesPath": "C:\\Users\\Ja\\.nuget\\packages\\",
       "outputPath": "H:\\ITM_ProjektZespo-owy\\backend\\obj\\",
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
       "projectStyle": "PackageReference",
       "configFilePaths": [
-<<<<<<< HEAD
-        "C:\\Users\\Kalimedes\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-=======
         "C:\\Users\\Ja\\AppData\\Roaming\\NuGet\\NuGet.Config"
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-<<<<<<< HEAD
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-=======
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -12482,11 +12459,7 @@
             "privateAssets": "all"
           }
         },
-<<<<<<< HEAD
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.411/PortableRuntimeIdentifierGraph.json"
-=======
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.410/PortableRuntimeIdentifierGraph.json"
->>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
       }
     }
   }

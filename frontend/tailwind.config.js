@@ -6,9 +6,7 @@ export default {
   ],
   theme: {
     extend: {
-      textShadow: {
-        outline: '0 0 1px black, 0 0 1px black',
-      },
+
       colors: {
         'primary': '#121a2d',
         'secondary': '#141c2f',
@@ -24,8 +22,7 @@ export default {
     },
   },
   plugins: [
-    require('tailwindcss-animated'),
-    require('tailwindcss-textshadow')
+    require('tailwindcss-animated')
   ],
 }
 

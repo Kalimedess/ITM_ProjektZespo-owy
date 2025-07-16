@@ -10,51 +10,27 @@
     <div class="flex flex-1 mt-2">
       
       <!-- Lewa kolumna: wybór kart -->
-      <div class="flex-1 ml-4 mr-2 ...">
-          <RouterView />
-          <QuestionBox />
-
-          <!-- 2. Dodajemy przyciski przełączające -->
-          <div class="flex justify-center space-x-2 my-4">
-              <button
-                  @click="showingDecisionCards = true"
-                  :class="showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-white text-black'"
-                  class="px-5 py-2 rounded-md border font-semibold"
-              >
-                  Decyzje
-              </button>
-              <button
-                  @click="showingDecisionCards = false"
-                  :class="!showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-white text-black'"
-                  class="px-5 py-2 rounded-md border font-semibold"
-              >
-                  Przedmioty
-              </button>
-          </div>
-
-          <Suspense>
-              <template #default>
-                  <CardCarousel
-                      ref="cardCarouselRef"
-                      v-if="gameData && gameData.deckId" 
-                      :deck-id="gameData.deckId" 
-                      :team-id="gameData.teamId"
-                      :game-id="gameData.gameId"
-                      :board-id="gameData.boardConfig?.boardId"
-                      :current-budget="currentGlobalBudget"
-                    
-                      :showing-decision-cards="showingDecisionCards"
-
-                      :is-online-game="gameData?.isOnline"
-                      :is-independent-team="gameData?.isIndependent"
-
-                      @card-action-completed="handleCardActionCompleted"
-                  />
-              </template>
-              <template #fallback>
-                  <div>Ładowanie karuzeli kart...</div>
-              </template>
-          </Suspense>
+      <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4">
+        <RouterView />
+        <QuestionBox />
+        <Suspense>
+      <template #default>
+        <CardCarousel
+        ref="cardCarouselRef"
+          v-if="gameData && gameData.deckId" 
+          :deck-id="gameData.deckId" 
+          :team-id="gameData.teamId"
+          :game-id="gameData.gameId"
+          :board-id="gameData.boardConfig?.boardId"
+          :current-budget="currentGlobalBudget"
+          @card-action-completed="handleCardActionCompleted"
+          
+        />
+      </template>
+      <template #fallback>
+        <div>Ładowanie karuzeli kart... (Fallback ze Suspense)</div>
+      </template>
+    </Suspense>
       </div>
 
       <!-- Prawa kolumna: decyzje -->
@@ -120,7 +96,6 @@ import { RouterView } from 'vue-router'
 import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
 
-const showingDecisionCards = ref(true);
 const currentPanel = ref('menu')
 
     const formData = reactive({
