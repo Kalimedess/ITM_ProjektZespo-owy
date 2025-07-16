@@ -2,10 +2,12 @@
   <div v-if="props.isVisible" class="fixed inset-0 flex items-center justify-center z-50">
     <div class="absolute inset-0 bg-black/70" @click="closeModal"></div>
     
-    <div class="bg-primary text-white rounded-lg relative z-10 border-2 border-accent p-6 sm:p-8 md:p-10 lg:p-12 max-h-[90vh] w-full max-w-lg animate-jump-in">
+    <div class="bg-primary text-white relative z-10 border-2 border-accent animate-jump-in
+                w-full h-full p-4 overflow-y-auto custom-scrollbar
+                sm:w-full sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg sm:p-6 md:p-8 lg:p-10">
       <button 
         @click="closeModal" 
-        class="absolute top-2 right-2 w-8 h-8"
+        class="absolute top-3 right-3 sm:top-2 sm:right-2 w-8 h-8 z-10"
       >
         <font-awesome-icon :icon="faXmark" class="h-5 text-white hover:text-accent transition-all duration-100" />
       </button>
@@ -344,7 +346,7 @@
   import DropDown from '../dropDown.vue';
 
   import apiConfig from '@/services/apiConfig.js';
-import apiService from '@/services/apiServices.js';
+  import apiService from '@/services/apiServices.js';
 
 
   const toast = useToast();
@@ -372,9 +374,23 @@ import apiService from '@/services/apiServices.js';
     { id: 5, shortName: 'MM', fullName: 'Material Management' }
   ]);
 
+  //Domyślne kolory drużyn
   const defaultColors = [
-    '#E63946', '#F1FAEE', '#A8DADC', '#457B9D', '#1D3557', '#F4A261',
-    '#2A9D8F', '#E9C46A', '#264653', '#E76F51', '#8ECAE6', '#FB8500'
+      '#8B0000',
+      '#2D1B69', 
+      '#1B4332',
+      '#A4133C',
+      '#7209B7',
+      '#6A994E',
+      '#2B2D42',
+      '#CC6600',
+      '#B8860B',
+      '#008B8B',
+      '#8B008B',
+      '#556B2F',
+      '#722F37',
+      '#4A4A4A',
+      '#36454F'
   ];
 
   const selectedTeam = computed(() => {
@@ -558,10 +574,6 @@ import apiService from '@/services/apiServices.js';
 
     };
 
-    console.log('🚀 Game Payload:', gamePayload);
-    console.log('📋 OpponentBoardId:', selectedOponentBoardId.value);
-    console.log('🎯 BoardId:', selectedBoardId.value);
-
     try {
       const response = await apiService.post(apiConfig.games.create, gamePayload);
 
@@ -598,3 +610,21 @@ import apiService from '@/services/apiServices.js';
 
 
 </script>
+
+<style scoped>
+    .custom-scrollbar::-webkit-scrollbar {
+    width: 0.6rem; 
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent; 
+    margin: 0.5rem 0.3rem; 
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #a78bfa; 
+    border-radius: 0.25rem; 
+    border: 0.1rem solid transparent; 
+    background-clip: content-box; 
+    }
+</style>
