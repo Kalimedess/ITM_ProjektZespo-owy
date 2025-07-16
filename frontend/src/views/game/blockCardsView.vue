@@ -42,8 +42,10 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import apiClient from '@/assets/plugins/axios';
-import { useToast } from 'vue-toastification';
+import { useToast } from 'vue-toastification'
+
+import apiService from '@/services/apiServices'
+import apiConfig from '@/services/apiConfig'
 
 const route = useRoute();
 const toast = useToast();
@@ -66,10 +68,11 @@ const fetchTeams = async () => {
   if (!gameId) return;
   loading.teams = true;
   try {
-    const response = await apiClient.get(`/api/player/game/${gameId}/teams-management`);
+    const response = await apiService.get(apiConfig.games.getTeamsManagement(gameId));
     teams.value = response.data;
   } catch (error) {
     toast.error("Nie udało się pobrać listy drużyn.");
+    console.error(error);
   } finally {
     loading.teams = false;
   }
@@ -79,10 +82,11 @@ const fetchDecisionCards = async () => {
   if (!gameId) return;
   loading.cards = true;
   try {
-    const response = await apiClient.get(`/api/player/game/${gameId}/decision-cards`);
+    const response = await apiService.get(apiConfig.games.getDecisionCards(gameId));
     decisionCards.value = response.data;
   } catch (error) {
     toast.error("Nie udało się pobrać listy kart decyzji.");
+    console.error(error);
   } finally {
     loading.cards = false;
   }
@@ -98,33 +102,24 @@ const handleCardAction = async () => {
   const cardName = decisionCards.value.find(c => c.cardId === selectedCardId.value)?.cardName;
 
   try {
-    // Przygotuj dane do wysłania w ciele żądania
     const payload = {
       cardId: selectedCardId.value,
       teamId: selectedTeamId.value
     };
 
-    // Wyślij żądanie POST do naszego nowego endpointu
-    const response = await apiClient.post(`/api/player/game/${gameId}/unlock-card`, payload);
+    const response = await apiService.post(apiConfig.games.unlockCard(gameId), payload);
 
     toast.success(response.data.message || `Pomyślnie odblokowano kartę "${cardName}" dla drużyny ${teamName}.`);
-
-    // Opcjonalnie: wyczyść wybór po udanej akcji
-    // selectedTeamId.value = null;
-    // selectedCardId.value = null;
-
   } catch (error) {
-    // Sprawdź, czy błąd to 'Conflict' (409) i wyświetl odpowiedni komunikat
     if (error.response && error.response.status === 409) {
-        toast.warning(error.response.data.message || "Ta karta jest już odblokowana.");
+      toast.warning(error.response.data.message || "Ta karta jest już odblokowana.");
     } else {
-        toast.error("Wystąpił błąd podczas odblokowywania karty.");
+      toast.error("Wystąpił błąd podczas odblokowywania karty.");
     }
     console.error("Błąd podczas akcji na karcie:", error);
   }
 };
 
-// --- Cykl życia komponentu ---
 onMounted(() => {
   fetchTeams();
   fetchDecisionCards();
