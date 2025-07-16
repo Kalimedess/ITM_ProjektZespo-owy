@@ -117,7 +117,7 @@ import Footer from '@/components/footers/adminFooter.vue'
 import CardCarousel from '@/components/playerComponents/CardCarousel.vue'
 import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
-import apiClient from '@/assets/plugins/axios';
+import apiConfig from '@/services/apiConfig'
 import apiServices from '@/services/apiServices'
 
 
@@ -163,7 +163,7 @@ const fetchGameDataByToken = async (token) => {
   errorLoading.value = null;
   gameData.value = null;
   try {
-    const response = await apiClient.get(apiServices.player.getTeamInfo(token));
+    const response = await apiServices.get(apiConfig.player.getTeamInfo(token));
 
     gameData.value = {
         ...response.data,
