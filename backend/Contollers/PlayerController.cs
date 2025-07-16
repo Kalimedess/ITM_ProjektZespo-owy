@@ -197,14 +197,19 @@ namespace backend.Controllers
                 teamName = team.TeamName,
                 teamColor = team.TeamColor,
 
+<<<<<<< HEAD
                 isIndependent = team.IsIndependent,
 
+=======
+                // Pozycja pionka z GameBoard, jeśli istnieje, inaczej domyślne
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
                 // teamPositionX = gameBoardState?.PozX ?? 0,
                 // teamPositionY = gameBoardState?.PozY ?? 0,
 
                 deckId = team.Game.DeckId,
                 deckName = team.Game.Deck.DeckName,
 
+<<<<<<< HEAD
                 // ZMIANA 2: Odkomentowano cały blok, aby dane planszy były wysyłane do frontendu.
                 // To dostarczy `boardId`, którego brakowało.
                 boardConfig = new
@@ -221,6 +226,24 @@ namespace backend.Controllers
                     BorderColor = team.Game.TeamBoard.BorderColor,
                     BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
                 },
+=======
+                
+
+                // boardConfig = new
+                // {
+                //     boardId = gameBoardState.BoardId, 
+                //     Name = team.Game.TeamBoard.Name,
+                //     LabelsUp = team.Game.TeamBoard.LabelsUp?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                //     LabelsRight = team.Game.TeamBoard.LabelsRight?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>(),
+                //     DescriptionDown = team.Game.TeamBoard.DescriptionDown,
+                //     DescriptionLeft = team.Game.TeamBoard.DescriptionLeft,
+                //     Rows = team.Game.TeamBoard.Rows,
+                //     Cols = team.Game.TeamBoard.Cols,
+                //     CellColor = team.Game.TeamBoard.CellColor,
+                //     BorderColor = team.Game.TeamBoard.BorderColor,
+                //     BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
+                // },
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 
                 // DRUGI BOARD CONFIG DLA RYWALI BOARDA ZROBIC
 
@@ -254,13 +277,19 @@ namespace backend.Controllers
 
             if (!gameLogs.Any())
             {
+<<<<<<< HEAD
                 return Ok(new List<object>()); // Zwracanie pustej listy jest lepsze niż 404 Not Found
+=======
+                return Ok(new { message = "No game logs found for GameId: {GameId}, TeamId: {TeamId}", logData.GameId, logData.TeamId });
+                // Zwróć pustą listę zamiast 404, jeśli brak logów jest normalnym stanem
+                // return NotFound(new { message = "Nie znaleziono logów dla podanej gry i drużyny." });
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
             }
 
             return Ok(gameLogs);
         }
 
-        [HttpGet("getTeamBit")]
+        [HttpGet("getCurrency")]
         public async Task<IActionResult> GetTeamBit(int teamId)
         {
             var team = await _context.Teams.FindAsync(teamId);

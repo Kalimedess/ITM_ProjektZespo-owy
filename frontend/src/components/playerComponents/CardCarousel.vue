@@ -84,8 +84,14 @@
 </template>
 
 <script setup>
+<<<<<<< HEAD
   import { ref, computed, watch } from 'vue'
   import apiClient from '@/assets/plugins/axios';
+=======
+  import apiConfig from '@/services/apiConfig';
+import apiServices from '@/services/apiServices';
+import { ref, computed, watch} from 'vue'
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 
   const decisionCards = ref([]);
   const itemCards = ref([]);
@@ -136,7 +142,11 @@
     loading.value = true;
     fetchError.value = null;
     try {
+<<<<<<< HEAD
       const response = await apiClient.get(`/api/player/deck/${props.deckId}/unified-cards`, {
+=======
+      const response = await apiServices.get(apiConfig.player.getCards(deckIdToFetch.value), {
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
         params: { gameId: props.gameId, teamId: props.teamId }
       });
 
@@ -149,6 +159,11 @@
         itemCards.value = [];
         fetchError.value = "Otrzymano nieprawidłowe dane z serwera.";
       }
+<<<<<<< HEAD
+=======
+      
+      //console.log("Pobrane dane:", JSON.stringify(cards.value, null, 2));
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
             
     } catch (error) {
       decisionCards.value = [];
@@ -199,12 +214,21 @@
       cost: selectedCardData.cost
     };
 
+<<<<<<< HEAD
     try {
         if(!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)){
           await apiClient.post(`/api/player/success/${selectedCardData.id}`, propsToSend);
         } else {
           await apiClient.post(`/api/player/failure/${selectedCardData.id}`, propsToSend);
         }
+=======
+      if(!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)){
+        const response = await apiServices.post(apiConfig.player.playCardSuccess(selectedCardData.id), propsToSend)
+        console.log(response)
+      } else {
+        await apiServices.post(apiConfig.player.playCardFailure(selectedCardData.id), propsToSend)
+      }
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 
         emit('card-action-completed', { success: true });
         fetchCards();

@@ -107,8 +107,7 @@
   </template>
   
   <script setup>
-    import { ref, computed, defineEmits } from 'vue';
-    import axios from 'axios';
+    import { ref, computed} from 'vue';
     import { useToast } from 'vue-toastification';
     import passwordStrength from './passwordStrength.vue';
     import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -133,7 +132,7 @@
         uppercase: /[A-Z]/.test(changePasswordData.value.password),
         lowercase: /[a-z]/.test(changePasswordData.value.password),
         digit: /[0-9]/.test(changePasswordData.value.password),
-        special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(changePasswordData.value.password)
+        special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(changePasswordData.value.password)
         };
     });
     
@@ -158,6 +157,7 @@
         }
         
         try {
+          const response = null;
             //Tu będzie możliwość zmiany hasła
     
         if(response.data.success) {

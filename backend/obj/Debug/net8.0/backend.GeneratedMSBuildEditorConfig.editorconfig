@@ -17,11 +17,19 @@ build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = backend
 build_property.RootNamespace = backend
+<<<<<<< HEAD
 build_property.ProjectDir = C:\Users\Kalimedes\source\repos\ITM_ProjektZespo-owy\backend\
+=======
+build_property.ProjectDir = H:\ITM_ProjektZespo-owy\backend\
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+<<<<<<< HEAD
 build_property.MSBuildProjectDirectory = C:\Users\Kalimedes\source\repos\ITM_ProjektZespo-owy\backend
+=======
+build_property.MSBuildProjectDirectory = H:\ITM_ProjektZespo-owy\backend
+>>>>>>> 44455da6cf3d84067c354d4ab9880f50847e2d69
 build_property._RazorSourceGeneratorDebug = 

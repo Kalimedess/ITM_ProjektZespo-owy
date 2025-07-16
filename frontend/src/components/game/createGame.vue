@@ -342,7 +342,9 @@
   import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons';
   import { useToast } from 'vue-toastification';
   import DropDown from '../dropDown.vue';
-  import apiClient from '@/assets/plugins/axios';
+
+  import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
 
 
   const toast = useToast();
@@ -460,7 +462,7 @@
 
   const fetchBoardsFromAPI = async () => {
     try {
-      const response = await apiClient.get(`/api/Board/get`, { withCredentials: true });
+      const response = await apiService.get(apiConfig.boards.getAll);
       data.boards = response.data;
       if (data.boards.length === 0) {
           toast.info("Brak plansz do wyboru!");
@@ -473,7 +475,7 @@
 
   const fetchDecksFromAPI = async () => {
     try {
-      const response = await apiClient.get(`api/deck/edit`, { withCredentials: true });
+      const response = await apiService.get(apiConfig.admin.deck.getAll);
       data.decks = response.data;
       if (data.decks.length === 0) {
           toast.info("Brak talii kart do wyboru!");
@@ -561,7 +563,7 @@
     console.log('🎯 BoardId:', selectedBoardId.value);
 
     try {
-      const response = await apiClient.post(`/api/games/create`, gamePayload, { withCredentials: true });
+      const response = await apiService.post(apiConfig.games.create, gamePayload);
 
       emits('gameCreated')
 
