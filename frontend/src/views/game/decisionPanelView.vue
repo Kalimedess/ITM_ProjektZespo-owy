@@ -14,6 +14,10 @@
         <option v-for="card in cards" :key="card.id" :value="card.id">{{ card.name }}</option>
       </select>
 
+      <p v-if="selectedCard" class="text-sm text-center text-gray-300 mt-2 italic">
+        {{ selectedCard.description }}
+      </p>
+
       <p v-if="selectedCardId" class="text-center text-sm mt-2">
         Koszt karty: <span class="font-semibold">{{ getCardCost(selectedCardId) }} bitów</span>
       </p>
@@ -48,6 +52,10 @@
             {{ event.name }}
           </option>
         </select>
+
+        <p v-if="selectedEvent" class="text-sm text-center text-gray-300 mt-2 italic mb-4">
+          {{ selectedEvent.description }}
+        </p>
 
         <div class="flex justify-center">
           <button
@@ -105,10 +113,35 @@
     </div>
 
     <!-- Prawa kolumna: decyzje do zatwierdzenia -->
+    <!-- Prawa kolumna z przełącznikiem widoku -->
     <div class="flex-1 p-4 bg-secondary rounded-md min-h-[500px]">
-      <h2 class="text-xl font-bold text-center mb-4">🕒 Decyzje do zatwierdzenia</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-center">🕒 Panel decyzji</h2>
+        <div class="flex justify-center gap-2 mb-4">
+          <button
+            @click="decisionMode = 'pending'"
+            :class="[
+              'px-4 py-2 rounded font-semibold transition',
+              decisionMode === 'pending' ? 'bg-accent text-black shadow' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            ]"
+          >
+            Do zatwierdzenia
+          </button>
 
-      <div class="overflow-y-auto scroll-smooth max-h-[650px] pr-2 space-y-3 border border-lgray-accent rounded-md shadow-inner bg-secondary-dark">
+          <button
+            @click="decisionMode = 'history'"
+            :class="[
+              'px-4 py-2 rounded font-semibold transition',
+              decisionMode === 'history' ? 'bg-accent text-black shadow' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            ]"
+          >
+            Historia decyzji
+          </button>
+        </div>
+      </div>
+
+      <!-- Decyzje do zatwierdzenia -->
+      <div v-if="decisionMode === 'pending'" class="overflow-y-auto scroll-smooth max-h-[650px] pr-2 space-y-3 border border-lgray-accent rounded-md shadow-inner bg-secondary-dark">
         <div v-if="pendingDecisions.length === 0" class="text-center text-gray-400">
           Brak decyzji do zatwierdzenia.
         </div>
@@ -127,6 +160,33 @@
           </div>
         </div>
       </div>
+
+      <!-- Historia decyzji -->
+      <div v-else class="space-y-4 max-h-[650px] overflow-y-auto scroll-smooth">
+        
+
+        <div v-if="filteredDecisions.length === 0" class="text-center text-gray-400">Brak decyzji w historii.</div>
+
+        <div
+          v-for="(entry, index) in filteredDecisions"
+          :key="entry.cardId + '-' + entry.tableId + '-' + entry.timestamp"
+          class="border border-gray-600 rounded p-3 bg-secondary relative"
+        >
+          <p><strong>Stół {{ entry.tableId }}</strong> – Karta ID: {{ entry.cardId }}</p>
+          <p :class="entry.result === 'Pozytywny' ? 'text-green-400' : 'text-red-400'">
+            <strong>Wynik:</strong> {{ entry.result }}
+          </p>
+          <p class="text-sm mt-1">{{ entry.feedback }}</p>
+          <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
+
+          <!-- Zdarzenie losowe, jeśli było -->
+          <p v-if="entry.eventUsed" class="text-xs italic text-blue-300 mt-1">
+            Zastosowano zdarzenie: {{ entry.eventUsed }}
+          </p>
+
+          
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -138,9 +198,9 @@ import GameBoard from '@/components/game/gameBoard.vue'
 
 const toast = useToast()
 
-const showMenu = ref(false)
-const showOwnBoard = ref(false)
-const showOpponentsBoard = ref(false)
+const showMenu = ref(true)
+const showOwnBoard = ref(true)
+const showOpponentsBoard = ref(true)
 
 const selectedCardId = ref('')
 const selectedTableId = ref('')
@@ -151,10 +211,35 @@ const eventReadyToUse = ref(false)
 const tables = [1, 2, 3, 4]
 
 const cards = [
-  { id: 1, name: "Stworzenie profilu organizacji", cost: 40 },
-  { id: 2, name: "Przeprowadź szkolenie techniczne", cost: 50 },
-  { id: 3, name: "Zarządzanie danymi", cost: 60 }
+  {
+    id: 1,
+    name: "Stworzenie profilu organizacji",
+    cost: 40,
+    description: "Ta karta umożliwia zespołowi utworzenie podstawowego profilu organizacyjnego w systemie, co pozwala na rejestrowanie aktywności i zarządzanie danymi zespołu w dalszych etapach gry.",
+    result: "Pozytywny",
+    feedback: "Karta wprowadziła dobrą organizację pracy."
+  },
+  {
+    id: 2,
+    name: "Przeprowadź szkolenie techniczne",
+    cost: 50,
+    description: "Szkolenie techniczne podnosi kwalifikacje członków zespołu w zakresie używania narzędzi cyfrowych, co przekłada się na większą efektywność podejmowanych działań oraz skraca czas realizacji kolejnych kroków.",
+    result: "Negatywny",
+    feedback: "Szkolenie techniczne było zbyt powierzchowne."
+  },
+  {
+    id: 3,
+    name: "Zarządzanie danymi",
+    cost: 60,
+    description: "Umożliwia uporządkowanie danych operacyjnych oraz wdrożenie struktury przechowywania informacji, co pozytywnie wpływa na jakość analityki i podejmowanie decyzji strategicznych.",
+    result : 'Pozytywny',
+    feedback : 'Zarządzanie danymi zwiększyło efektywność.'
+  }
 ]
+
+const selectedCard = computed(() =>
+  cards.find(c => c.id === Number(selectedCardId.value))
+)
 
 // Bity per stół
 const bitsPerTable = reactive({
@@ -170,10 +255,26 @@ const currentBits = computed(() => {
 })
 
 const availableEvents = [
-  { name: "Brak zdarzenia", modifier: 1 },
-  { name: "Zniżka 10% na następną kartę", modifier: 0.9 },
-  { name: "Karta gratis (0 bitów)", modifier: 0 }
+  {
+    name: "Brak zdarzenia",
+    modifier: 1,
+    description: ""
+  },
+  {
+    name: "Zniżka 10% na następną kartę",
+    modifier: 0.9,
+    description: "W tej turze koszt zagrania jednej dowolnej karty zostaje obniżony o 10%. Bonus ten dotyczy wyłącznie jednej akcji i nie sumuje się z innymi zniżkami lub premiami."
+  },
+  {
+    name: "Karta gratis (0 bitów)",
+    modifier: 0,
+    description: "Wybrana karta nie generuje kosztów bitów. To specjalne zdarzenie może znacznie przyspieszyć strategię zespołu i powinno być wykorzystane z rozwagą do zagrania najdroższej karty."
+  }
 ]
+
+const selectedEvent = computed(() =>
+  availableEvents[selectedPendingEventIndex.value]
+)
 
 const blockedCardsMap = ref({})
 
@@ -210,22 +311,41 @@ const pendingDecisions = ref([
     feedback: 'Zagrano kartę Zarządzanie danymi'
   },
   {
-    cardId: 2,
-    tableId: 1,
+    cardId: 4,
+    tableId: 2,
     timestamp: Date.now() - 200000,
     feedback: 'Zagrano kartę Przeprowadź szkolenie techniczne'
   },
   {
-    cardId: 1,
-    tableId: 2,
+    cardId: 5,
+    tableId: 3,
     timestamp: Date.now() - 100000,
     feedback: 'Zagrano kartę Stworzenie profilu organizacji'
   },
   {
-    cardId: 3,
-    tableId: 3,
+    cardId: 6,
+    tableId: 1,
     timestamp: Date.now() - 50000,
     feedback: 'Zagrano kartę Zarządzanie danymi'
+  }
+])
+
+const decisions = ref([
+  {
+    cardId: 1,
+    tableId: 1,
+    timestamp: Date.now() - 100000,
+    feedback: "Zagrano kartę Stworzenie profilu organizacji",
+    result: "Pozytywny",
+    eventUsed: "Zniżka 10% na następną kartę"
+  },
+  {
+    cardId: 2,
+    tableId: 3,
+    timestamp: Date.now() - 90000,
+    feedback: "Szkolenie techniczne było zbyt powierzchowne",
+    result: "Negatywny",
+    eventUsed: null
   }
 ])
 
@@ -259,14 +379,50 @@ function playCard() {
   }
 
   bitsPerTable[tableId] -= finalCost
+
+  // Dodanie do historii decyzji:
+  const result = card.result
+  const feedback = card.feedback
+
+  decisions.value.unshift({
+    cardId: card.id,
+    tableId,
+    timestamp: Date.now(),
+    feedback,
+    result,
+    eventUsed: eventReadyToUse.value ? selectedEvent.value.name : null
+  })
+
   toast.success(`Zagrano kartę: ${card.name} za ${finalCost} bitów (Stół ${tableId})`)
 
+  // Reset zdarzenia i wyboru
   eventReadyToUse.value = false
   selectedCardId.value = ''
 }
 
-function approveDecision(entry) {
-  pendingDecisions.value = pendingDecisions.value.filter(d => d.timestamp !== entry.timestamp)
+const decisionMode = ref('pending') // 'pending' lub 'history'
+const selectedHistoryTable = ref('all')
+
+const filteredDecisions = computed(() => {
+  if (selectedHistoryTable.value === 'all') return decisions.value
+  return decisions.value.filter(entry => entry.tableId === parseInt(selectedHistoryTable.value))
+})
+
+function approveDecision(entry, index) {
+  // Przenieś decyzję do historii
+  const card = cards.find(c => c.id === entry.cardId)
+  decisions.value.unshift({
+    cardId: entry.cardId,
+    tableId: entry.tableId,
+    timestamp: entry.timestamp,
+    feedback: entry.feedback,
+    result: card?.result || 'Pozytywny',
+    eventUsed: entry.eventUsed || null
+  })
+
+  // Usuń tylko tę jedną konkretną decyzję
+  pendingDecisions.value.splice(index, 1)
+
   toast.success(`Zatwierdzono decyzję dla Stołu ${entry.tableId}, Karta ${entry.cardId}`)
 }
 
