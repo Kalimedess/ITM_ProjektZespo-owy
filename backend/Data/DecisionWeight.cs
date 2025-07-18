@@ -11,7 +11,7 @@ namespace backend.Data
         public int WeightY { get; set; }
         public int BoardId { get; set; }
         public Board Board { get; set; } = null!;
-        public int BoosterX { get; set; }
-        public int BoosterY { get; set; }
+        public double BoosterX { get; set; }
+        public double BoosterY { get; set; }
     }
 }

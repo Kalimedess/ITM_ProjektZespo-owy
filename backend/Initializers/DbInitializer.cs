@@ -21,7 +21,7 @@ namespace backend.Initializers
 
             using var workbook = new XLWorkbook(filePath);
             var dbSetProps = typeof(AppDbContext).GetProperties().Where(p => p.PropertyType.Name.StartsWith("DbSet")).ToList();
-            var sheetOrder = new[] { "Users", "Boards", "Decks", "GameProcess", "Cards", "Decisions", "Items", "Feedbacks", "DecisionWeights", "DecisionEnablers" };
+            var sheetOrder = new[] { "Users", "GameEvents", "Boards", "Decks", "GameProcess", "Cards", "Decisions", "Items", "Feedbacks", "DecisionWeights", "DecisionEnablers" };
             var trackedCards = new Dictionary<int, Card>();
 
             foreach (var name in sheetOrder)

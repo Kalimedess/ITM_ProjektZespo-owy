@@ -20,6 +20,9 @@ namespace backend.Data
 
         public bool IsIndependent { get; set; }
 
+        public int? GameEventId { get; set; } 
+        public GameEvent? GameEvent { get; set; }
+
         public virtual ICollection<GameProcess> GameProcesses { get; set; } = new List<GameProcess>();
     }
 }

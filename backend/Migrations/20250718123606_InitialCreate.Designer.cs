@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250714130343_InitialCreate")]
+    [Migration("20250718123606_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -117,8 +117,8 @@ namespace backend.Migrations
                     b.Property<double>("DecisionBaseCost")
                         .HasColumnType("double");
 
-                    b.Property<int>("DecisionCostWeight")
-                        .HasColumnType("int");
+                    b.Property<double>("DecisionCostWeight")
+                        .HasColumnType("double");
 
                     b.Property<string>("DecisionLongDesc")
                         .IsRequired()
@@ -185,11 +185,11 @@ namespace backend.Migrations
                     b.Property<int>("BoardId")
                         .HasColumnType("int");
 
-                    b.Property<int>("BoosterX")
-                        .HasColumnType("int");
+                    b.Property<double>("BoosterX")
+                        .HasColumnType("double");
 
-                    b.Property<int>("BoosterY")
-                        .HasColumnType("int");
+                    b.Property<double>("BoosterY")
+                        .HasColumnType("double");
 
                     b.Property<int>("CardId")
                         .HasColumnType("int");
@@ -353,6 +353,48 @@ namespace backend.Migrations
                     b.ToTable("GameBoards");
                 });
 
+            modelBuilder.Entity("backend.Data.GameEvent", b =>
+                {
+                    b.Property<int>("GameEventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameEventId"));
+
+                    b.Property<double?>("BoosterX")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("BoosterY")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("DecisionCostWeight")
+                        .HasColumnType("double");
+
+                    b.Property<string>("EventLongDesc")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EventShortDesc")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<double?>("ItemsCostWeight")
+                        .HasColumnType("double");
+
+                    b.Property<int>("TurnTime")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("GameEventId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GameEvents");
+                });
+
             modelBuilder.Entity("backend.Data.GameLog", b =>
                 {
                     b.Property<int>("GameLogId")
@@ -377,6 +419,9 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("FeedbackId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GameEventId")
                         .HasColumnType("int");
 
                     b.Property<int>("GameId")
@@ -406,6 +451,8 @@ namespace backend.Migrations
                     b.HasIndex("DeckId");
 
                     b.HasIndex("FeedbackId");
+
+                    b.HasIndex("GameEventId");
 
                     b.HasIndex("GameId");
 
@@ -475,8 +522,8 @@ namespace backend.Migrations
                     b.Property<double>("ItemsBaseCost")
                         .HasColumnType("double");
 
-                    b.Property<int>("ItemsCostWeight")
-                        .HasColumnType("int");
+                    b.Property<double>("ItemsCostWeight")
+                        .HasColumnType("double");
 
                     b.HasKey("ItemsId");
 
@@ -494,6 +541,9 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("TeamId"));
+
+                    b.Property<int?>("GameEventId")
+                        .HasColumnType("int");
 
                     b.Property<int>("GameId")
                         .HasColumnType("int");
@@ -519,6 +569,8 @@ namespace backend.Migrations
                         .HasColumnType("varchar(6)");
 
                     b.HasKey("TeamId");
+
+                    b.HasIndex("GameEventId");
 
                     b.HasIndex("GameId");
 
@@ -746,6 +798,15 @@ namespace backend.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("backend.Data.GameEvent", b =>
+                {
+                    b.HasOne("backend.Data.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("backend.Data.GameLog", b =>
                 {
                     b.HasOne("backend.Data.Board", "Board")
@@ -769,6 +830,10 @@ namespace backend.Migrations
                     b.HasOne("backend.Data.Feedback", "Feedback")
                         .WithMany()
                         .HasForeignKey("FeedbackId");
+
+                    b.HasOne("backend.Data.GameEvent", "GameEvent")
+                        .WithMany("GameLogs")
+                        .HasForeignKey("GameEventId");
 
                     b.HasOne("backend.Data.Game", "Game")
                         .WithMany("GameLogs")
@@ -795,6 +860,8 @@ namespace backend.Migrations
                     b.Navigation("Feedback");
 
                     b.Navigation("Game");
+
+                    b.Navigation("GameEvent");
 
                     b.Navigation("GameProcess");
 
@@ -841,6 +908,10 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Data.Team", b =>
                 {
+                    b.HasOne("backend.Data.GameEvent", "GameEvent")
+                        .WithMany("Teams")
+                        .HasForeignKey("GameEventId");
+
                     b.HasOne("backend.Data.Game", "Game")
                         .WithMany("Teams")
                         .HasForeignKey("GameId")
@@ -848,6 +919,8 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Game");
+
+                    b.Navigation("GameEvent");
                 });
 
             modelBuilder.Entity("backend.Data.Card", b =>
@@ -873,6 +946,13 @@ namespace backend.Migrations
                     b.Navigation("GameLogs");
 
                     b.Navigation("GameProcesses");
+
+                    b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("backend.Data.GameEvent", b =>
+                {
+                    b.Navigation("GameLogs");
 
                     b.Navigation("Teams");
                 });

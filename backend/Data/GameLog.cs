@@ -8,6 +8,8 @@ namespace backend.Data
         public Team Team { get; set; } = null!;
         public int GameId { get; set; }
         public Game Game { get; set; } = null!;
+        public int? GameEventId { get; set; } 
+        public GameEvent? GameEvent { get; set; }
         public int CardId { get; set; }
         public Card Card { get; set; } = null!;
         public int DeckId { get; set; }
