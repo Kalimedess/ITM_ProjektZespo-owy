@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250718123606_InitialCreate")]
+    [Migration("20250718124938_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

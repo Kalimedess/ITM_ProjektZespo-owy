@@ -18,10 +18,10 @@ namespace backend.Data
         [MaxLength(6)]
         public string? TeamToken { get; set; } = string.Empty;
 
-        public bool IsIndependent { get; set; }
-
         public int? GameEventId { get; set; } 
         public GameEvent? GameEvent { get; set; }
+
+        public bool IsIndependent { get; set; }
 
         public virtual ICollection<GameProcess> GameProcesses { get; set; } = new List<GameProcess>();
     }

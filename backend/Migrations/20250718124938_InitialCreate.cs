@@ -336,8 +336,8 @@ namespace backend.Migrations
                     TeamBud = table.Column<int>(type: "int", nullable: false),
                     TeamToken = table.Column<string>(type: "varchar(6)", maxLength: 6, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    IsIndependent = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    GameEventId = table.Column<int>(type: "int", nullable: true)
+                    GameEventId = table.Column<int>(type: "int", nullable: true),
+                    IsIndependent = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
