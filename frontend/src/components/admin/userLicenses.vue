@@ -37,8 +37,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import apiClient from '@/assets/plugins/axios';
 import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
+
+import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
 
 const licencesData = ref({
   gamesInSession: 0,
@@ -48,9 +50,7 @@ const licencesData = ref({
 
 onMounted(async () => {
   try {
-    const response = await apiClient.get('/api/User/licenses', {
-      withCredentials: true
-    });
+    const response = await apiService.get(apiConfig.admin.settings.licenses)
 
     licencesData.value = {
       gamesInSession: response.data.gamesInSession,

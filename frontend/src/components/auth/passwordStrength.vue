@@ -26,15 +26,13 @@
     }
   });
   
-  const emit = defineEmits(['validation-change']);
-  
   const requirements = computed(() => {
     return {
       length: props.password.length >= 8,
       uppercase: /[A-Z]/.test(props.password),
       lowercase: /[a-z]/.test(props.password),
       digit: /[0-9]/.test(props.password),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(props.password)
+      special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(props.password)
     };
   });
   

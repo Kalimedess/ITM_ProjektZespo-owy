@@ -43,8 +43,9 @@
 </template>
   
   <script setup>
-  import { ref, watch, onMounted} from 'vue'
-  import apiClient from '@/assets/plugins/axios';
+  import apiConfig from '@/services/apiConfig';
+import apiServices from '@/services/apiServices';
+import { ref, watch, onMounted} from 'vue'
   
   const gameLogEntries = ref([]);
   
@@ -69,7 +70,7 @@ const fetchGameLog = async () => {
       teamId: props.teamId,
     };
 
-    const response = await apiClient.post(`/api/player/getLogs`, propsLog);
+    const response = await apiServices.post(apiConfig.player.getLogs, propsLog);
 
     if (Array.isArray(response.data)) {
     gameLogEntries.value = response.data.map(logEntry => {
@@ -85,7 +86,7 @@ const fetchGameLog = async () => {
 }
 
 const fetchTeamBud = async () => {
-  const response = await apiClient.get(`/api/player/getTeamBit`, {params: { teamId: props.teamId } });
+  const response = await apiServices.get(apiConfig.player.getCurrency, {params: {teamId: props.teamId }});
 
   currentBudget.value = response.data.teamBud;
   emit('budget-changed-in-menu', response.data.teamBud);

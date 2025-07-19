@@ -1,71 +1,101 @@
 <template>
   <div class="p-6 text-white">
-    <h2 class="text-2xl font-bold mb-4 text-center text-lime-400">Zarządzanie bitami drużyn</h2>
+    <h2 class="text-2xl font-bold mb-4 text-center text-lime-400">Zarządzanie budżetem drużyn</h2>
 
-    <div class="mb-6 text-center">
-      <label class="mr-2 font-semibold">Wybierz grę:</label>
-      <select v-model="selectedGameId" class="p-2 rounded text-black">
-        <option disabled value="">-- Wybierz grę --</option>
-        <option v-for="game in games" :key="game.id" :value="game.id">
-          {{ game.name }}
+    <!-- Wybór drużyny -->
+    <div v-if="!loading" class="mb-6 text-center max-w-md mx-auto">
+      <label class="mr-2 font-semibold">Wybierz drużynę:</label>
+      <select v-model="selectedTeamId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4">
+        <option :value="null">-- Wybierz drużynę --</option>
+        <option v-for="team in teams" :key="team.teamId" :value="team.teamId">
+          {{ team.teamName }}
         </option>
       </select>
     </div>
 
-    <div v-if="selectedTeams.length">
-      <div
-        v-for="team in selectedTeams"
-        :key="team.id"
-        class="mb-4 flex items-center justify-between bg-secondary p-3 rounded"
-      >
-        <div class="font-semibold">{{ team.name }}</div>
+    <!-- Edycja budżetu -->
+    <div v-if="selectedTeam" class="max-w-md mx-auto">
+      <div class="mb-4 flex items-center justify-center gap-4 bg-secondary p-3 rounded">
         <input
-          v-model.number="team.bits"
+          v-model.number="selectedTeam.teamBud"
           type="number"
-          class="w-24 p-1 rounded text-black"
+          class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-32 text-center"
         />
         <button
-          class="ml-4 px-3 py-1 bg-lime-500 hover:bg-lime-600 text-black font-bold rounded"
+          class="px-4 py-2 bg-lime-500 hover:bg-lime-600 text-black font-bold rounded"
+          @click="saveBudget"
         >
           Zapisz
         </button>
       </div>
     </div>
 
-    <div v-else class="text-center text-white">Wybierz grę, aby edytować bity drużyn.</div>
+    <!-- Komunikaty -->
+    <div v-if="loading" class="text-center text-white">Ładowanie drużyn...</div>
+    <div v-else-if="!teams.length" class="text-center text-white">Nie znaleziono drużyn dla tej gry.</div>
+    <div v-else-if="!selectedTeam" class="text-center text-white">Wybierz drużynę, aby edytować jej budżet.</div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useToast } from 'vue-toastification'
 
-const selectedGameId = ref('')
+import apiService from '@/services/apiServices'
+import apiConfig from '@/services/apiConfig'
 
-const games = [
-  {
-    id: 1,
-    name: 'Gra 1',
-    teams: [
-      { id: 1, name: 'Drużyna A', bits: 100 },
-      { id: 2, name: 'Drużyna B', bits: 150 },
-      { id: 3, name: 'Drużyna C', bits: 200 },
-      { id: 4, name: 'Drużyna D', bits: 220}
-    ]
-  },
-  {
-    id: 2,
-    name: 'Gra 2',
-    teams: [
-      { id: 5, name: 'Drużyna E', bits: 200 },
-      { id: 6, name: 'Drużyna F', bits: 220 },
-      { id: 7, name: 'Drużyna G', bits: 100 },
-      { id: 8, name: 'Drużyna H', bits: 150 }
-    ]
+const toast = useToast()
+const route = useRoute()
+
+const gameId = route.params.gameId
+
+const teams = ref([])
+const selectedTeamId = ref(null)
+const loading = ref(true)
+
+const selectedTeam = computed(() => {
+  if (!selectedTeamId.value) return null
+  return teams.value.find(t => t.teamId === selectedTeamId.value)
+})
+
+const fetchTeams = async () => {
+  if (!gameId) {
+    toast.error("Błąd: Brak ID gry w adresie URL!")
+    loading.value = false
+    return
   }
-]
 
-const selectedTeams = computed(() => {
-  const game = games.find(g => g.id === selectedGameId.value)
-  return game ? game.teams : []
+  loading.value = true
+  try {
+    const response = await apiService.get(apiConfig.games.getTeamsManagement(gameId))
+    teams.value = response.data
+  } catch (error) {
+    toast.error('Nie udało się wczytać listy drużyn z serwera.')
+    console.error("Błąd podczas pobierania drużyn:", error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const saveBudget = async () => {
+  if (!selectedTeam.value) {
+    toast.warning('Najpierw wybierz drużynę.')
+    return
+  }
+
+  const { teamId, teamName, teamBud } = selectedTeam.value
+
+  try {
+    await apiService.put(apiConfig.games.updateTeamBudget(teamId), { newBudget: teamBud })
+    toast.success(`Zapisano budżet dla drużyny ${teamName}`)
+  } catch (error) {
+    toast.error(`Błąd podczas zapisywania budżetu dla ${teamName}`)
+    console.error("Błąd podczas aktualizacji budżetu:", error)
+  }
+}
+
+onMounted(() => {
+  fetchTeams()
 })
 </script>
