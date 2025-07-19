@@ -86,7 +86,7 @@ const fetchGameLog = async () => {
 }
 
 const fetchTeamBud = async () => {
-  const response = await apiServices.get(apiConfig.player.getCurrency, {teamId: props.teamId });
+  const response = await apiServices.get(apiConfig.player.getCurrency, {params: {teamId: props.teamId }});
 
   currentBudget.value = response.data.teamBud;
   emit('budget-changed-in-menu', response.data.teamBud);
