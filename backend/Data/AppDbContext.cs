@@ -50,11 +50,12 @@ namespace backend.Data
             // Deck Configuration
             modelBuilder.Entity<Deck>(entity =>
             {
-                entity.HasKey(d => d.DeckId);
+                  entity.HasKey(d => d.DeckId);
 
-                entity.HasOne(d => d.User)
-                      .WithOne()
-                      .HasForeignKey<Deck>(d => d.UserId);
+                  entity.HasOne(d => d.User)
+                        .WithMany()
+                        .HasForeignKey(d => d.UserId)
+                        .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Card Configuration

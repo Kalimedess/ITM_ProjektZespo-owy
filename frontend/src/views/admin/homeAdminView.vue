@@ -28,11 +28,13 @@
 
 <script setup>
     import { ref, onMounted } from 'vue';
-    import apiClient from '@/assets/plugins/axios';
     import { useToast } from 'vue-toastification';
     import gameCard from '@/components/game/gameCard.vue';
     import homeAdminButtons from '@/components/admin/homeAdminButtons.vue';
     import CreateGame from '@/components/game/createGame.vue';
+
+    import apiConfig from '@/services/apiConfig.js';
+import apiService from '@/services/apiServices.js';
 
     const toast = useToast();
     const showCreateGame = ref(false);
@@ -53,7 +55,7 @@
         loadingGames.value = true;
         fetchError.value = null;
         try {
-            const response = await apiClient.get('/api/games/active', { withCredentials: true });
+            const response = await apiService.get(apiConfig.games.getAll);
             activeGames.value = response.data;
             if (activeGames.value.length === 0) {
                 // 
@@ -77,13 +79,8 @@
   const gameToUpdate = activeGames.value.find(g => g.id === gameId);
   if (!gameToUpdate) return;
 
-  const originalStatus = gameToUpdate.status;
-
   try {
-    const response = await apiClient.put(`/api/games/${gameId}/status`, 
-        { newStatus: newStatus },
-        { withCredentials: true }
-    );
+    const response = await apiService.put(apiConfig.games.updateStatus(gameId), newStatus);
     
     if (response.data && response.data.newStatus) {
         gameToUpdate.status = response.data.newStatus;

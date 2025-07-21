@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import axios from 'axios'
 import mainView from '@/views/landing/mainView.vue'
 import adminDashboardView from '@/views/admin/adminDashboardView.vue'
 import homeAdmin from '@/views/admin/homeAdminView.vue'
@@ -14,7 +13,12 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
-import testPlayerView from '@/views/player/test-playerView.vue'
+import decisionPanel from '@/views/game/decisionPanelView.vue'
+import blockCards from '@/views/game/blockCardsView.vue'
+import resetPasswordView from '@/views/resetPasswordView.vue'
+import confirmEmailView from '@/views/confirmEmailView.vue'
+import apiServices from '@/services/apiServices'
+import apiConfig from '@/services/apiConfig'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +32,16 @@ const router = createRouter({
       path:'/testBoard',
       name:'test-board',
       component:testBoard,
+    },
+    {
+      path:'/resetPassword/:token',
+      name:'reset-password',
+      component:resetPasswordView,
+    },
+    {
+      path:'/confirm/:token',
+      name:'confirm-email',
+      component: confirmEmailView,
     },
     { 
       path: '/admin',
@@ -69,19 +83,38 @@ const router = createRouter({
     },
     {
       path: '/admin/game',
+      name: 'admin-game-dashboard',
       component: adminGameDashboardView,
       meta: { requiresAuth: true },
       children: [
         {
-          path: '',
-          name: 'admin-game-statistics',
-          component: gameStatistics,
+          path: '/admin/game/:gameId',
+          name: 'decision-panel',
+          component: decisionPanel,
+          props: true,
+          meta: { requiresAuth: true }
         },
         {
-          path: 'editbits',
+          path: '/admin/game/:gameId/statistics',
+          name: 'admin-game-statistics',
+          component: gameStatistics,
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/admin/game/:gameId/editbits',
           name: 'edit-bits',
           component: editBitsView,
-        }
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/admin/game/:gameId/blockcards',
+          name: 'block-cards',
+          component: blockCards,
+          props: true,
+          meta: { requiresAuth: true }
+        },
 
       ]
     },
@@ -116,13 +149,12 @@ router.beforeEach(async (to, from, next) => {
   if (!requiresAuth) return next();
 
   try {
-    await axios.get('http://localhost:5023/api/auth/me', {
-      withCredentials: true
-    });
+    await apiServices.get(apiConfig.auth.me);
     next();
   } catch (err) {
     sessionStorage.setItem('showLoginAfterRedirect', 'true');
     next('/');
+    console.log('Error: ',err)
   }
 });
 
