@@ -27,7 +27,7 @@ public class CreateGameDto
     public int NumberOfTeams { get; set; }
     public int StartBits { get; set; }
     public List<TeamDto> Teams { get; set; } = new List<TeamDto>();
-    public List<ProcessDto> Process { get; set; } = new List<ProcessDto>();
+    public List<ProcessDto> Processes { get; set; } = new List<ProcessDto>();
 }
 
 public class GameListItemDto
@@ -78,6 +78,26 @@ namespace backend.Controllers
                 return BadRequest(new { message = "Brak dostępnych licencji do utworzenia nowej gry." });
             }
 
+            // Pobierz wszystkie potrzebne procesy Z BAZY DANYCH za jednym razem, aby uniknąć zapytań w pętli (problem N+1).
+            // Używamy słownika dla błyskawicznego dostępu w pętli.
+            var requestedProcessShortNames = gameDto.Processes.Select(p => p.ShortName).ToList();
+            var processesFromDb = await _context.Processes
+                .Where(p => p.DeckId == gameDto.DeckId && requestedProcessShortNames.Contains(p.ProcessDesc))
+                .ToDictionaryAsync(p => p.ProcessDesc);
+
+            // Sprawdź, czy wszystkie żądane procesy istnieją w podanej talii
+            if (processesFromDb.Count != requestedProcessShortNames.Count)
+            {
+                return BadRequest(new { message = "Jeden lub więcej wybranych procesów nie istnieje w podanej talii kart." });
+            }
+
+
+            // --- 2. Użycie transakcji dla zapewnienia integralności danych ---
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+           try
+        {
+            // --- 3. Tworzenie encji głównych ---
             var newGame = new Game
             {
                 GameDesc = gameDto.GameName,
@@ -86,10 +106,12 @@ namespace backend.Controllers
                 DeckId = gameDto.DeckId,
                 GameStatus = GameStatus.During,
                 UserId = userId,
-                IsOnline = gameDto.GameMode,
-                Teams = new List<Team>()
+                IsOnline = gameDto.GameMode
             };
+            _context.Games.Add(newGame);
 
+            // Przechowamy listę nowo utworzonych drużyn, aby później utworzyć dla nich GameBoards
+            var newTeams = new List<Team>();
 
             foreach (var teamDto in gameDto.Teams)
             {
@@ -98,78 +120,86 @@ namespace backend.Controllers
                     TeamName = teamDto.Name,
                     TeamColor = teamDto.Colour,
                     TeamBud = gameDto.StartBits,
-                    TeamToken = TokenGenerator.GenerateRandomAlphanumericToken(6),
-                    IsIndependent= teamDto.IsAbleToMakeDecisions,
-                    GameProcesses = new List<GameProcess>()
+                    TeamToken = "ABCDEF", // Zastąp swoją logiką generatora tokenów
+                    IsIndependent = teamDto.IsAbleToMakeDecisions,
+                    Game = newGame // Powiązanie z grą (EF Core sam ustawi GameId)
                 };
 
-                foreach (var processDto in gameDto.Process)
+                // Dla każdej drużyny utwórz powiązania z wybranymi procesami
+                foreach (var processDto in gameDto.Processes)
                 {
-                    var newProcess = new GameProcess
+                    // Pobierz wcześniej załadowany proces ze słownika
+                    var dbProcess = processesFromDb[processDto.ShortName];
+
+                    var newGameProcess = new GameProcess
                     {
-                        ProcessDesc = processDto.ShortName,
-                        ProcessLongDesc = processDto.Name,
-                        Team = gameTeam,
                         Game = newGame,
-                        
-                        
+                        Team = gameTeam,
+                        ProcessId = dbProcess.ProcessId // KLUCZOWY MOMENT: przypisanie ID procesu z bazy
                     };
-                    gameTeam.GameProcesses.Add(newProcess);
+                    // EF Core doda to do kontekstu, gdy dodamy gameTeam do newGame.Teams
+                    gameTeam.GameProcesses.Add(newGameProcess);
                 }
+                
                 newGame.Teams.Add(gameTeam);
+                newTeams.Add(gameTeam); // Dodaj do tymczasowej listy
             }
 
-            _context.Games.Add(newGame);
-            await _context.SaveChangesAsync();
-
-            var gameBoardsToCreate = new List<GameBoard>();
-             foreach (var team in newGame.Teams)
+            // --- 4. Tworzenie wpisów w GameBoard ---
+            foreach (var team in newTeams)
             {
-                // a) Stwórz 5 wpisów dla planszy głównej, po jednym dla każdego z unikalnych procesów tej drużyny
-                foreach (var process in team.GameProcesses)
+                // a) Utwórz wpisy dla planszy głównej (jeden na każdy proces)
+                foreach (var gameProcess in team.GameProcesses)
                 {
-                    gameBoardsToCreate.Add(new GameBoard
+                    _context.GameBoards.Add(new GameBoard
                     {
-                        GameId = newGame.GameId,
-                        TeamId = team.TeamId,
+                        Game = newGame,
+                        Team = team,
                         BoardId = newGame.TeamBoardId,
-                        GameProcessId = process.GameProcessId,
+                        GameProcess = gameProcess, // Powiązanie z konkretnym procesem gry
                         PozX = 0,
                         PozY = 0
                     });
                 }
         
-                // b) Stwórz 1 wpis dla planszy konkurencji (bez procesu)
-                gameBoardsToCreate.Add(new GameBoard
+                // b) Utwórz jeden wpis dla planszy konkurencji (bez powiązania z procesem)
+                _context.GameBoards.Add(new GameBoard
                 {
-                    GameId = newGame.GameId,
-                    TeamId = team.TeamId,
+                    Game = newGame,
+                    Team = team,
                     BoardId = newGame.RivalBoardId,
-                    GameProcessId = null,
+                    GameProcessId = null, // Jawne ustawienie braku procesu
                     PozX = 0,
                     PozY = 0
                 });
             }
-            await _context.GameBoards.AddRangeAsync(gameBoardsToCreate);
 
+            // --- 5. Aktualizacja licencji i zapis do bazy ---
             user.LicensesOwned--;
             _context.Users.Update(user);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                Console.WriteLine($"Błąd zapisu do DB: {ex.InnerException?.Message ?? ex.Message}");
-                return StatusCode(500, "Wystąpił błąd serwera podczas tworzenia gry.");
-            }
+            // Zapisz wszystkie zmiany (Game, Teams, GameProcesses, GameBoards, User) w jednej operacji
+            await _context.SaveChangesAsync();
+
+            // Jeśli wszystko się udało, zatwierdź transakcję
+            await transaction.CommitAsync();
 
             return Ok(new
             {
                 gameId = newGame.GameId,
                 message = "Gra utworzona pomyślnie."
             });
+        }
+        catch (Exception ex)
+        {
+            // W razie błędu wycofaj wszystkie zmiany
+            await transaction.RollbackAsync();
+            
+            // Logowanie błędu jest bardzo ważne w środowisku produkcyjnym
+            Console.WriteLine($"Błąd podczas tworzenia gry: {ex.InnerException?.Message ?? ex.Message}");
+            
+            return StatusCode(500, "Wystąpił błąd serwera podczas tworzenia gry. Zmiany zostały wycofane.");
+        }
         }
 
         [HttpGet("{gameId}")]

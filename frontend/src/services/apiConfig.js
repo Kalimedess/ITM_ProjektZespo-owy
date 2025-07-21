@@ -46,6 +46,9 @@ const endpoints = {
     getCards: (deckId) =>`player/deck/${deckId}/unified-cards`,
     getLogs: '/player/getLogs',
     getCurrency: '/player/getCurrency'
+  },
+  processes: {
+    getByDeck: (deckId) => `/processes/by-deck/${deckId}`
   }
   
 };

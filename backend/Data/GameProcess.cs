@@ -6,10 +6,8 @@ namespace backend.Data
     public class GameProcess
     {
         public int GameProcessId { get; set; }
-        [MaxLength(10)]
-        public string ProcessDesc { get; set; } = string.Empty;
-        [MaxLength(100)]
-        public string ProcessLongDesc { get; set; } = string.Empty;
+        public int ProcessId { get; set; }
+        public Process Process { get; set; } = null!;
 
         public int GameId { get; set; }
         public Game Game { get; set; } = null!;

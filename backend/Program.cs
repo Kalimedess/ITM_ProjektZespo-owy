@@ -39,6 +39,8 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<JwtService>();
 
+builder.Services.AddScoped<IUserInitializationService, UserInitializationService>();
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
