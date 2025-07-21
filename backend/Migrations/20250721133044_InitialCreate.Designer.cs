@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250718124938_InitialCreate")]
+    [Migration("20250721133044_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -429,6 +429,9 @@ namespace backend.Migrations
 
                     b.Property<int?>("GameProcessId")
                         .HasColumnType("int");
+
+                    b.Property<bool?>("IsApproved")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("MoveX")
                         .HasColumnType("int");

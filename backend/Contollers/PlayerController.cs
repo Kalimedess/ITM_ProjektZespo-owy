@@ -78,7 +78,7 @@ namespace backend.Controllers
             _context = context;
         }
 
-         [HttpGet("deck/{deckId}/unified-cards")]
+        [HttpGet("deck/{deckId}/unified-cards")]
         public async Task<ActionResult<CategorizedCardsDto>> GetUnifiedCardsForDeck(int deckId, [FromQuery] int gameId, [FromQuery] int teamId)
         {
             var deckExists = await _context.Decks.AnyAsync(d => d.DeckId == deckId);
@@ -108,16 +108,17 @@ namespace backend.Controllers
                 .Select(d => new { d.CardId, Title = d.DecisionShortDesc, Description = d.DecisionLongDesc, Cost = d.DecisionBaseCost })
                 .OrderBy(c => c.CardId)
                 .ToListAsync();
-            
+
             // Pobieranie kart PRZEDMIOTÓW
             var itemCardsInfo = await _context.Items
                 .Where(i => i.DeckId == deckId && !playedCardIds.Contains(i.CardId))
                 .Select(i => new { i.CardId, Title = i.HardwareShortDesc, Description = i.HardwareLongDesc, Cost = i.ItemsBaseCost })
                 .OrderBy(c => c.CardId)
                 .ToListAsync();
-            
+
             // Mapowanie DECYZJI na DTO
-            var decisionCards = decisionCardsInfo.Select((c, index) => {
+            var decisionCards = decisionCardsInfo.Select((c, index) =>
+            {
                 enablersMap.TryGetValue(c.CardId, out var enablersForCard);
                 return new UnifiedCardDto
                 {
@@ -133,7 +134,8 @@ namespace backend.Controllers
             }).ToList();
 
             // Mapowanie PRZEDMIOTÓW na DTO
-            var itemCards = itemCardsInfo.Select((c, index) => {
+            var itemCards = itemCardsInfo.Select((c, index) =>
+            {
                 enablersMap.TryGetValue(c.CardId, out var enablersForCard);
                 return new UnifiedCardDto
                 {
@@ -147,7 +149,7 @@ namespace backend.Controllers
                     Enablers = enablersForCard?.Where(id => id.HasValue).Select(id => id.Value).ToList() ?? new List<int>()
                 };
             }).ToList();
-            
+
             // Złożenie ostateczn   ej odpowiedzi
             var result = new CategorizedCardsDto
             {
@@ -218,7 +220,7 @@ namespace backend.Controllers
                 gameName = team.Game.GameDesc,
                 gameStatus = team.Game.GameStatus?.ToString(),
 
-                isOnline = team.Game.IsOnline, 
+                isOnline = team.Game.IsOnline,
 
                 teamId = team.TeamId,
                 teamName = team.TeamName,
@@ -257,8 +259,8 @@ namespace backend.Controllers
             return Ok(sessionData);
         }
 
-         [HttpPost("getLogs")]
-        public async Task<IActionResult> GetLogs([FromBody] LogData logData)
+        [HttpPost("getLogs")]
+        public async Task<IActionResult> GetLogs([FromBody] LogData logData, [FromQuery] bool onlyPending = false)
         {
             var query = _context.GameLogs
                 .Include(gl => gl.Team)
@@ -270,54 +272,42 @@ namespace backend.Controllers
                 query = query.Where(gl => gl.TeamId == logData.TeamId);
             }
 
+            if (onlyPending)
+            {
+                // Filtr dla panelu "Do zatwierdzenia"
+                query = query.Where(gl => gl.IsApproved == false);
+            }
+            else
+            {
+                // Filtr dla panelu "Historia decyzji" - pokazuj zatwierdzone i niezależne
+                query = query.Where(gl => gl.IsApproved != false);
+            }
+
             var gameLogs = await query.OrderByDescending(gl => gl.Data).ToListAsync();
 
-            if (!gameLogs.Any())
-            {
-                return Ok(new List<object>());
-            }
+            if (!gameLogs.Any()) return Ok(new List<object>());
 
             var cardIds = gameLogs.Select(gl => gl.CardId).Distinct().ToList();
 
-            // --- POPRAWKA TUTAJ ---
-            // Pobieramy dane jako listy, grupujemy je i dopiero tworzymy słowniki,
-            // aby uniknąć błędu zduplikowanych kluczy.
-            var decisions = await _context.Decisions
-                .Where(d => cardIds.Contains(d.CardId))
-                .ToListAsync();
-            
-            var decisionTitles = decisions
-                .GroupBy(d => d.CardId)
-                .ToDictionary(g => g.Key, g => g.First().DecisionShortDesc);
+            var decisions = await _context.Decisions.Where(d => cardIds.Contains(d.CardId)).ToListAsync();
+            var decisionTitles = decisions.GroupBy(d => d.CardId).ToDictionary(g => g.Key, g => g.First().DecisionShortDesc);
 
-            var items = await _context.Items
-                .Where(i => cardIds.Contains(i.CardId))
-                .ToListAsync();
+            var items = await _context.Items.Where(i => cardIds.Contains(i.CardId)).ToListAsync();
+            var itemTitles = items.GroupBy(i => i.CardId).ToDictionary(g => g.Key, g => g.First().HardwareShortDesc);
 
-            var itemTitles = items
-                .GroupBy(i => i.CardId)
-                .ToDictionary(g => g.Key, g => g.First().HardwareShortDesc);
-            // --- KONIEC POPRAWKI ---
-
-            var result = gameLogs.Select(gl =>
+            var result = gameLogs.Select(gl => new
             {
-                decisionTitles.TryGetValue(gl.CardId, out var decisionTitle);
-                itemTitles.TryGetValue(gl.CardId, out var itemTitle);
-                
-                return new
-                {
-                    LogId = gl.GameLogId,
-                    Timestamp = gl.Data,
-                    TeamId = gl.TeamId,
-                    TeamName = gl.Team?.TeamName,
-                    CardId = gl.CardId,
-                    CardTitle = decisionTitle ?? itemTitle ?? "Nieznana karta",
-                    FeedbackDescription = gl.Feedback?.LongDescription,
-                    Status = gl.Status,
-                    Cost = gl.Cost,
-                    MoveX = gl.MoveX,
-                    MoveY = gl.MoveY
-                };
+                LogId = gl.GameLogId,
+                Timestamp = gl.Data,
+                TeamId = gl.TeamId,
+                TeamName = gl.Team?.TeamName,
+                CardId = gl.CardId,
+                CardTitle = decisionTitles.GetValueOrDefault(gl.CardId) ?? itemTitles.GetValueOrDefault(gl.CardId) ?? "Nieznana karta",
+                FeedbackDescription = gl.Feedback?.LongDescription,
+                Status = gl.Status,
+                Cost = gl.Cost,
+                MoveX = gl.MoveX,
+                MoveY = gl.MoveY
             });
 
             return Ok(result);
@@ -346,50 +336,27 @@ namespace backend.Controllers
             return await ProcessCardPlay(selectedCard, false, cardData);
         }
 
-       private async Task<IActionResult> ProcessCardPlay(int selectedCard, bool wasSuccess, CardDataDTO? data = null)
+        private async Task<IActionResult> ProcessCardPlay(int selectedCard, bool wasSuccess, CardDataDTO data)
         {
-            var team = await _context.Teams.FirstOrDefaultAsync(t => t.TeamId == data.TeamId);
+            var team = await _context.Teams.FindAsync(data.TeamId);
             if (team == null) return NotFound($"Drużyna o ID {data.TeamId} nie została znaleziona.");
 
-            bool finalStatus;
-            double finalCost = data.Cost;
+            // Logika finalStatus pozostaje taka sama, ale bez usuwania enablera tutaj
+            var isItem = await _context.Items.AnyAsync(i => i.CardId == selectedCard);
+            bool finalStatus = isItem || wasSuccess;
 
-            // KROK 1: Sprawdź, czy istnieje specjalny enabler (NAJWYŻSZY PRIORYTET).
-            var specialEnabler = await _context.DecisionEnablers.FirstOrDefaultAsync(de =>
-                de.CardId == selectedCard &&
-                de.GameId == data.GameId &&
-                de.TeamId == data.TeamId &&
-                de.EnablerId == null);
+            var specialEnablerUsed = await _context.DecisionEnablers.AnyAsync(de =>
+                de.CardId == selectedCard && de.GameId == data.GameId && de.TeamId == data.TeamId && de.EnablerId == null);
 
-            if (specialEnabler != null)
+            if (specialEnablerUsed)
             {
-                // ZNALEZIONO SPECJALNY ENABLER: Wymuś sukces i oznacz enabler do usunięcia.
                 finalStatus = true;
-                _context.DecisionEnablers.Remove(specialEnabler);
-            }
-            else
-            {
-                // KROK 2: BRAK SPECJALNEGO ENABLERA -> Użyj standardowej logiki.
-                
-                // >>> TUTAJ JEST POPRAWIONY WARUNEK, KTÓRY ZNIKNĄŁ <<<
-                var isItem = await _context.Items.AnyAsync(i => i.CardId == selectedCard);
-
-                if (isItem)
-                {
-                    // JEŚLI TO PRZEDMIOT, ZAWSZE USTAWIAJ SUKCES.
-                    finalStatus = true;
-                }
-                else
-                {
-                    // JEŚLI TO DECYZJA, UŻYJ WYNIKU Z FRONTENDU.
-                    finalStatus = wasSuccess;
-                }
             }
 
-            // Pozostała część metody jest identyczna i używa poprawnie obliczonych `finalStatus` i `finalCost`.
-            var feedback = await _context.Feedbacks
-                .FirstOrDefaultAsync(f => f.CardId == selectedCard && f.DeckId == data.DeckId && f.Status == finalStatus);
+            var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f =>
+                f.CardId == selectedCard && f.DeckId == data.DeckId && f.Status == finalStatus);
 
+            // Tworzymy log, ale go jeszcze nie zapisujemy
             var gameLogEntry = new GameLog
             {
                 Data = DateTime.UtcNow,
@@ -397,42 +364,74 @@ namespace backend.Controllers
                 GameId = data.GameId,
                 CardId = selectedCard,
                 DeckId = data.DeckId,
-                BoardId = data.BoardId, 
-                GameProcessId = data?.GameProcessId,
+                BoardId = data.BoardId,
+                GameProcessId = data.GameProcessId,
                 FeedbackId = feedback?.FeedbackId,
-                Cost = finalCost,
-                Status = finalStatus, 
+                Cost = data.Cost,
+                Status = finalStatus,
                 MoveX = 0,
-                MoveY = 0
+                MoveY = 0,
+                // Ustawiamy IsApproved na podstawie flagi drużyny
+                IsApproved = team.IsIndependent ? (bool?)null : false
             };
             _context.GameLogs.Add(gameLogEntry);
 
-            team.TeamBud -= (int)finalCost;
+            // Jeśli drużyna jest niezależna, od razu wykonaj efekty
+            if (team.IsIndependent)
+            {
+                await ExecuteCardEffects(gameLogEntry);
+            }
 
-            // Zapisze wszystkie zmiany (log, budżet ORAZ ewentualne usunięcie enablera) w jednej transakcji.
+            // Zapisujemy wszystkie zmiany (log i potencjalne efekty) w jednej transakcji
             await _context.SaveChangesAsync();
 
-            if (feedback != null)
+            // Zwracamy odpowiedź do frontendu
+            return Ok(new
             {
-                return Ok(new
-                {
-                    message = $"Akcja karty przetworzona.",
-                    feedback = new
-                    {
-                        feedback.FeedbackId,
-                        feedback.LongDescription,
-                        feedback.Status
-                    },
-                    newTeamBudget = team.TeamBud
-                });
-            }
-            else
+                message = team.IsIndependent ? "Akcja karty została wykonana." : "Sugestia zagrania karty została wysłana do zatwierdzenia.",
+                newTeamBudget = team.TeamBud // Zawsze wysyłamy aktualny budżet
+            });
+        }
+
+        private async Task ExecuteCardEffects(GameLog log)
+        {
+            // Ta metoda wykonuje wszystkie "fizyczne" zmiany w grze
+            var team = await _context.Teams
+                .AsNoTracking() // Używamy AsNoTracking, bo nie zamierzamy modyfikować samej drużyny w tej metodzie
+                .FirstOrDefaultAsync(t => t.TeamId == log.TeamId);
+
+            if (team == null) return; // Zabezpieczenie
+
+            // Pobieramy drużynę jeszcze raz, ale tym razem do śledzenia zmian w budżecie
+            var trackedTeam = await _context.Teams.FindAsync(log.TeamId);
+            if(trackedTeam != null)
             {
-                return Ok(new { 
-                    message = $"Akcja karty przetworzona.", 
-                    newTeamBudget = team.TeamBud 
-                });
+                // 1. Odejmij bity
+                trackedTeam.TeamBud -= (int)log.Cost;
             }
+
+            // --- KLUCZOWA POPRAWKA ---
+            // 2. Zmień status IsApproved z 'false' na 'true' TYLKO jeśli log był sugestią.
+            // Jeśli był 'null' (dla gracza niezależnego), zostaw go jako 'null'.
+            if (log.IsApproved == false)
+            {
+                log.IsApproved = true;
+            }
+            // --- KONIEC POPRAWKI ---
+
+            // 3. Sprawdź, czy trzeba usunąć specjalny enabler (jeśli taki był użyty)
+            var specialEnabler = await _context.DecisionEnablers.FirstOrDefaultAsync(de =>
+                de.CardId == log.CardId &&
+                de.GameId == log.GameId &&
+                de.TeamId == log.TeamId &&
+                de.EnablerId == null);
+            
+            if (specialEnabler != null)
+            {
+                _context.DecisionEnablers.Remove(specialEnabler);
+            }
+
+            // TODO: W przyszłości dodaj tutaj inne efekty, np. ruch pionka
         }
 
         [HttpGet("game/{gameId}/teams-management")]
@@ -548,6 +547,52 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = $"Karta (ID: {unlockData.CardId}) została pomyślnie odblokowana dla drużyny (ID: {unlockData.TeamId})." });
+        }
+
+        [HttpGet("game/{gameId}/pending-logs")]
+        public async Task<IActionResult> GetPendingLogs(int gameId)
+        {
+            // Użyjemy tej samej logiki co w GetLogs, aby zwrócić spójne dane
+            var logData = new LogData { GameId = gameId, TeamId = 0 };
+            return await GetLogs(logData, onlyPending: true);
+        }
+
+        [HttpPost("approve-log/{logId}")]
+        public async Task<IActionResult> ApproveLog(int logId)
+        {
+            var logToApprove = await _context.GameLogs.FindAsync(logId);
+            if (logToApprove == null)
+            {
+                return NotFound("Nie znaleziono logu do zatwierdzenia.");
+            }
+            if (logToApprove.IsApproved != false)
+            {
+                return BadRequest("Ten log nie oczekuje na zatwierdzenie.");
+            }
+
+            await ExecuteCardEffects(logToApprove);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Sugestia została zatwierdzona." });
+        }
+        
+        [HttpDelete("reject-log/{logId}")]
+        public async Task<IActionResult> RejectLog(int logId)
+        {
+            var logToReject = await _context.GameLogs.FindAsync(logId);
+            if (logToReject == null)
+            {
+                return NotFound("Nie znaleziono logu do odrzucenia.");
+            }
+            if (logToReject.IsApproved != false)
+            {
+                return BadRequest("Ten log nie oczekuje na zatwierdzenie.");
+            }
+
+            _context.GameLogs.Remove(logToReject);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Sugestia została odrzucona." });
         }
     }
 }

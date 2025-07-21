@@ -427,6 +427,9 @@ namespace backend.Migrations
                     b.Property<int?>("GameProcessId")
                         .HasColumnType("int");
 
+                    b.Property<bool?>("IsApproved")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("MoveX")
                         .HasColumnType("int");
 

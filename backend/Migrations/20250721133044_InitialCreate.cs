@@ -485,7 +485,8 @@ namespace backend.Migrations
                     Cost = table.Column<double>(type: "double", nullable: false),
                     Status = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     MoveX = table.Column<int>(type: "int", nullable: false),
-                    MoveY = table.Column<int>(type: "int", nullable: false)
+                    MoveY = table.Column<int>(type: "int", nullable: false),
+                    IsApproved = table.Column<bool>(type: "tinyint(1)", nullable: true)
                 },
                 constraints: table =>
                 {

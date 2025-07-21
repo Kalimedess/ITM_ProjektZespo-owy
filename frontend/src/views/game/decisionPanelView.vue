@@ -140,12 +140,26 @@
       </div>
 
       <!-- Decyzje do zatwierdzenia -->
-      <div v-if="decisionMode === 'pending'" class="overflow-y-auto scroll-smooth max-h-[650px] pr-2 space-y-3 border border-lgray-accent rounded-md shadow-inner bg-secondary-dark">
-        <div v-if="pendingDecisions.length === 0" class="text-center text-gray-400">
+     <div v-if="decisionMode === 'pending'" class="overflow-y-auto scroll-smooth max-h-[650px] pr-2 space-y-3 border border-lgray-accent rounded-md shadow-inner bg-secondary-dark p-2">
+        <div v-if="loadingPending" class="text-center text-gray-400">Ładowanie sugestii...</div>
+        <div v-else-if="pendingDecisions.length === 0" class="text-center text-gray-400 p-4">
           Brak decyzji do zatwierdzenia.
         </div>
-        <!-- Treść dla decyzji oczekujących (na razie statyczna) -->
-      </div>
+
+        <div
+          v-for="entry in pendingDecisions"
+          :key="entry.logId"
+          class="p-2 rounded border border-yellow-500 bg-secondary relative"
+        >
+          <p><strong>{{ entry.tableName }}</strong> sugeruje:</p>
+          <p class="font-semibold text-lg">{{ entry.cardTitle }}</p>
+          <p class="text-xs text-gray-400 mt-1">Zasugerowano: {{ formatDate(entry.timestamp) }}</p>
+          <div class="flex justify-end space-x-2 mt-2">
+            <button @click="approveDecision(entry.logId)" class="px-2 py-1 bg-green-500 text-sm text-black rounded hover:bg-green-600">Zatwierdź</button>
+            <button @click="rejectDecision(entry.logId)" class="px-2 py-1 bg-red-500 text-sm text-white rounded hover:bg-red-600">Odrzuć</button>
+          </div>
+        </div>
+     </div>
 
       <!-- Historia decyzji (PODPIĘTA POD API) -->
       <div v-else class="space-y-4 max-h-[650px] overflow-y-auto scroll-smooth">
@@ -213,7 +227,8 @@ const formData = reactive({
   DescriptionDown: '...', DescriptionLeft: '...', Rows: 8, Cols: 8,
   CellColor: '#fefae0', BorderColor: '#595959', BorderColors: ['...']
 })
-const pendingDecisions = ref([ /* Na razie puste, do podpięcia w przyszłości */ ])
+const pendingDecisions = ref([]); 
+const loadingPending = ref(true);
 
 // --- WŁAŚCIWOŚCI COMPUTED ---
 const selectedCard = computed(() => cards.find(c => c.id === Number(selectedCardId.value)))
@@ -255,32 +270,9 @@ const fetchDecisionHistory = async () => {
 
 const decisionMode = ref('history')
 
-function isCardBlocked(cardId) {
-  // Logika do zaimplementowania w przyszłości
-  return false
-}
-
 function getCardCost(cardId) {
   const card = cards.find(c => c.id === Number(cardId))
   return card ? card.cost : 0
-}
-
-function applySelectedEvent() {
-  // Logika do zaimplementowania w przyszłości
-  toast.info("Funkcjonalność zdarzeń losowych zostanie podpięta wkrótce.");
-}
-
-function playCard() {
-  // Logika do zaimplementowania w przyszłości
-  toast.info("Funkcjonalność zagrywania kart przez admina zostanie podpięta wkrótce.");
-}
-
-function approveDecision(entry, index) {
-  // Logika do zaimplementowania w przyszłości
-}
-
-function rejectDecision(index) {
-  // Logika do zaimplementowania w przyszłości
 }
 
 function formatDate(timestamp) {
@@ -288,9 +280,58 @@ function formatDate(timestamp) {
   return date.toLocaleString('pl-PL')
 }
 
+const fetchPendingDecisions = async () => {
+  if (!gameId) return;
+  loadingPending.value = true;
+  try {
+    // Używamy nowego endpointu z backendu
+    const response = await apiServices.get(apiConfig.games.getPendingLogs(gameId));
+    // Mapujemy dane tak samo jak dla historii
+    pendingDecisions.value = response.data.map(log => ({
+      logId: log.logId,
+      cardId: log.cardId,
+      cardTitle: log.cardTitle,
+      tableId: log.teamId,
+      tableName: log.teamName,
+      timestamp: log.timestamp,
+    }));
+  } catch (error) {
+    toast.error("Błąd podczas pobierania sugestii do zatwierdzenia.");
+    console.error(error);
+  } finally {
+    loadingPending.value = false;
+  }
+};
+
+const approveDecision = async (logId) => {
+  try {
+    await apiServices.post(apiConfig.games.approveLog(logId));
+    toast.success("Sugestia została zatwierdzona!");
+    // Odśwież obie listy po akcji
+    fetchPendingDecisions();
+    fetchDecisionHistory();
+  } catch (error) {
+    toast.error("Wystąpił błąd podczas zatwierdzania sugestii.");
+    console.error(error);
+  }
+};
+
+const rejectDecision = async (logId) => {
+  try {
+    await apiServices.delete(apiConfig.games.rejectLog(logId));
+    toast.info("Sugestia została odrzucona.");
+    // Odśwież listę oczekujących
+    fetchPendingDecisions();
+  } catch (error) {
+    toast.error("Wystąpił błąd podczas odrzucania sugestii.");
+    console.error(error);
+  }
+};
+
 // --- CYKL ŻYCIA ---
 onMounted(() => {
   fetchDecisionHistory();
+  fetchPendingDecisions();
 });
 
 </script>

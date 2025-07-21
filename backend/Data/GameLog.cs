@@ -25,5 +25,7 @@ namespace backend.Data
 
         public int MoveX { get; set; }
         public int MoveY { get; set; }
+        
+        public bool? IsApproved { get; set; }
     }
 }

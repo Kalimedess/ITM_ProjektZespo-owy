@@ -87,6 +87,9 @@
   import { ref, computed, watch } from 'vue'
   import apiConfig from '@/services/apiConfig';
   import apiServices from '@/services/apiServices';
+  import { useToast } from 'vue-toastification';
+
+  const toast = useToast();
 
   const decisionCards = ref([]);
   const itemCards = ref([]);
@@ -184,36 +187,54 @@
   };
 
   const sendCardSelection = async () => {
-    if (displayCards.value.length === 0) return;
-    
-    const selectedCardData = displayCards.value[currentIndex.value];
-    if (!selectedCardData) return;
-    
-    const selectedCardEnablers = selectedCardData.enablers && Array.isArray(selectedCardData.enablers) && selectedCardData.enablers.length > 0;
+  if (displayCards.value.length === 0) return;
+  
+  const selectedCardData = displayCards.value[currentIndex.value];
+  if (!selectedCardData) return;
+  
+  const selectedCardEnablers = selectedCardData.enablers && Array.isArray(selectedCardData.enablers) && selectedCardData.enablers.length > 0;
 
-    const propsToSend = {
-      gameId: props.gameId,
-      teamId: props.teamId,
-      deckId: props.deckId,
-      boardId: props.boardId,
-      gameProcessId: props.gameProcessId,
-      cost: selectedCardData.cost
-    };
-
-    try {
-        if(!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)){
-          await apiServices.post(apiConfig.player.playCardSuccess(selectedCardData.id), propsToSend);
-        } else {
-          await apiServices.post(apiConfig.player.playCardFailure(selectedCardData.id), propsToSend);
-        }
-
-        emit('card-action-completed', { success: true });
-        fetchCards();
-    } catch (err) {
-        console.error("Błąd podczas zagrywania karty:", err);
-        emit('card-action-completed', { success: false });
-    }
+  const propsToSend = {
+    gameId: props.gameId,
+    teamId: props.teamId,
+    deckId: props.deckId,
+    boardId: props.boardId,
+    gameProcessId: props.gameProcessId,
+    cost: selectedCardData.cost
   };
+
+  try {
+      let response; // Zmienna do przechowywania odpowiedzi z API
+      
+      // Twoja logika decydująca o sukcesie/porażce pozostaje bez zmian
+      if (!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)) {
+        response = await apiServices.post(apiConfig.player.playCardSuccess(selectedCardData.id), propsToSend);
+      } else {
+        response = await apiServices.post(apiConfig.player.playCardFailure(selectedCardData.id), propsToSend);
+      }
+
+      // 3. Użyj komunikatu z backendu w toaście
+      if (response.data && response.data.message) {
+        toast.success(response.data.message);
+      } else {
+        toast.success("Akcja została wykonana."); // Fallback, gdyby backend nie zwrócił wiadomości
+      }
+
+      // 4. Przekaż nowe dane (np. budżet) do komponentu nadrzędnego
+      emit('card-action-completed', { 
+        success: true, 
+        newBudget: response.data.newTeamBudget 
+      });
+
+      // 5. Odśwież listę dostępnych kart
+      fetchCards();
+
+  } catch (err) {
+      toast.error("Wystąpił błąd podczas komunikacji z serwerem.");
+      console.error("Błąd podczas zagrywania karty:", err);
+      emit('card-action-completed', { success: false });
+  }
+};
   
   watch(() => props.showingDecisionCards, () => {
     currentIndex.value = 0;
