@@ -7,6 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Ignoruj katalogi obj i bin w folderze backend
+backend/obj/
+backend/bin/
+
 node_modules
 .DS_Store
 dist
