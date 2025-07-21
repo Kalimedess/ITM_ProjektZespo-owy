@@ -558,10 +558,6 @@ namespace backend.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("UserId"));
 
-                    b.Property<string>("ConfirmationToken")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -576,6 +572,10 @@ namespace backend.Migrations
                     b.Property<int>("LicensesUsed")
                         .HasColumnType("int");
 
+                    b.Property<string>("LinkToken")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -584,6 +584,9 @@ namespace backend.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("TokenExpireDate")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("UserId");
 

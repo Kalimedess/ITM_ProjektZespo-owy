@@ -6,10 +6,10 @@ const endpoints = {
     register: '/auth/register',
     logout: '/auth/logout',
     me: '/auth/me', // Get current user
-    forgotPassword: '/auth/reset-password',
-    resetPassword: '/auth/reset-password',
-    confirmEmail: (token) => `/auth/confirm?token=${token}`,
-    validateResetToken: (token) => `/auth/validate-token?token=${token}`,
+    confirmEmail: (token) =>`/auth/confirm/${token}`,
+    forgotPassword: '/password/reset-password',
+    resetPassword: '/password/reset',
+    validateResetToken: (token) => `/password/validate-token/${token}`,
   },
   admin: {
     deck: {

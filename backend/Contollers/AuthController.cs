@@ -34,12 +34,11 @@ namespace backend.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
         private readonly JwtService _jwtService;
-        private readonly IServiceProvider _serviceProvider;
-         private readonly IUserInitializationService _initializationService;
+        private readonly IUserInitializationService _initializationService;
 
-        public AuthController(AppDbContext context, EmailService emailService, JwtService jwtService, IConfiguration configuration, IUserInitializationService initializationService)
+        public AuthController(AppDbContext context, IEmailService emailService, JwtService jwtService, IConfiguration configuration, IUserInitializationService initializationService)
         {
             _context = context;
             _configuration = configuration;
@@ -67,10 +66,11 @@ namespace backend.Controllers
             if (!user.EmailConfirmed)
             {
                 // wygeneruj nowy token
-                user.ConfirmationToken = Guid.NewGuid().ToString();
+                user.LinkToken = Guid.NewGuid().ToString();
+                user.TokenExpireDate = DateTime.Now.AddMinutes(15).RoundUpToNearestMinute();
                 await _context.SaveChangesAsync();
 
-                await SendConfirmationEmail(user.Email);
+                _ = _emailService.SendConfirmationEmailAsync(user.Email, user.LinkToken, user.TokenExpireDate.Value);
 
                 return BadRequest("E-mail nie został potwierdzony. Wysłano ponownie link aktywacyjny.");
             }
@@ -110,62 +110,6 @@ namespace backend.Controllers
             return Ok(new { success = true, message = "Wylogowano pomyślnie" });
         }
 
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user == null)
-            {
-                return BadRequest("Email not found.");
-            }
-
-
-            var ResetPasswordToken = Guid.NewGuid().ToString();
-            user.ConfirmationToken = ResetPasswordToken;
-            await _context.SaveChangesAsync();
-            var frontendBaseUrl = _configuration.GetValue<string>("CorsSettings:AllowedOrigins:0");
-            var ResetPasswordLink = $"{frontendBaseUrl}/resetPassword/{ResetPasswordToken}";
-
-            if (string.IsNullOrEmpty(ResetPasswordLink))
-            {
-                ResetPasswordLink = $"{frontendBaseUrl}/resetPassword/{ResetPasswordToken}";
-            }
-
-            try
-            {
-                await _emailService.SendEmailAsync(request.Email, "reset hasla", $"Reset Password: {ResetPasswordLink}");
-                return Ok(new { success = true, message = "Reset Password test" });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending reset email: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "failed to send reset email.");
-            }
-
-        }
-        private async Task<bool> SendConfirmationEmail(string email)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            var frontendBaseUrl = _configuration.GetValue<string>("CorsSettings:AllowedOrigins:0");
-            var confirmationLink = $"{frontendBaseUrl}/confirm/{user.ConfirmationToken}";
-
-            if (string.IsNullOrEmpty(confirmationLink))
-            {
-                confirmationLink = $"{frontendBaseUrl}/confirm/{user.ConfirmationToken}";
-            }
-
-            try
-            {
-                await _emailService.SendEmailAsync(user.Email, "Potwierdzenie rejestracji", $"Kliknij w link aby aktywować konto: {confirmationLink}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending confirmation email: {ex.Message}");
-                return false;
-            }
-        }
-
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -183,47 +127,52 @@ namespace backend.Controllers
                 Email = request.Email,
                 Password = hashedPassword,
                 EmailConfirmed = false,
-                ConfirmationToken = confirmationToken
+                LinkToken = confirmationToken,
+                TokenExpireDate = DateTime.Now.AddMinutes(15).RoundUpToNearestMinute()
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
+            // 1. Inicjalizacja danych w bazie
             _ = _initializationService.InitializeUserAsync(user.UserId);
 
-            if (await SendConfirmationEmail(user.Email))
-            {
-                return Ok(new { success = true, message = "Registration successful. Please check your email." });
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Registration succeeded but failed to send confirmation email.");
-            }
+            // 2. Wysyłka e-maila
+            _ = _emailService.SendConfirmationEmailAsync(user.Email, user.LinkToken, user.TokenExpireDate.Value);
+
+            // --- Zwróć odpowiedź NATYCHMIAST ---
+            return Ok(new { success = true, message = "Registration successful. Please check your email for a confirmation link." });
 
         }
 
 
-        [HttpGet("confirm")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        [HttpGet("confirm/{token}")]
+        public async Task<IActionResult> ConfirmEmail(string token)
         {
+            Console.WriteLine("Potwierdzanie maila");
             if (string.IsNullOrEmpty(token))
             {
                 return BadRequest("Invalid token.");
             }
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.ConfirmationToken == token);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.LinkToken == token);
 
             if (user == null)
             {
                 return BadRequest("Invalid or expired confirmation token.");
             }
-
-            if (user.EmailConfirmed)
+            Console.WriteLine($"Obecny czas {DateTime.Now}");
+            if (user.TokenExpireDate < DateTime.Now)
             {
-                return Ok(new { success = true, message = "Email already confirmed." });
+                return BadRequest("Expired Link");
             }
 
+            if (user.EmailConfirmed)
+                {
+                    return Ok(new { success = true, message = "Email already confirmed." });
+                }
+
             user.EmailConfirmed = true;
-            user.ConfirmationToken = null;
+            user.LinkToken = null;
             await _context.SaveChangesAsync();
 
             return Ok(new { success = true, message = "Email confirmed successfully. You can now log in." });
@@ -260,6 +209,26 @@ namespace backend.Controllers
                 name = user.Name,
                 email = user.Email
             });
+        }
+    }
+    public static class DateTimeExtensions
+    {
+        public static DateTime RoundUpToNearestMinute(this DateTime dateTime)
+        {
+            if (dateTime.Second > 0 || dateTime.Millisecond > 0)
+            {
+                dateTime = dateTime.AddMinutes(1);
+            }
+
+            return new DateTime(
+                dateTime.Year,
+                dateTime.Month,
+                dateTime.Day,
+                dateTime.Hour,
+                dateTime.Minute,
+                0,
+                dateTime.Kind
+            );
         }
     }
 }

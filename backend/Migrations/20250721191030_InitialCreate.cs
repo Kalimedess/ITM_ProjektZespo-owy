@@ -43,8 +43,9 @@ namespace backend.Migrations
                     Password = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     EmailConfirmed = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    ConfirmationToken = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                    LinkToken = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    TokenExpireDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     LicensesOwned = table.Column<int>(type: "int", nullable: false),
                     LicensesUsed = table.Column<int>(type: "int", nullable: false)
                 },

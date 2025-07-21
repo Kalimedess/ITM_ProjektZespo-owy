@@ -30,12 +30,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
                      ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
-
-
-var emailSettings = builder.Configuration.GetSection("EmailSettings").Get<EmailSettings>();
-
-builder.Services.AddSingleton(emailSettings);
-builder.Services.AddScoped<EmailService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<JwtService>();
 
