@@ -8,7 +8,7 @@ namespace backend.Data
         public Team Team { get; set; } = null!;
         public int GameId { get; set; }
         public Game Game { get; set; } = null!;
-        public int? GameEventId { get; set; } 
+        public int? GameEventId { get; set; }
         public GameEvent? GameEvent { get; set; }
         public int CardId { get; set; }
         public Card Card { get; set; } = null!;
@@ -22,7 +22,7 @@ namespace backend.Data
         public Feedback? Feedback { get; set; }
         public double Cost { get; set; }
         public bool Status { get; set; }
-        
+
         public int MoveX { get; set; }
         public int MoveY { get; set; }
     }

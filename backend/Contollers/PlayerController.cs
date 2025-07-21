@@ -257,34 +257,70 @@ namespace backend.Controllers
             return Ok(sessionData);
         }
 
-        [HttpPost("getLogs")]
+         [HttpPost("getLogs")]
         public async Task<IActionResult> GetLogs([FromBody] LogData logData)
         {
-            var gameLogs = await _context.GameLogs
+            var query = _context.GameLogs
+                .Include(gl => gl.Team)
                 .Include(gl => gl.Feedback)
-                .Where(gl => gl.GameId == logData.GameId && gl.TeamId == logData.TeamId)
-                .OrderByDescending(gl => gl.Data)
-                .Select(gl => new
+                .Where(gl => gl.GameId == logData.GameId);
+
+            if (logData.TeamId > 0)
+            {
+                query = query.Where(gl => gl.TeamId == logData.TeamId);
+            }
+
+            var gameLogs = await query.OrderByDescending(gl => gl.Data).ToListAsync();
+
+            if (!gameLogs.Any())
+            {
+                return Ok(new List<object>());
+            }
+
+            var cardIds = gameLogs.Select(gl => gl.CardId).Distinct().ToList();
+
+            // --- POPRAWKA TUTAJ ---
+            // Pobieramy dane jako listy, grupujemy je i dopiero tworzymy słowniki,
+            // aby uniknąć błędu zduplikowanych kluczy.
+            var decisions = await _context.Decisions
+                .Where(d => cardIds.Contains(d.CardId))
+                .ToListAsync();
+            
+            var decisionTitles = decisions
+                .GroupBy(d => d.CardId)
+                .ToDictionary(g => g.Key, g => g.First().DecisionShortDesc);
+
+            var items = await _context.Items
+                .Where(i => cardIds.Contains(i.CardId))
+                .ToListAsync();
+
+            var itemTitles = items
+                .GroupBy(i => i.CardId)
+                .ToDictionary(g => g.Key, g => g.First().HardwareShortDesc);
+            // --- KONIEC POPRAWKI ---
+
+            var result = gameLogs.Select(gl =>
+            {
+                decisionTitles.TryGetValue(gl.CardId, out var decisionTitle);
+                itemTitles.TryGetValue(gl.CardId, out var itemTitle);
+                
+                return new
                 {
-                    Data = gl.Data,
-                    TeamName = gl.Team.TeamName,
-                    GameId = gl.GameId,
+                    LogId = gl.GameLogId,
+                    Timestamp = gl.Data,
+                    TeamId = gl.TeamId,
+                    TeamName = gl.Team?.TeamName,
                     CardId = gl.CardId,
-                    FeedbackId = gl.FeedbackId,
-                    FeedbackDescription = gl.Feedback.LongDescription,
+                    CardTitle = decisionTitle ?? itemTitle ?? "Nieznana karta",
+                    FeedbackDescription = gl.Feedback?.LongDescription,
                     Status = gl.Status,
                     Cost = gl.Cost,
                     MoveX = gl.MoveX,
                     MoveY = gl.MoveY
-                })
-                .ToListAsync();
+                };
+            });
 
-            if (!gameLogs.Any())
-            {
-                return Ok(new List<object>()); // Zwracanie pustej listy jest lepsze niż 404 Not Found
-            }
-
-            return Ok(gameLogs);
+            return Ok(result);
         }
 
         [HttpGet("getCurrency")]

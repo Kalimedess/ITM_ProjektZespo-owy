@@ -113,7 +113,6 @@
     </div>
 
     <!-- Prawa kolumna: decyzje do zatwierdzenia -->
-    <!-- Prawa kolumna z przełącznikiem widoku -->
     <div class="flex-1 p-4 bg-secondary rounded-md min-h-[500px]">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-center">🕒 Panel decyzji</h2>
@@ -145,213 +144,120 @@
         <div v-if="pendingDecisions.length === 0" class="text-center text-gray-400">
           Brak decyzji do zatwierdzenia.
         </div>
-
-        <div
-          v-for="(entry, index) in pendingDecisions"
-          :key="entry.timestamp"
-          class="p-2 rounded border border-yellow-500 bg-secondary relative"
-        >
-          <p><strong>Stół {{ entry.tableId }}</strong> – Karta ID: {{ entry.cardId }}</p>
-          <p class="text-gray-300">{{ entry.feedback }}</p>
-          <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
-          <div class="flex justify-end space-x-2 mt-2">
-            <button @click="approveDecision(entry)" class="px-2 py-1 bg-green-500 text-sm text-black rounded hover:bg-green-600">Zatwierdź</button>
-            <button @click="rejectDecision(index)" class="px-2 py-1 bg-red-500 text-sm text-white rounded hover:bg-red-600">Odrzuć</button>
-          </div>
-        </div>
+        <!-- Treść dla decyzji oczekujących (na razie statyczna) -->
       </div>
 
-      <!-- Historia decyzji -->
+      <!-- Historia decyzji (PODPIĘTA POD API) -->
       <div v-else class="space-y-4 max-h-[650px] overflow-y-auto scroll-smooth">
+        <div v-if="loadingHistory" class="text-center text-gray-400">Ładowanie historii...</div>
+        <div v-else-if="decisions.length === 0" class="text-center text-gray-400">Brak decyzji w historii dla tej gry.</div>
+
+       <div
+        v-for="(entry, index) in decisions"
+        :key="index"
+        class="border border-gray-600 rounded p-3 bg-secondary relative"
+      >
+        <p><strong>{{ entry.tableName }}</strong> – Karta ID: {{ entry.cardId }}</p>
+        <p :class="entry.result === 'Pozytywny' ? 'text-green-400' : 'text-red-400'">
+          <strong>Wynik:</strong> {{ entry.result }}
+        </p>
+        <p class="text-sm mt-1">Zagrano kartę: <span class="font-semibold">{{ entry.cardTitle }}</span></p>
+        <p class="text-sm mt-1">{{ entry.feedbackDescription || 'Brak opisu feedbacku.' }}</p>
         
-
-        <div v-if="filteredDecisions.length === 0" class="text-center text-gray-400">Brak decyzji w historii.</div>
-
-        <div
-          v-for="(entry, index) in filteredDecisions"
-          :key="entry.cardId + '-' + entry.tableId + '-' + entry.timestamp"
-          class="border border-gray-600 rounded p-3 bg-secondary relative"
-        >
-          <p><strong>Stół {{ entry.tableId }}</strong> – Karta ID: {{ entry.cardId }}</p>
-          <p :class="entry.result === 'Pozytywny' ? 'text-green-400' : 'text-red-400'">
-            <strong>Wynik:</strong> {{ entry.result }}
-          </p>
-          <p class="text-sm mt-1">{{ entry.feedback }}</p>
-          <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
-
-          <!-- Zdarzenie losowe, jeśli było -->
-          <p v-if="entry.eventUsed" class="text-xs italic text-blue-300 mt-1">
-            Zastosowano zdarzenie: {{ entry.eventUsed }}
-          </p>
-
-          
-        </div>
+        <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
+      </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
+import { useRoute } from 'vue-router'
 import GameBoard from '@/components/game/gameBoard.vue'
+import apiConfig from '@/services/apiConfig';
+import apiServices from '@/services/apiServices';
 
 const toast = useToast()
+const route = useRoute();
+const gameId = route.params.gameId;
 
+// --- DANE DYNAMICZNE Z API ---
+const decisions = ref([]) // Historia decyzji
+const loadingHistory = ref(true);
+
+// --- DANE STATYCZNE (DO PODPIĘCIA W PRZYSZŁOŚCI) ---
 const showMenu = ref(true)
 const showOwnBoard = ref(true)
 const showOpponentsBoard = ref(true)
-
 const selectedCardId = ref('')
 const selectedTableId = ref('')
 const selectedEventIndex = ref(0)
 const selectedPendingEventIndex = ref(0)
 const eventReadyToUse = ref(false)
-
 const tables = [1, 2, 3, 4]
-
 const cards = [
-  {
-    id: 1,
-    name: "Stworzenie profilu organizacji",
-    cost: 40,
-    description: "Ta karta umożliwia zespołowi utworzenie podstawowego profilu organizacyjnego w systemie, co pozwala na rejestrowanie aktywności i zarządzanie danymi zespołu w dalszych etapach gry.",
-    result: "Pozytywny",
-    feedback: "Karta wprowadziła dobrą organizację pracy."
-  },
-  {
-    id: 2,
-    name: "Przeprowadź szkolenie techniczne",
-    cost: 50,
-    description: "Szkolenie techniczne podnosi kwalifikacje członków zespołu w zakresie używania narzędzi cyfrowych, co przekłada się na większą efektywność podejmowanych działań oraz skraca czas realizacji kolejnych kroków.",
-    result: "Negatywny",
-    feedback: "Szkolenie techniczne było zbyt powierzchowne."
-  },
-  {
-    id: 3,
-    name: "Zarządzanie danymi",
-    cost: 60,
-    description: "Umożliwia uporządkowanie danych operacyjnych oraz wdrożenie struktury przechowywania informacji, co pozytywnie wpływa na jakość analityki i podejmowanie decyzji strategicznych.",
-    result : 'Pozytywny',
-    feedback : 'Zarządzanie danymi zwiększyło efektywność.'
-  }
+  { id: 1, name: "Stworzenie profilu organizacji", cost: 40, description: "...", result: "Pozytywny", feedback: "..." },
+  { id: 2, name: "Przeprowadź szkolenie techniczne", cost: 50, description: "...", result: "Negatywny", feedback: "..." },
+  { id: 3, name: "Zarządzanie danymi", cost: 60, description: "...", result: 'Pozytywny', feedback: '...' }
 ]
-
-const selectedCard = computed(() =>
-  cards.find(c => c.id === Number(selectedCardId.value))
-)
-
-// Bity per stół
-const bitsPerTable = reactive({
-  1: 1000,
-  2: 800,
-  3: 500,
-  4: 1200
-})
-
-// Pokazuje bity aktualnie wybranego stołu
-const currentBits = computed(() => {
-  return selectedTableId.value ? bitsPerTable[selectedTableId.value] : 0
-})
-
+const bitsPerTable = reactive({ 1: 1000, 2: 800, 3: 500, 4: 1200 })
 const availableEvents = [
-  {
-    name: "Brak zdarzenia",
-    modifier: 1,
-    description: ""
-  },
-  {
-    name: "Zniżka 10% na następną kartę",
-    modifier: 0.9,
-    description: "W tej turze koszt zagrania jednej dowolnej karty zostaje obniżony o 10%. Bonus ten dotyczy wyłącznie jednej akcji i nie sumuje się z innymi zniżkami lub premiami."
-  },
-  {
-    name: "Karta gratis (0 bitów)",
-    modifier: 0,
-    description: "Wybrana karta nie generuje kosztów bitów. To specjalne zdarzenie może znacznie przyspieszyć strategię zespołu i powinno być wykorzystane z rozwagą do zagrania najdroższej karty."
-  }
+  { name: "Brak zdarzenia", modifier: 1, description: "" },
+  { name: "Zniżka 10% na następną kartę", modifier: 0.9, description: "..." },
+  { name: "Karta gratis (0 bitów)", modifier: 0, description: "..." }
 ]
-
-const selectedEvent = computed(() =>
-  availableEvents[selectedPendingEventIndex.value]
-)
-
-const blockedCardsMap = ref({})
-
 const formData = reactive({
-  Name: 'Plansza podstawowa',
-  LabelsUp: ['Podstawowa kordynacja', 'Standaryzacja procesów', 'Zintegrowane działania', 'Pełna integracja strategiczna'],
-  LabelsRight: ['Nowicjusz', 'Naśladowca', 'Innowator', 'Lider cyfrowy'],
-  DescriptionDown: 'Poziom integracji wew/zew',
-  DescriptionLeft: 'Zawansowanie Cyfrowe',
-  Rows: 8,
-  Cols: 8,
-  CellColor: '#fefae0',
-  BorderColor: '#595959',
-  BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
+  Name: 'Plansza podstawowa', LabelsUp: ['...'], LabelsRight: ['...'],
+  DescriptionDown: '...', DescriptionLeft: '...', Rows: 8, Cols: 8,
+  CellColor: '#fefae0', BorderColor: '#595959', BorderColors: ['...']
 })
+const pendingDecisions = ref([ /* Na razie puste, do podpięcia w przyszłości */ ])
 
-const pendingDecisions = ref([
-  {
-    cardId: 2,
-    tableId: 1,
-    timestamp: Date.now() - 200000,
-    feedback: 'Zagrano kartę Przeprowadź szkolenie techniczne'
-  },
-  {
-    cardId: 1,
-    tableId: 2,
-    timestamp: Date.now() - 100000,
-    feedback: 'Zagrano kartę Stworzenie profilu organizacji'
-  },
-  {
-    cardId: 3,
-    tableId: 3,
-    timestamp: Date.now() - 50000,
-    feedback: 'Zagrano kartę Zarządzanie danymi'
-  },
-  {
-    cardId: 4,
-    tableId: 2,
-    timestamp: Date.now() - 200000,
-    feedback: 'Zagrano kartę Przeprowadź szkolenie techniczne'
-  },
-  {
-    cardId: 5,
-    tableId: 3,
-    timestamp: Date.now() - 100000,
-    feedback: 'Zagrano kartę Stworzenie profilu organizacji'
-  },
-  {
-    cardId: 6,
-    tableId: 1,
-    timestamp: Date.now() - 50000,
-    feedback: 'Zagrano kartę Zarządzanie danymi'
-  }
-])
+// --- WŁAŚCIWOŚCI COMPUTED ---
+const selectedCard = computed(() => cards.find(c => c.id === Number(selectedCardId.value)))
+const currentBits = computed(() => selectedTableId.value ? bitsPerTable[selectedTableId.value] : 0)
+const selectedEvent = computed(() => availableEvents[selectedPendingEventIndex.value])
 
-const decisions = ref([
-  {
-    cardId: 1,
-    tableId: 1,
-    timestamp: Date.now() - 100000,
-    feedback: "Zagrano kartę Stworzenie profilu organizacji",
-    result: "Pozytywny",
-    eventUsed: "Zniżka 10% na następną kartę"
-  },
-  {
-    cardId: 2,
-    tableId: 3,
-    timestamp: Date.now() - 90000,
-    feedback: "Szkolenie techniczne było zbyt powierzchowne",
-    result: "Negatywny",
-    eventUsed: null
+// --- FUNKCJE ---
+const fetchDecisionHistory = async () => {
+  if (!gameId) {
+    toast.error("Brak ID gry w adresie URL.");
+    return;
   }
-])
+  loadingHistory.value = true;
+  try {
+    const payload = {
+      gameId: parseInt(gameId, 10),
+      teamId: 0
+    };
+    const response = await apiServices.post(apiConfig.player.getLogs, payload);
+
+    decisions.value = response.data.map(log => ({
+      cardId: log.cardId,                     
+      cardTitle: log.cardTitle,               
+      tableId: log.teamId,                  
+      tableName: log.teamName,                  
+      timestamp: log.timestamp,              
+      feedbackDescription: log.feedbackDescription, 
+      result: log.status ? 'Pozytywny' : 'Negatywny', 
+    }));
+    // --- KONIEC MAPOWANIA ---
+
+  } catch (error) {
+    toast.error("Wystąpił błąd podczas ładowania historii decyzji.");
+    console.error("Błąd ładowania historii:", error);
+  } finally {
+    loadingHistory.value = false;
+  }
+};
+
+const decisionMode = ref('history')
 
 function isCardBlocked(cardId) {
-  const blockedForTable = blockedCardsMap.value[selectedTableId.value] || []
-  return blockedForTable.includes(cardId)
+  // Logika do zaimplementowania w przyszłości
+  return false
 }
 
 function getCardCost(cardId) {
@@ -360,80 +266,31 @@ function getCardCost(cardId) {
 }
 
 function applySelectedEvent() {
-  selectedEventIndex.value = selectedPendingEventIndex.value
-  eventReadyToUse.value = true
-  toast.success(`Zdarzenie „${availableEvents[selectedEventIndex.value].name}” zostało zastosowane.`)
+  // Logika do zaimplementowania w przyszłości
+  toast.info("Funkcjonalność zdarzeń losowych zostanie podpięta wkrótce.");
 }
 
 function playCard() {
-  const card = cards.find(c => c.id === Number(selectedCardId.value))
-  const tableId = selectedTableId.value
-  if (!card || !tableId || isCardBlocked(card.id)) return
-
-  let modifier = eventReadyToUse.value ? availableEvents[selectedEventIndex.value].modifier : 1
-  const finalCost = Math.ceil(card.cost * modifier)
-
-  if (bitsPerTable[tableId] < finalCost) {
-    toast.error(`Stół ${tableId} ma za mało bitów (wymagane ${finalCost})`)
-    return
-  }
-
-  bitsPerTable[tableId] -= finalCost
-
-  // Dodanie do historii decyzji:
-  const result = card.result
-  const feedback = card.feedback
-
-  decisions.value.unshift({
-    cardId: card.id,
-    tableId,
-    timestamp: Date.now(),
-    feedback,
-    result,
-    eventUsed: eventReadyToUse.value ? selectedEvent.value.name : null
-  })
-
-  toast.success(`Zagrano kartę: ${card.name} za ${finalCost} bitów (Stół ${tableId})`)
-
-  // Reset zdarzenia i wyboru
-  eventReadyToUse.value = false
-  selectedCardId.value = ''
+  // Logika do zaimplementowania w przyszłości
+  toast.info("Funkcjonalność zagrywania kart przez admina zostanie podpięta wkrótce.");
 }
 
-const decisionMode = ref('pending') // 'pending' lub 'history'
-const selectedHistoryTable = ref('all')
-
-const filteredDecisions = computed(() => {
-  if (selectedHistoryTable.value === 'all') return decisions.value
-  return decisions.value.filter(entry => entry.tableId === parseInt(selectedHistoryTable.value))
-})
-
 function approveDecision(entry, index) {
-  // Przenieś decyzję do historii
-  const card = cards.find(c => c.id === entry.cardId)
-  decisions.value.unshift({
-    cardId: entry.cardId,
-    tableId: entry.tableId,
-    timestamp: entry.timestamp,
-    feedback: entry.feedback,
-    result: card?.result || 'Pozytywny',
-    eventUsed: entry.eventUsed || null
-  })
-
-  // Usuń tylko tę jedną konkretną decyzję
-  pendingDecisions.value.splice(index, 1)
-
-  toast.success(`Zatwierdzono decyzję dla Stołu ${entry.tableId}, Karta ${entry.cardId}`)
+  // Logika do zaimplementowania w przyszłości
 }
 
 function rejectDecision(index) {
-  const removed = pendingDecisions.value[index]
-  pendingDecisions.value.splice(index, 1)
-  toast.info(`Odrzucono decyzję dla Stołu ${removed.tableId}, Karta ${removed.cardId}`)
+  // Logika do zaimplementowania w przyszłości
 }
 
 function formatDate(timestamp) {
   const date = new Date(timestamp)
   return date.toLocaleString('pl-PL')
 }
+
+// --- CYKL ŻYCIA ---
+onMounted(() => {
+  fetchDecisionHistory();
+});
+
 </script>
