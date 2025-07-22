@@ -2,6 +2,8 @@
     <div class="w-full text-white">
         <div class="m-4 px-2 py-2 border-2 border-lgray-accent rounded-md bg-tertiary">
             <h1 class="text-center text-white font-nasalization text-3xl mt-2 mb-4">Stoły</h1>
+            <tableButtons
+            />
             <hr class ="my-4 border-lgray-accent"/>
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-6">
                 <template v-if="gameId">
@@ -26,13 +28,13 @@
 
 </template>
 
-console.log('tableCard props:', { table, game });
 <script setup>
   import tableCard from '@/components/game/tableCard.vue'
-  import { ref, onMounted, watch } from 'vue'
+  import { ref, onMounted} from 'vue'
   import { useRoute } from 'vue-router'
   import apiServices from '@/services/apiServices'
   import apiConfig from '@/services/apiConfig'
+  import tableButtons from '@/components/admin/tableAdminButtons.vue'
 
   const route = useRoute();
   const gameId = Number(route.params.gameId);

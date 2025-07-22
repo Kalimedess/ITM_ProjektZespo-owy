@@ -43,6 +43,7 @@ public class AdminPanelController : ControllerBase
             .Select(g => new
             {
                 id = g.GameId,
+                Status = g.GameStatus.ToString()
             })
             .FirstOrDefaultAsync();
 
