@@ -2,41 +2,90 @@
   <div class="flex flex-col md:flex-row bg-secondary p-4 rounded-md text-white w-full max-w-7xl mx-auto space-y-6 md:space-y-0 md:space-x-6">
     <!-- Lewa kolumna -->
     <div class="flex-1 p-4 bg-secondary rounded-md min-h-[500px]">
-      <h2 class="text-xl font-bold mb-4 text-center">Wybierz stół i kartę</h2>
+      <h2 class="text-xl font-bold mb-4 text-center">
+        Wybierz stół i {{ actionMode === 'cards' ? 'kartę' : 'przedmiot' }}
+      </h2>
+
+      <!-- Przełącznik kart/przedmiotów -->
+      <div class="flex justify-center gap-4 mb-4">
+        <button
+          @click="actionMode = 'cards'"
+          :class="actionMode === 'cards' ? 'bg-accent text-black shadow' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
+          class="px-4 py-1 rounded font-semibold transition"
+        >
+          Karty
+        </button>
+        <button
+          @click="actionMode = 'items'"
+          :class="actionMode === 'items' ? 'bg-accent text-black shadow' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
+          class="px-4 py-1 rounded font-semibold transition"
+        >
+          Przedmioty
+        </button>
+      </div>
 
       <select v-model="selectedTableId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2">
         <option disabled value="">-- Wybierz stół --</option>
         <option v-for="table in tables" :key="table" :value="table">Stół {{ table }}</option>
       </select>
 
-      <select v-model="selectedCardId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2">
+      <select
+        v-if="actionMode === 'cards'"
+        v-model="selectedCardId"
+        class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2"
+      >
         <option disabled value="">-- Wybierz kartę --</option>
         <option v-for="card in cards" :key="card.id" :value="card.id">{{ card.name }}</option>
       </select>
 
-      <p v-if="selectedCard" class="text-sm text-center text-gray-300 mt-2 italic">
+      <select
+        v-else
+        v-model="selectedItemId"
+        class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2"
+      >
+        <option disabled value="">-- Wybierz przedmiot --</option>
+        <option v-for="item in items" :key="item.id" :value="item.id">{{ item.name }}</option>
+      </select>
+
+      <p v-if="actionMode === 'cards' && selectedCard" class="text-sm text-center text-gray-300 mt-2 italic">
         {{ selectedCard.description }}
       </p>
+      <p v-if="actionMode === 'items' && selectedItem" class="text-sm text-center text-gray-300 mt-2 italic">
+        {{ selectedItem.description }}
+      </p>
 
-      <p v-if="selectedCardId" class="text-center text-sm mt-2">
+      <p v-if="actionMode === 'cards' && selectedCardId" class="text-center text-sm mt-2">
         Koszt karty: <span class="font-semibold">{{ getCardCost(selectedCardId) }} bitów</span>
+      </p>
+      <p v-if="actionMode === 'items' && selectedItemId" class="text-center text-sm mt-2">
+        Koszt przedmiotu: <span class="font-semibold">{{ selectedItem?.cost || 0 }} bitów</span>
       </p>
 
       <p v-if="selectedTableId" class="text-center text-sm mt-1">
         Bity stołu {{ selectedTableId }}: <span class="font-semibold">{{ currentBits }}</span>
       </p>
 
-      <p v-if="selectedCardId && isCardBlocked(parseInt(selectedCardId))" class="text-red-400 text-sm mt-2 text-center">
+      <p v-if="selectedCardId && actionMode === 'cards' && isCardBlocked(parseInt(selectedCardId))" class="text-red-400 text-sm mt-2 text-center">
         Ta karta jest zablokowana i nie może zostać zagrana.
       </p>
 
       <div class="flex justify-center mt-4">
         <button
+          v-if="actionMode === 'cards'"
           :disabled="!selectedCardId || !selectedTableId || isCardBlocked(parseInt(selectedCardId))"
           @click="playCard"
           class="px-4 py-2 bg-lime-500 text-black font-bold rounded hover:bg-lime-600 disabled:opacity-50"
         >
           Zagraj kartę
+        </button>
+
+        <button
+          v-else
+          :disabled="!selectedItemId || !selectedTableId"
+          @click="giveItem"
+          class="px-4 py-2 bg-cyan-500 text-black font-bold rounded hover:bg-cyan-600 disabled:opacity-50"
+        >
+          Użyj przedmiot
         </button>
       </div>
 
@@ -161,32 +210,31 @@
         </div>
      </div>
 
-      <!-- Historia decyzji (PODPIĘTA POD API) -->
+      <!-- Historia decyzji -->
       <div v-else class="space-y-4 max-h-[650px] overflow-y-auto scroll-smooth">
         <div v-if="loadingHistory" class="text-center text-gray-400">Ładowanie historii...</div>
         <div v-else-if="decisions.length === 0" class="text-center text-gray-400">Brak decyzji w historii dla tej gry.</div>
 
-       <div
-        v-for="(entry, index) in decisions"
-        :key="index"
-        class="border border-gray-600 rounded p-3 bg-secondary relative"
-      >
-        <p><strong>{{ entry.tableName }}</strong> – Karta ID: {{ entry.cardId }}</p>
-        <p :class="entry.result === 'Pozytywny' ? 'text-green-400' : 'text-red-400'">
-          <strong>Wynik:</strong> {{ entry.result }}
-        </p>
-        <p class="text-sm mt-1">Zagrano kartę: <span class="font-semibold">{{ entry.cardTitle }}</span></p>
-        <p class="text-sm mt-1">{{ entry.feedbackDescription || 'Brak opisu feedbacku.' }}</p>
-        
-        <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
-      </div>
+        <div
+          v-for="(entry, index) in decisions"
+          :key="index"
+          class="border border-gray-600 rounded p-3 bg-secondary relative"
+        >
+          <p><strong>{{ entry.tableName }}</strong> – Karta ID: {{ entry.cardId }}</p>
+          <p :class="entry.result === 'Pozytywny' ? 'text-green-400' : 'text-red-400'">
+            <strong>Wynik:</strong> {{ entry.result }}
+          </p>
+          <p class="text-sm mt-1">Zagrano kartę: <span class="font-semibold">{{ entry.cardTitle }}</span></p>
+          <p class="text-sm mt-1">{{ entry.feedbackDescription || 'Brak opisu feedbacku.' }}</p>
+          <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
 import GameBoard from '@/components/game/gameBoard.vue'
@@ -236,58 +284,128 @@ const currentBits = computed(() => selectedTableId.value ? bitsPerTable[selected
 const selectedEvent = computed(() => availableEvents[selectedPendingEventIndex.value])
 
 // --- FUNKCJE ---
+let hasLoadedOnce = false;
+
 const fetchDecisionHistory = async () => {
   if (!gameId) {
     toast.error("Brak ID gry w adresie URL.");
     return;
   }
-  loadingHistory.value = true;
+
+  if (!hasLoadedOnce) loadingHistory.value = true;
+
   try {
     const payload = {
       gameId: parseInt(gameId, 10),
       teamId: 0
     };
+
     const response = await apiServices.post(apiConfig.player.getLogs, payload);
 
-    decisions.value = response.data.map(log => ({
-      cardId: log.cardId,                     
-      cardTitle: log.cardTitle,               
-      tableId: log.teamId,                  
-      tableName: log.teamName,                  
-      timestamp: log.timestamp,              
-      feedbackDescription: log.feedbackDescription, 
-      result: log.status ? 'Pozytywny' : 'Negatywny', 
+    const newMapped = response.data.map(log => ({
+      cardId: log.cardId,
+      cardTitle: log.cardTitle,
+      tableId: log.teamId,
+      tableName: log.teamName,
+      timestamp: log.timestamp,
+      feedbackDescription: log.feedbackDescription,
+      result: log.status ? 'Pozytywny' : 'Negatywny',
     }));
-    // --- KONIEC MAPOWANIA ---
+
+    const oldSerialized = JSON.stringify(decisions.value);
+    const newSerialized = JSON.stringify(newMapped);
+
+    if (oldSerialized !== newSerialized) {
+      decisions.value = newMapped;
+    }
 
   } catch (error) {
     toast.error("Wystąpił błąd podczas ładowania historii decyzji.");
     console.error("Błąd ładowania historii:", error);
   } finally {
-    loadingHistory.value = false;
+    if (!hasLoadedOnce) loadingHistory.value = false;
+    hasLoadedOnce = true;
   }
 };
 
 const decisionMode = ref('history')
+
+function isCardBlocked(cardId) {
+  // Logika do zaimplementowania w przyszłości
+  return false
+}
 
 function getCardCost(cardId) {
   const card = cards.find(c => c.id === Number(cardId))
   return card ? card.cost : 0
 }
 
+const actionMode = ref('cards') // 'cards' albo 'items'
+
+const items = [
+  {
+    id: 201,
+    name: "Przedmiot 1",
+    cost: 30,
+    description: "opis"
+  },
+  {
+    id: 202,
+    name: "Przedmiot 2",
+    cost: 50,
+    description: "opis"
+  }
+]
+
+const selectedItemId = ref('')
+const selectedItem = computed(() =>
+  items.find(i => i.id === Number(selectedItemId.value))
+)
+
+function applySelectedEvent() {
+  // Logika do zaimplementowania w przyszłości
+  toast.info("Funkcjonalność zdarzeń losowych zostanie podpięta wkrótce.");
+}
+
+function playCard() {
+  // Logika do zaimplementowania w przyszłości
+  toast.info("Funkcjonalność zagrywania kart przez admina zostanie podpięta wkrótce.");
+}
+
+function giveItem() {
+  const item = items.find(i => i.id === Number(selectedItemId.value))
+  const tableId = selectedTableId.value
+  if (!item || !tableId) return
+
+  if (bitsPerTable[tableId] < item.cost) {
+    toast.error(`Stół ${tableId} ma za mało bitów (wymagane ${item.cost})`)
+    return
+  }
+
+  bitsPerTable[tableId] -= item.cost
+
+  toast.success(`Użyto przedmiot: ${item.name} za ${item.cost} bitów (Stół ${tableId})`)
+
+  selectedItemId.value = ''
+}
+
+
 function formatDate(timestamp) {
   const date = new Date(timestamp)
   return date.toLocaleString('pl-PL')
 }
 
+let hasLoadedPendingOnce = false;
+
 const fetchPendingDecisions = async () => {
   if (!gameId) return;
-  loadingPending.value = true;
+
+  if (!hasLoadedPendingOnce) loadingPending.value = true;
+
   try {
-    // Używamy nowego endpointu z backendu
     const response = await apiServices.get(apiConfig.games.getPendingLogs(gameId));
-    // Mapujemy dane tak samo jak dla historii
-    pendingDecisions.value = response.data.map(log => ({
+
+    const newMapped = response.data.map(log => ({
       logId: log.logId,
       cardId: log.cardId,
       cardTitle: log.cardTitle,
@@ -295,11 +413,20 @@ const fetchPendingDecisions = async () => {
       tableName: log.teamName,
       timestamp: log.timestamp,
     }));
+
+    const oldSerialized = JSON.stringify(pendingDecisions.value);
+    const newSerialized = JSON.stringify(newMapped);
+
+    if (oldSerialized !== newSerialized) {
+      pendingDecisions.value = newMapped;
+    }
+
   } catch (error) {
     toast.error("Błąd podczas pobierania sugestii do zatwierdzenia.");
     console.error(error);
   } finally {
-    loadingPending.value = false;
+    if (!hasLoadedPendingOnce) loadingPending.value = false;
+    hasLoadedPendingOnce = true;
   }
 };
 
@@ -328,10 +455,24 @@ const rejectDecision = async (logId) => {
   }
 };
 
-// --- CYKL ŻYCIA ---
+
+let intervalId = null;
+
 onMounted(() => {
   fetchDecisionHistory();
   fetchPendingDecisions();
+
+  // Co 5 sekund aktualizuj historię
+  intervalId = setInterval(() => {
+    fetchDecisionHistory();
+    fetchPendingDecisions();
+  }, 5000);
 });
+
+onUnmounted(() => {
+  // Czyścimy timer przy przełączaniu komponentu
+  clearInterval(intervalId);
+});
+
 
 </script>
