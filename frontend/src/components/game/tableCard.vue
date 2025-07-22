@@ -99,12 +99,6 @@
     //logika kodu QR
     const showQr = ref(false);
 
-    const emit = defineEmits(['showQr'])
-
-    const showQrCode = () => {
-        emit('showQr', table.id)
-    }
-
     const qrSize = computed(() => {
     const width = window.innerWidth;
     if (width < 640) return 200;
@@ -113,9 +107,7 @@
     return 350;
     });
 
-    //Dodać logike żeby pobierało token dla dostępnych drużyn z bazy danych 
-
-    function openQrForTeam(token) {
+    function openQrForTeam() {
         showQr.value = true;
     }
 
