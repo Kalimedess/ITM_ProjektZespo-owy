@@ -2,7 +2,7 @@
   <div class="relative w-full">
     <div  
       @click="isOpen = !isOpen"
-      class="text-white flex flex-row justify-between items-center border-2 border-lgray-accent rounded-md px-2 py-2 mt-5 cursor-pointer"
+      class="text-white flex flex-row justify-between items-center border-2 border-lgray-accent rounded-md px-2 py-2 cursor-pointer"
     >
       <div>
         <slot name="selected-display" :selected="selectedItem">

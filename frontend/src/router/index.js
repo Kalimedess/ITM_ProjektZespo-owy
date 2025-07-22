@@ -18,8 +18,10 @@ import decisionPanel from '@/views/game/decisionPanelView.vue'
 import blockCards from '@/views/game/blockCardsView.vue'
 import resetPasswordView from '@/views/resetPasswordView.vue'
 import confirmEmailView from '@/views/confirmEmailView.vue'
+import editProcessesView from '@/views/admin/editProcessesView.vue'
 import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
+import { path } from 'd3'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,6 +81,11 @@ const router = createRouter({
           path:'editItems',
           name:'edit-items',
           component: editItems,
+        },
+        {
+          path:'editProcesses',
+          name:'edit-processes',
+          component: editProcessesView,
         }
       ]
     },
