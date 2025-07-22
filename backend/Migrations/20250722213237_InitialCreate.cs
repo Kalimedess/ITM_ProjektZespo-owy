@@ -269,6 +269,7 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ProcessColor = table.Column<string>(type: "varchar(7)", maxLength: 7, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    ProcessWeight = table.Column<double>(type: "double", nullable: false),
                     DeckId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
