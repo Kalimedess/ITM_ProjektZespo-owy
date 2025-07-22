@@ -84,10 +84,7 @@
           v-if="currentBoard === 'player'"
           :config="formData"
           :gameMode="true"
-          :pawnColor="gameData?.teamColor"
-          :pawnCount="pawnPositions.length"
-          :pawnPositions="pawnPositions"
-          
+          :pawns="pawns"
         />
       </div>
 
@@ -259,7 +256,11 @@ function showRightPanel() {
   rightOpen.value = true
 }
 
-
+const pawns = ref([
+  { id: 1, color: '#ff0000', x: 0, y: 0 },
+  { id: 2, color: '#00ff00', x: 3, y: 4 },
+  { id: 3, color: '#0000ff', x: 5, y: 5 },
+])
 
 </script>
 <style scoped>

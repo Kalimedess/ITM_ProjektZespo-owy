@@ -8,10 +8,11 @@
   </div>
 </template>
   
+
 <script setup>
-  import { ref, computed, onMounted, watch } from "vue";
-  import * as d3 from "d3";
-  import { useToast } from 'vue-toastification';
+  import { ref, computed, onMounted, watch } from 'vue'
+  import * as d3 from 'd3'
+  import { useToast } from 'vue-toastification'
 
   // Config planszy
   const props = defineProps({
@@ -25,29 +26,10 @@
       default: false
     },
 
-    posX: {
-      type: Number,
-      default: 0
-    },
-
-    posY: {
-      type: Number,
-      default: 0
-    },
-
-    pawnColor: {
-      type: String,
-      default: '#0000ff'
-    },
-    pawnCount: {
-        type: Number,
-        default: 1
-    },
-    pawnPositions: {
-        type: Array,
-        default: () => []
-    },
-
+    pawns: {
+      type: Array,
+      default: () => [],
+    }
   });
 
   // Referencje do elementów
@@ -120,173 +102,162 @@
   }
 
   // Funkcja rysująca planszę
-  const drawBoard = () => {
-    if (!board.value) return;
+const drawBoard = () => {
+  if (!board.value) return;
 
-    const svg = d3.select(board.value);
+  const svg = d3.select(board.value);
+  svg.selectAll("*").remove();
 
-    svg.selectAll("*").remove();
-
-    // Tworzenie siatki
-    // Tworzenie siatki
-for (let row = 0; row < props.config.Rows; row++) {
-  for (let col = 0; col < props.config.Cols; col++) {
-    svg.append("rect")
-      .attr("x", col * cellSize.value + marginLeft.value)
-      .attr("y", row * cellSize.value + marginTop.value)
-      .attr("width", cellSize.value)
-      .attr("height", cellSize.value)
-      .attr("fill", props.config.CellColor || '#fefae0')
-      .attr("stroke", props.config.BorderColor || '#595959')
-      .attr("stroke-width", 1);
+  // Tworzenie siatki
+  for (let row = 0; row < props.config.Rows; row++) {
+    for (let col = 0; col < props.config.Cols; col++) {
+      svg.append("rect")
+        .attr("x", col * cellSize.value + marginLeft.value)
+        .attr("y", row * cellSize.value + marginTop.value)
+        .attr("width", cellSize.value)
+        .attr("height", cellSize.value)
+        .attr("fill", props.config.CellColor || '#fefae0')
+        .attr("stroke", props.config.BorderColor || '#595959')
+        .attr("stroke-width", 1);
+    }
   }
-}
 
-// Etykiety na osi X (dolne)
-labelsX.value.forEach((label, i) => {
-  svg.append("text")
-    .attr("x", i * cellSize.value + marginLeft.value + cellSize.value / 2)
-    .attr("y", boardSizeY.value + marginTop.value + 20)
-    .attr("text-anchor", "middle")
-    .attr("font-size", cellSize.value * 0.25)
-    .attr("fill", "white")
-    .text(label);
-});
-
-// Etykiety na osi X (górne)
-if (props.config.LabelsUp && props.config.LabelsUp.length) {
-  props.config.LabelsUp.forEach((label, i) => {
-    // środek 2 komórek
-    const centerX = marginLeft.value + (2 * i + 1) * cellSize.value;
-    const baseY = marginTop.value - 20;
-    
-    const lines = splitLabelIntoLines(label);
-    
-    const textElement = svg.append("text")
-      .attr("x", centerX)
-      .attr("y", baseY - ((lines.length - 1) * 15)) 
+  // Etykiety na osi X (dolne)
+  labelsX.value.forEach((label, i) => {
+    svg.append("text")
+      .attr("x", i * cellSize.value + marginLeft.value + cellSize.value / 2)
+      .attr("y", boardSizeY.value + marginTop.value + 20)
       .attr("text-anchor", "middle")
       .attr("font-size", cellSize.value * 0.25)
-      .attr("fill", "white");
-    
-    lines.forEach((line, j) => {
-      textElement.append("tspan")
-        .attr("x", centerX)
-        .attr("dy", j > 0 ? 15 : 0) 
-        .text(line);
-    });
+      .attr("fill", "white")
+      .text(label);
   });
-}
 
-// Etykiety na osi Y (lewa strona)
-labelsY.value.forEach((label, i) => {
-  svg.append("text")
-    .attr("x", marginLeft.value - 20)
-    .attr("y", boardSizeY.value - i * cellSize.value + marginTop.value - cellSize.value / 2)
-    .attr("text-anchor", "middle")
-    .attr("dominant-baseline", "middle")
-    .attr("font-size", cellSize.value * 0.25)
-    .attr("fill", "white")
-    .text(label);
-});
+  // Etykiety na osi X (górne)
+  if (props.config.LabelsUp && props.config.LabelsUp.length) {
+    props.config.LabelsUp.forEach((label, i) => {
+      const centerX = marginLeft.value + (2 * i + 1) * cellSize.value;
+      const baseY = marginTop.value - 20;
+      const lines = splitLabelIntoLines(label);
 
-// Etykieta na osi Y (prawa strona)
-if (props.config.LabelsRight && props.config.LabelsRight.length) {
-  props.config.LabelsRight.forEach((label, i) => {
+      const textElement = svg.append("text")
+        .attr("x", centerX)
+        .attr("y", baseY - ((lines.length - 1) * 15))
+        .attr("text-anchor", "middle")
+        .attr("font-size", cellSize.value * 0.25)
+        .attr("fill", "white");
+
+      lines.forEach((line, j) => {
+        textElement.append("tspan")
+          .attr("x", centerX)
+          .attr("dy", j > 0 ? 15 : 0)
+          .text(line);
+      });
+    });
+  }
+
+  // Etykiety na osi Y (lewa strona)
+  labelsY.value.forEach((label, i) => {
     svg.append("text")
-      .attr("transform", `translate(${marginLeft.value + boardSizeX.value + 20}, ${marginTop.value + (props.config.Rows - i * 2 - 1) * cellSize.value}) rotate(-90)`)
+      .attr("x", marginLeft.value - 20)
+      .attr("y", boardSizeY.value - i * cellSize.value + marginTop.value - cellSize.value / 2)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle")
       .attr("font-size", cellSize.value * 0.25)
       .attr("fill", "white")
       .text(label);
   });
-}
 
-// Opis z lewej strony
-svg.append("text")
-  .attr("transform", `translate(${marginLeft.value - 30}, ${marginTop.value + boardSizeY.value / 2}) rotate(-90)`)
-  .attr("text-anchor", "middle")
-  .attr("font-size", cellSize.value * 0.3)
-  .attr("font-weight", "bold")
-  .attr("fill", "white")
-  .text(props.config.DescriptionLeft || '');
+  // Etykieta na osi Y (prawa strona)
+  if (props.config.LabelsRight && props.config.LabelsRight.length) {
+    props.config.LabelsRight.forEach((label, i) => {
+      svg.append("text")
+        .attr("transform", `translate(${marginLeft.value + boardSizeX.value + 20}, ${marginTop.value + (props.config.Rows - i * 2 - 1) * cellSize.value}) rotate(-90)`)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", cellSize.value * 0.25)
+        .attr("fill", "white")
+        .text(label);
+    });
+  }
 
-// Opis na dole
-svg.append("text")
-  .attr("x", marginLeft.value + boardSizeX.value / 2)
-  .attr("y", boardSizeY.value + marginTop.value + 40)
-  .attr("text-anchor", "middle")
-  .attr("font-size", cellSize.value * 0.3)
-  .attr("font-weight", "bold")
-  .attr("fill", "white")
-  .text(props.config.DescriptionDown || '');
+  // Opis z lewej strony
+  svg.append("text")
+    .attr("transform", `translate(${marginLeft.value - 30}, ${marginTop.value + boardSizeY.value / 2}) rotate(-90)`)
+    .attr("text-anchor", "middle")
+    .attr("font-size", cellSize.value * 0.3)
+    .attr("font-weight", "bold")
+    .attr("fill", "white")
+    .text(props.config.DescriptionLeft || '');
 
-// Rysowanie kolorowych granic
-const borderColors = props.config.BorderColors || ['#008000', '#FFFF00', '#FFA500', '#FF0000'];
+  // Opis na dole
+  svg.append("text")
+    .attr("x", marginLeft.value + boardSizeX.value / 2)
+    .attr("y", boardSizeY.value + marginTop.value + 40)
+    .attr("text-anchor", "middle")
+    .attr("font-size", cellSize.value * 0.3)
+    .attr("font-weight", "bold")
+    .attr("fill", "white")
+    .text(props.config.DescriptionDown || '');
 
-// Tworzenie linii na górnej krawędzi - Kolor zmienia się co 2 komórki
-for (let i = 0; i < props.config.Cols; i += 2) {
-  svg.append("line")
-    .attr("x1", marginLeft.value + i * cellSize.value)
-    .attr("y1", marginTop.value)
-    .attr("x2", marginLeft.value + (i + 2) * cellSize.value)
-    .attr("y2", marginTop.value)
-    .attr("stroke", borderColors[(i / 2) % borderColors.length])
-    .attr("stroke-width", 3);
-}
+  // Rysowanie kolorowych granic
+  const borderColors = props.config.BorderColors || ['#008000', '#FFFF00', '#FFA500', '#FF0000'];
 
-// Tworzenie linii na dolnej krawędzi - Kolor zmienia się co 2 komórki
-for (let i = 0; i < props.config.Cols; i += 2) {
-  svg.append("line")
-    .attr("x1", marginLeft.value + i * cellSize.value)
-    .attr("y1", marginTop.value + boardSizeY.value)
-    .attr("x2", marginLeft.value + (i + 2) * cellSize.value)
-    .attr("y2", marginTop.value + boardSizeY.value)
-    .attr("stroke", borderColors[(i / 2) % borderColors.length])
-    .attr("stroke-width", 3);
-}
+  for (let i = 0; i < props.config.Cols; i += 2) {
+    svg.append("line")
+      .attr("x1", marginLeft.value + i * cellSize.value)
+      .attr("y1", marginTop.value)
+      .attr("x2", marginLeft.value + (i + 2) * cellSize.value)
+      .attr("y2", marginTop.value)
+      .attr("stroke", borderColors[(i / 2) % borderColors.length])
+      .attr("stroke-width", 3);
+  }
 
-// Tworzenie linii z lewej strony - Kolor zmienia się co 2 komórki
-for (let i = 0; i < props.config.Rows; i += 2) {
-  svg.append("line")
-    .attr("x1", marginLeft.value)
-    .attr("y1", marginTop.value + boardSizeY.value - i * cellSize.value)
-    .attr("x2", marginLeft.value)
-    .attr("y2", marginTop.value + boardSizeY.value - (i + 2) * cellSize.value)
-    .attr("stroke", borderColors[(i / 2) % borderColors.length])
-    .attr("stroke-width", 3);
-}
+  for (let i = 0; i < props.config.Cols; i += 2) {
+    svg.append("line")
+      .attr("x1", marginLeft.value + i * cellSize.value)
+      .attr("y1", marginTop.value + boardSizeY.value)
+      .attr("x2", marginLeft.value + (i + 2) * cellSize.value)
+      .attr("y2", marginTop.value + boardSizeY.value)
+      .attr("stroke", borderColors[(i / 2) % borderColors.length])
+      .attr("stroke-width", 3);
+  }
 
-// Tworzenie linii z prawej strony - Kolor zmienia się co 2 komórki
-for (let i = 0; i < props.config.Rows; i += 2) {
-  svg.append("line")
-    .attr("x1", marginLeft.value + boardSizeX.value)
-    .attr("y1", marginTop.value + boardSizeY.value - i * cellSize.value)
-    .attr("x2", marginLeft.value + boardSizeX.value)
-    .attr("y2", marginTop.value + boardSizeY.value - (i + 2) * cellSize.value)
-    .attr("stroke", borderColors[(i / 2) % borderColors.length])
-    .attr("stroke-width", 3);
-}
-    
+  for (let i = 0; i < props.config.Rows; i += 2) {
+    svg.append("line")
+      .attr("x1", marginLeft.value)
+      .attr("y1", marginTop.value + boardSizeY.value - i * cellSize.value)
+      .attr("x2", marginLeft.value)
+      .attr("y2", marginTop.value + boardSizeY.value - (i + 2) * cellSize.value)
+      .attr("stroke", borderColors[(i / 2) % borderColors.length])
+      .attr("stroke-width", 3);
+  }
 
-    // Rysowanie pionka
-    if (props.gameMode) {
+  for (let i = 0; i < props.config.Rows; i += 2) {
+    svg.append("line")
+      .attr("x1", marginLeft.value + boardSizeX.value)
+      .attr("y1", marginTop.value + boardSizeY.value - i * cellSize.value)
+      .attr("x2", marginLeft.value + boardSizeX.value)
+      .attr("y2", marginTop.value + boardSizeY.value - (i + 2) * cellSize.value)
+      .attr("stroke", borderColors[(i / 2) % borderColors.length])
+      .attr("stroke-width", 3);
+  }
 
-      const centerX = props.posX * cellSize.value + marginLeft.value + cellSize.value / 2;
-      const centerY = props.posY * cellSize.value + marginTop.value + cellSize.value / 2;
+  // Rysowanie pionków (wielu)
+  const pawnPath = "M 225.5,294.5 C 231.979,295.491 238.646,295.824 245.5,295.5C 245.5,311.167 245.5,326.833 245.5,342.5C 179.833,342.5 114.167,342.5 48.5,342.5C 48.5,326.5 48.5,310.5 48.5,294.5C 55.1667,294.5 61.8333,294.5 68.5,294.5C 68.8256,290.116 68.4922,285.783 67.5,281.5C 59.5866,274.592 56.7533,265.925 59,255.5C 62.8813,244.72 70.548,238.72 82,237.5C 104.247,207.195 115.413,173.195 115.5,135.5C 92.123,118.375 84.2897,95.7084 92,67.5C 105.287,36.9129 128.453,24.4129 161.5,30C 194.896,41.2769 209.063,64.4436 204,99.5C 200.388,115.436 191.722,127.769 178,136.5C 178.299,166.031 185.633,193.698 200,219.5C 204.448,226.282 209.281,232.782 214.5,239C 235.289,244.415 241.123,256.915 232,276.5C 226.213,280.998 224.047,286.998 225.5,294.5 Z";
+  const scale = cellSize.value * 0.002;
+  const originalCenterX = 147;
+  const originalCenterY = 186;
 
-      const pawnPath = "M 225.5,294.5 C 231.979,295.491 238.646,295.824 245.5,295.5C 245.5,311.167 245.5,326.833 245.5,342.5C 179.833,342.5 114.167,342.5 48.5,342.5C 48.5,326.5 48.5,310.5 48.5,294.5C 55.1667,294.5 61.8333,294.5 68.5,294.5C 68.8256,290.116 68.4922,285.783 67.5,281.5C 59.5866,274.592 56.7533,265.925 59,255.5C 62.8813,244.72 70.548,238.72 82,237.5C 104.247,207.195 115.413,173.195 115.5,135.5C 92.123,118.375 84.2897,95.7084 92,67.5C 105.287,36.9129 128.453,24.4129 161.5,30C 194.896,41.2769 209.063,64.4436 204,99.5C 200.388,115.436 191.722,127.769 178,136.5C 178.299,166.031 185.633,193.698 200,219.5C 204.448,226.282 209.281,232.782 214.5,239C 235.289,244.415 241.123,256.915 232,276.5C 226.213,280.998 224.047,286.998 225.5,294.5 Z";
-      
-      const scale = cellSize.value * 0.002;
-      
-      const originalCenterX = 147;
-      const originalCenterY = 186; 
-      
+  if (Array.isArray(props.pawns)) {
+    props.pawns.forEach((pawn) => {
+      const centerX = pawn.x * cellSize.value + marginLeft.value + cellSize.value / 2;
+      const centerY = pawn.y * cellSize.value + marginTop.value + cellSize.value / 2;
+
       svg.append("path")
-        .attr("class", "pawn")
+        .attr("class", `pawn pawn-${pawn.id}`)
         .attr("d", pawnPath)
-        .attr("fill", props.pawnColor)
+        .attr("fill", pawn.color || "gray")
         .attr("stroke", "black")
         .attr("stroke-width", 1.2 / scale)
         .attr("transform", `
@@ -294,8 +265,10 @@ for (let i = 0; i < props.config.Rows; i += 2) {
           scale(${scale})
           translate(${-originalCenterX}, ${-originalCenterY})
         `);
-    }
-  };
+    });
+  }
+};
+
 
   //Animacja pionka
   const animatePawn = () => {
@@ -322,78 +295,21 @@ for (let i = 0; i < props.config.Rows; i += 2) {
     });
 }
 
-function drawPiePiece(svg, cx, cy, radius, startAngle, endAngle, color) {
-  const x1 = cx + radius * Math.cos(startAngle);
-  const y1 = cy + radius * Math.sin(startAngle);
-  const x2 = cx + radius * Math.cos(endAngle);
-  const y2 = cy + radius * Math.sin(endAngle);
-
-  const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
-
-  const d = [
-    `M ${cx} ${cy}`,
-    `L ${x1} ${y1}`,
-    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-    'Z'
-  ].join(' ');
-
-  svg.append("path")
-    .attr("d", d)
-    .attr("fill", color)
-    .attr("stroke", "black")
-    .attr("stroke-width", 1);
-}
-
-  //funkcja do rysowania pionków
-  const drawPawns = () => {
-  if (!board.value) return;
-
-  const selection = d3.select(board.value);
-  selection.selectAll(".pawn").remove(); // czyści poprzednie elementy
-
-  // 🔁 Grupowanie pionków po pozycji
-  const groupedPawns = {};
-  props.pawnPositions?.forEach(pawn => {
-    const key = `${pawn.x},${pawn.y}`;
-    if (!groupedPawns[key]) groupedPawns[key] = [];
-    groupedPawns[key].push(pawn);
-  });
-
-  // 🧩 Rysowanie sektorów
-  Object.entries(groupedPawns).forEach(([key, pawns]) => {
-    const [gridX, gridY] = key.split(',').map(Number);
-
-    const cx = marginLeft.value + gridX * cellSize.value + cellSize.value / 2;
-    const cy = marginTop.value + gridY * cellSize.value + cellSize.value / 2;
-    const radius = cellSize.value / 2.5;
-    const angleStep = (2 * Math.PI) / pawns.length;
-
-    pawns.forEach((pawn, i) => {
-      const startAngle = i * angleStep;
-      const endAngle = (i + 1) * angleStep;
-      drawPiePiece(selection, cx, cy, radius, startAngle, endAngle, pawn.color || "gray");
-    });
-  });
-};
-
     // Obserwowanie zmian w konfiguracji planszy
-    watch(() => props.config, () => {
-      drawBoard();
-    }, { deep: true });
+    watch(
+      () => [props.config, props.pawns],
+      drawBoard,
+      { deep: true },
+    )
 
     watch([() => props.posX, () => props.posY], () => {
       animatePawn();
     });
 
-      watch([() => props.pawnCount, () => props.pawnPositions], () => {
-        drawPawns();
-    }, { deep: true });
-
   onMounted(() => {
     try {
       // Rysuj planszę po załadowaniu danych
       drawBoard();
-      drawPawns();
       emit('boardRendered', true);
     } catch (error) {
       console.error('Błąd podczas rysowania planszy:', error);
