@@ -103,6 +103,13 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
+          path: '/admin/game/:gameId/:teamId',
+          name: 'decisionanel',
+          component: decisionPanel,
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
           path: '/admin/game/:gameId/statistics',
           name: 'admin-game-statistics',
           component: gameStatistics,

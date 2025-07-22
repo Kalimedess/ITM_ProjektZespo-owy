@@ -21,12 +21,12 @@
         <button 
             class="w-full flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300"
             @click="openQrForTeam(table.token)">
-            <font-awesome-icon :icon="faQrcode" class="h-4 mr-2 text-accent"/>  
+            <font-awesome-icon :icon="faQrcode" class="h-4 mr-2 text-accent"/>
             Pokaż kod QR do gry
         </button>
     </div>
     <RouterLink 
-        Dodać :to="`/admin/game/${game.id}/${table.id}`"
+        :to="`/admin/game/${gameId}/${table.id}`"
         @dblclick.stop
         class="w-full flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300">
         <font-awesome-icon :icon="faMagnifyingGlass" class="h-4 mr-2 text-accent"/>     
@@ -58,6 +58,9 @@
         <div class="bg-white p-3 sm:p-4 md:p-6 rounded-lg flex justify-center">
             <qrcode-vue :value="props.gameUrl" :size="qrSize" />
         </div>
+        <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-center mb-4 sm:mb-6">
+            Token: {{props.token}}
+        </h2>
         </div>
     </div>
     </Transition>
@@ -65,15 +68,15 @@
 
 <script setup>
     import { ref, computed } from 'vue';
-    import { faGamepad, faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons';
+    import { faGamepad, faMagnifyingGlass, faQrcode, faXmark } from '@fortawesome/free-solid-svg-icons';
     import { RouterLink } from 'vue-router';
     import QrcodeVue from 'qrcode.vue';
 
     const props = defineProps({
-        game: {
-            type: Object,
-            required: true
-            },
+        gameId: {
+        type: Number,
+        required: true
+        },
         table: {
         type: Object,
         required: true
@@ -81,6 +84,10 @@
         color: {
         type: String,
         required: true
+        },
+        token: { 
+        type: String, 
+        required: true 
         },
         gameUrl: { 
         type: String, 
