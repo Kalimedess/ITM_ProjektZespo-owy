@@ -70,6 +70,18 @@ public class CategorizedCardsDto
     public List<UnifiedCardDto> ItemCards { get; set; } = new List<UnifiedCardDto>();
 }
 
+public class GameEventDto
+{
+    public int EventId { get; set; }
+    public string ShortDesc { get; set; } = string.Empty;
+    public string LongDesc { get; set; } = string.Empty;
+}
+
+public class ApplyEventDto
+{
+    public int EventId { get; set; }
+}
+
 namespace backend.Controllers
 {
     [Route("api/player/")]
@@ -279,40 +291,53 @@ namespace backend.Controllers
 
             if (onlyPending)
             {
-                // Filtr dla panelu "Do zatwierdzenia"
                 query = query.Where(gl => gl.IsApproved == false);
             }
             else
             {
-                // Filtr dla panelu "Historia decyzji" - pokazuj zatwierdzone i niezależne
                 query = query.Where(gl => gl.IsApproved != false);
             }
 
             var gameLogs = await query.OrderByDescending(gl => gl.Data).ToListAsync();
-
+            
             if (!gameLogs.Any()) return Ok(new List<object>());
 
-            var cardIds = gameLogs.Select(gl => gl.CardId).Distinct().ToList();
+            // Zbierz tylko te ID, które nie są null
+            var cardIds = gameLogs.Where(gl => gl.CardId.HasValue).Select(gl => gl.CardId.Value).Distinct().ToList();
 
             var decisions = await _context.Decisions.Where(d => cardIds.Contains(d.CardId)).ToListAsync();
             var decisionTitles = decisions.GroupBy(d => d.CardId).ToDictionary(g => g.Key, g => g.First().DecisionShortDesc);
-
+            
             var items = await _context.Items.Where(i => cardIds.Contains(i.CardId)).ToListAsync();
             var itemTitles = items.GroupBy(i => i.CardId).ToDictionary(g => g.Key, g => g.First().HardwareShortDesc);
 
-            var result = gameLogs.Select(gl => new
+            var result = gameLogs.Select(gl =>
             {
-                LogId = gl.GameLogId,
-                Timestamp = gl.Data,
-                TeamId = gl.TeamId,
-                TeamName = gl.Team?.TeamName,
-                CardId = gl.CardId,
-                CardTitle = decisionTitles.GetValueOrDefault(gl.CardId) ?? itemTitles.GetValueOrDefault(gl.CardId) ?? "Nieznana karta",
-                FeedbackDescription = gl.Feedback?.LongDescription,
-                Status = gl.Status,
-                Cost = gl.Cost,
-                MoveX = gl.MoveX,
-                MoveY = gl.MoveY
+                string? cardTitle = null;
+                // --- POPRAWKA TUTAJ ---
+                // Sprawdzamy, czy CardId ma wartość, zanim użyjemy go do przeszukania słownika
+                if (gl.CardId.HasValue)
+                {
+                    decisionTitles.TryGetValue(gl.CardId.Value, out var decisionTitle);
+                    itemTitles.TryGetValue(gl.CardId.Value, out var itemTitle);
+                    cardTitle = decisionTitle ?? itemTitle;
+                }
+                
+                return new
+                {
+                    LogId = gl.GameLogId, // Zakładam, że model GameLog ma pole Id
+                    GameEventId = gl.GameEventId,
+                    Timestamp = gl.Data,
+                    TeamId = gl.TeamId,
+                    TeamName = gl.Team?.TeamName,
+                    CardId = gl.CardId,
+                    CardTitle = cardTitle ?? "Zdarzenie systemowe", // Jeśli nazwa nie została znaleziona
+                    FeedbackDescription = gl.Feedback?.LongDescription,
+                    Status = gl.Status,
+                    Cost = gl.Cost,
+                    MoveX = gl.MoveX,
+                    MoveY = gl.MoveY
+                };
             });
 
             return Ok(result);
@@ -346,22 +371,78 @@ namespace backend.Controllers
             var team = await _context.Teams.FindAsync(data.TeamId);
             if (team == null) return NotFound($"Drużyna o ID {data.TeamId} nie została znaleziona.");
 
-            // Logika finalStatus pozostaje taka sama, ale bez usuwania enablera tutaj
             var isItem = await _context.Items.AnyAsync(i => i.CardId == selectedCard);
-            bool finalStatus = isItem || wasSuccess;
+            double finalCost = data.Cost;
+            int? eventIdForLog = null;
+
+            // --- NOWA LOGIKA OBSŁUGI ZDARZEŃ ---
+            if (team.GameEventId.HasValue && team.TurnsLeft > 0)
+            {
+                var activeEvent = await _context.GameEvents.FindAsync(team.GameEventId.Value);
+                if (activeEvent != null)
+                {
+                    bool eventApplies = false;
+                    // Sprawdzamy, czy event dotyczy tego typu karty
+                    if (isItem && activeEvent.ItemsCostWeight.HasValue)
+                    {
+                        // To jest przedmiot, a event ma modyfikator kosztu przedmiotów
+                        finalCost = data.Cost * (1 + activeEvent.ItemsCostWeight.Value);
+                        eventApplies = true;
+                    }
+                    else if (!isItem && activeEvent.DecisionCostWeight.HasValue)
+                    {
+                        // To jest decyzja, a event ma modyfikator kosztu decyzji
+                        finalCost = data.Cost * (1 + activeEvent.DecisionCostWeight.Value);
+                        eventApplies = true;
+                    }
+
+                    // Sprawdzamy, czy event dotyczy boosterów (działa na każdą kartę)
+                    if (activeEvent.BoosterX.HasValue || activeEvent.BoosterY.HasValue)
+                    {
+                        eventApplies = true;
+                        // Logika boosterów zostanie dodana w przyszłości, ale event się liczy
+                    }
+
+                    if (eventApplies)
+                    {
+                        // Jeśli event został zastosowany, zmniejszamy licznik i oznaczamy ID do zapisu w logu
+                        team.TurnsLeft--;
+                        eventIdForLog = team.GameEventId.Value;
+
+                        // Jeśli to było ostatnie użycie, dezaktywuj event
+                        if (team.TurnsLeft <= 0)
+                        {
+                            team.GameEventId = null;
+                            team.TurnsLeft = 0;
+                        }
+                    }
+                }
+            }
+            // --- KONIEC LOGIKI ZDARZEŃ ---
+
+            bool finalStatus;
 
             var specialEnablerUsed = await _context.DecisionEnablers.AnyAsync(de =>
-                de.CardId == selectedCard && de.GameId == data.GameId && de.TeamId == data.TeamId && de.EnablerId == null);
+                de.CardId == selectedCard &&
+                de.GameId == data.GameId &&
+                de.TeamId == data.TeamId &&
+                de.EnablerId == null);
 
             if (specialEnablerUsed)
             {
                 finalStatus = true;
             }
+            else if (isItem)
+            {
+                finalStatus = true;
+            }
+            else
+            {
+                finalStatus = wasSuccess;
+            }
+            
+            var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f => f.CardId == selectedCard && f.DeckId == data.DeckId && f.Status == finalStatus);
 
-            var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f =>
-                f.CardId == selectedCard && f.DeckId == data.DeckId && f.Status == finalStatus);
-
-            // Tworzymy log, ale go jeszcze nie zapisujemy
             var gameLogEntry = new GameLog
             {
                 Data = DateTime.UtcNow,
@@ -369,32 +450,33 @@ namespace backend.Controllers
                 GameId = data.GameId,
                 CardId = selectedCard,
                 DeckId = data.DeckId,
-                BoardId = data.BoardId,
+                BoardId = data.BoardId, 
                 GameProcessId = data.GameProcessId,
                 FeedbackId = feedback?.FeedbackId,
-                Cost = data.Cost,
-                Status = finalStatus,
+                Cost = finalCost, // Używamy finalnego, zmodyfikowanego kosztu
+                GameEventId = eventIdForLog, // Zapisujemy ID eventu, jeśli był użyty
+                Status = finalStatus, 
                 MoveX = 0,
                 MoveY = 0,
-                // Ustawiamy IsApproved na podstawie flagi drużyny
                 IsApproved = data.ForceExecution ? (bool?)null : (team.IsIndependent ? (bool?)null : false)
             };
             _context.GameLogs.Add(gameLogEntry);
 
-            // Jeśli drużyna jest niezależna i administrator zagrywa kartę, od razu wykonaj efekty
+            // Przekazujemy zmodyfikowany koszt do metody wykonującej efekty
+            var originalCostForEffects = data.Cost; // Zachowujemy oryginalny, na wszelki wypadek
+            data.Cost = finalCost; // Nadpisujemy koszt w DTO
+
             if (team.IsIndependent || data.ForceExecution)
             {
                 await ExecuteCardEffects(gameLogEntry);
             }
-
-            // Zapisujemy wszystkie zmiany (log i potencjalne efekty) w jednej transakcji
+            
             await _context.SaveChangesAsync();
 
-            // Zwracamy odpowiedź do frontendu
-            return Ok(new
-            {
-                message = team.IsIndependent ? "Akcja karty została wykonana." : "Sugestia zagrania karty została wysłana do zatwierdzenia.",
-                newTeamBudget = team.TeamBud // Zawsze wysyłamy aktualny budżet
+            return Ok(new 
+            { 
+                message = (team.IsIndependent || data.ForceExecution) ? "Akcja karty została wykonana." : "Sugestia zagrania karty została wysłana do zatwierdzenia.",
+                newTeamBudget = team.TeamBud
             });
         }
 
@@ -409,7 +491,7 @@ namespace backend.Controllers
 
             // Pobieramy drużynę jeszcze raz, ale tym razem do śledzenia zmian w budżecie
             var trackedTeam = await _context.Teams.FindAsync(log.TeamId);
-            if(trackedTeam != null)
+            if (trackedTeam != null)
             {
                 // 1. Odejmij bity
                 trackedTeam.TeamBud -= (int)log.Cost;
@@ -430,7 +512,7 @@ namespace backend.Controllers
                 de.GameId == log.GameId &&
                 de.TeamId == log.TeamId &&
                 de.EnablerId == null);
-            
+
             if (specialEnabler != null)
             {
                 _context.DecisionEnablers.Remove(specialEnabler);
@@ -511,6 +593,7 @@ namespace backend.Controllers
             // Pobierz tylko karty decyzji dla tej talii
             var decisionCards = await _context.Decisions
                 .Where(d => d.DeckId == deckId)
+                .OrderBy(d => d.CardId)
                 .Select(d => new CardInfoDto
                 {
                     CardId = d.CardId,
@@ -541,14 +624,14 @@ namespace backend.Controllers
             // Pobierz tylko karty przedmiotów dla tej talii
             var itemCards = await _context.Items
                 .Where(i => i.DeckId == deckId)
-                .Select(i => new CardInfoDto 
-                { 
-                    CardId = i.CardId, 
+                .Select(i => new CardInfoDto
+                {
+                    CardId = i.CardId,
                     CardName = i.HardwareShortDesc // Używamy krótkiego opisu jako nazwy
                 })
                 .OrderBy(c => c.CardName)
                 .ToListAsync();
-            
+
             return Ok(itemCards);
         }
 
@@ -615,7 +698,7 @@ namespace backend.Controllers
 
             return Ok(new { message = "Sugestia została zatwierdzona." });
         }
-        
+
         [HttpDelete("reject-log/{logId}")]
         public async Task<IActionResult> RejectLog(int logId)
         {
@@ -633,6 +716,129 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Sugestia została odrzucona." });
+        }
+
+        [HttpGet("game-events")]
+        public async Task<ActionResult<IEnumerable<GameEventDto>>> GetGameEventsForCurrentUser()
+        {
+            // Pobieramy ID zalogowanego użytkownika z jego "claimów" (oświadczeń) w tokenie.
+            // Zakładam, że claim z ID użytkownika nazywa się "nameid" lub "sub". Może to być też "Id".
+            // To standard dla JWT i ASP.NET Core Identity.
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+            {
+                // Jeśli nie uda się znaleźć ID użytkownika, oznacza to problem z autoryzacją.
+                return Unauthorized("Nie udało się zidentyfikować użytkownika.");
+            }
+
+            var gameEvents = await _context.GameEvents
+                .Where(ge => ge.UserId == userId)
+                .Select(ge => new GameEventDto
+                {
+                    EventId = ge.GameEventId,
+                    ShortDesc = ge.EventShortDesc,
+                    LongDesc = ge.EventLongDesc
+                })
+                .OrderBy(ge => ge.ShortDesc)
+                .ToListAsync();
+
+            return Ok(gameEvents);
+        }
+
+        [HttpPost("game/{gameId}/apply-event")]
+        public async Task<IActionResult> ApplyEventToGame(int gameId, [FromBody] ApplyEventDto eventData)
+        {
+            var gameEvent = await _context.GameEvents.FindAsync(eventData.EventId);
+            if (gameEvent == null)
+            {
+                return NotFound($"Nie znaleziono zdarzenia o ID {eventData.EventId}.");
+            }
+
+            // Znajdź wszystkie drużyny w danej grze
+            var teamsInGame = await _context.Teams.Where(t => t.GameId == gameId).ToListAsync();
+            if (!teamsInGame.Any())
+            {
+                // Możemy aktywować event nawet jeśli nie ma drużyn, log i tak się utworzy.
+                // To zależy od logiki biznesowej. Załóżmy, że jest to OK.
+            }
+
+            // Zaktualizuj każdą drużynę
+            foreach (var team in teamsInGame)
+            {
+                team.GameEventId = gameEvent.GameEventId;
+                team.TurnsLeft = gameEvent.TurnTime;
+            }
+
+            // Stwórz wpis w GameLogs, aby poinformować o zdarzeniu.
+            // Ponieważ pola są nullowalne, możemy je po prostu pominąć.
+            var eventLog = new GameLog
+            {
+                Data = DateTime.UtcNow,
+                GameId = gameId,
+                GameEventId = gameEvent.GameEventId,
+                IsApproved = true,
+                // Pola takie jak TeamId, CardId, DeckId, BoardId, Cost, Status
+                // zostaną automatycznie ustawione na NULL, bo ich tu nie podajemy.
+            };
+            _context.GameLogs.Add(eventLog);
+
+            // Zapisz wszystkie zmiany w jednej transakcji
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = $"Zdarzenie '{gameEvent.EventShortDesc}' zostało aktywowane dla wszystkich drużyn." });
+        }
+
+        [HttpPost("player-history")]
+        public async Task<IActionResult> GetPlayerHistory([FromBody] LogData logData)
+        {
+            // 1. Pobierz logi specyficzne dla drużyny (gdzie IsApproved != false)
+            var teamLogsQuery = _context.GameLogs
+                .Where(gl => gl.GameId == logData.GameId && gl.TeamId == logData.TeamId && gl.IsApproved != false);
+
+            // 2. Pobierz globalne logi zdarzeń (gdzie TeamId jest null)
+            var eventNotificationLogsQuery = _context.GameLogs
+                .Where(gl => gl.GameId == logData.GameId && gl.TeamId == null);
+
+            // 3. Połącz oba zapytania
+            var combinedLogs = await teamLogsQuery
+                .Union(eventNotificationLogsQuery)
+                .OrderByDescending(gl => gl.Data)
+                .Include(gl => gl.Team)
+                .Include(gl => gl.Feedback)
+                .Include(gl => gl.GameEvent) // Dołączamy, aby mieć opis zdarzenia
+                .ToListAsync();
+
+            if (!combinedLogs.Any()) return Ok(new List<object>());
+
+            var cardIds = combinedLogs.Where(gl => gl.CardId.HasValue).Select(gl => gl.CardId.Value).Distinct().ToList();
+            
+            var decisions = await _context.Decisions.Where(d => cardIds.Contains(d.CardId)).ToListAsync();
+            var decisionTitles = decisions.GroupBy(d => d.CardId).ToDictionary(g => g.Key, g => g.First().DecisionShortDesc);
+            
+            var items = await _context.Items.Where(i => cardIds.Contains(i.CardId)).ToListAsync();
+            var itemTitles = items.GroupBy(i => i.CardId).ToDictionary(g => g.Key, g => g.First().HardwareShortDesc);
+
+            var result = combinedLogs.Select(gl =>
+            {
+                // Sprawdzamy, czy to powiadomienie o evencie
+                bool isEventNotification = gl.TeamId == null;
+
+                return new
+                {
+                    IsEventNotification = isEventNotification,
+                    Timestamp = gl.Data,
+                    TeamName = gl.Team?.TeamName,
+                    CardId = gl.CardId,
+                    CardTitle = gl.CardId.HasValue ? (decisionTitles.GetValueOrDefault(gl.CardId.Value) ?? itemTitles.GetValueOrDefault(gl.CardId.Value)) : null,
+                    FeedbackDescription = gl.Feedback?.LongDescription,
+                    EventDescription = gl.GameEvent?.EventLongDesc, // Opis z dołączonego eventu
+                    Status = gl.Status,
+                    Cost = gl.Cost,
+                    GameEventId = gl.GameEventId 
+                };
+            });
+
+            return Ok(result);
         }
     }
 }

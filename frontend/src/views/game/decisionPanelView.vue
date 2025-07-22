@@ -3,7 +3,7 @@
     <!-- Lewa kolumna -->
     <div class="flex-1 p-4 bg-secondary rounded-md min-h-[500px]">
       <h2 class="text-xl font-bold mb-4 text-center">
-        Wybierz stół i {{ actionMode === 'cards' ? 'kartę' : 'przedmiot' }}
+        Wybierz stół i {{ actionMode === 'cards' ? 'decyzję' : 'przedmiot' }}
       </h2>
 
       <!-- Przełącznik kart/przedmiotów -->
@@ -90,17 +90,18 @@
         <label class="block text-lg font-bold mb-2">Wybierz zdarzenie losowe:</label>
 
         <select
-          v-model="selectedPendingEventIndex"
-          class="bg-tertiary text-base border border-gray-500 rounded px-3 py-2 w-full mb-2"
-        >
-          <option v-for="(event, index) in availableEvents" :key="index" :value="index">
-            {{ event.name }}
-          </option>
-        </select>
+        v-model="selectedPendingEventIndex"
+        class="bg-tertiary text-base border border-gray-500 rounded px-3 py-2 w-full mb-2"
+      >
+        <!-- Nie potrzebujemy tu opcji domyślnej, bo dodaliśmy ją w kodzie -->
+        <option v-for="event in availableEvents" :key="event.eventId" :value="event.eventId">
+          {{ event.shortDesc }}
+        </option>
+      </select>
 
-        <p v-if="selectedEvent" class="text-sm text-center text-gray-300 mt-2 italic mb-4">
-          {{ selectedEvent.description }}
-        </p>
+      <p v-if="selectedEvent && selectedEvent.eventId" class="text-sm text-center text-gray-300 mt-2 italic mb-4">
+        {{ selectedEvent.longDesc }}
+      </p>
 
         <div class="flex justify-center">
           <button
@@ -214,16 +215,29 @@
         <div
           v-for="(entry, index) in decisions"
           :key="index"
-          class="border border-gray-600 rounded p-3 bg-secondary relative"
+          class="mb-2" 
         >
-          <p><strong>{{ entry.tableName }}</strong> – Karta ID: {{ entry.cardId }}</p>
-          <p :class="entry.result === 'Pozytywny' ? 'text-green-400' : 'text-red-400'">
-            <strong>Wynik:</strong> {{ entry.result }}
-          </p>
-          <p class="text-sm mt-1">Zagrano kartę: <span class="font-semibold">{{ entry.cardTitle }}</span></p>
-          <p class="text-sm mt-1">{{ entry.feedbackDescription || 'Brak opisu feedbacku.' }}</p>
-          <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
-        </div>
+          <!-- Specjalny wygląd dla powiadomienia o evencie -->
+          <div v-if="entry.isEventNotification" class="border border-blue-500 rounded p-3 bg-blue-900/50 text-center">
+            <h3 class="font-bold text-lg text-blue-300">Nowe Wydarzenie</h3>
+            <p class="text-white mt-1">{{ entry.feedbackDescription }}</p>
+            <p class="text-xs text-gray-400 mt-2">Aktywowano: {{ formatDate(entry.timestamp) }}</p>
+          </div>
+
+          <!-- Normalny wygląd dla zagrania karty -->
+          <div v-else class="border border-gray-600 rounded p-3 bg-secondary relative">
+            <div v-if="entry.eventAppliedId" class="absolute top-1 right-2 px-2 py-0.5 bg-purple-600 text-white text-xs font-bold rounded-full">
+              EVENT
+            </div>
+            <p><strong>{{ entry.tableName }}</strong> – Karta ID: {{ entry.cardId }}</p>
+            <p :class="entry.result === 'Pozytywny' ? 'text-green-400' : 'text-red-400'">
+              <strong>Wynik:</strong> {{ entry.result }}
+            </p>
+            <p class="text-sm mt-1">Zagrano kartę: <span class="font-semibold">{{ entry.cardTitle }}</span></p>
+            <p class="text-sm mt-1">{{ entry.feedbackDescription || 'Brak opisu feedbacku.' }}</p>
+            <p class="text-xs text-gray-400 mt-1">Zagrano: {{ formatDate(entry.timestamp) }}</p>
+          </div>
+        </div> 
       </div>
     </div>
   </div>
@@ -260,16 +274,10 @@ const showOwnBoard = ref(true)
 const showOpponentsBoard = ref(true)
 const selectedCardId = ref(null)
 const selectedTableId = ref(null)
-const selectedEventIndex = ref(0)
-const selectedPendingEventIndex = ref(0)
-const eventReadyToUse = ref(false)
+const selectedPendingEventIndex = ref(null)
 const tables = ref([])
 const cards = ref([])
-const availableEvents = [
-  { name: "Brak zdarzenia", modifier: 1, description: "" },
-  { name: "Zniżka 10% na następną kartę", modifier: 0.9, description: "..." },
-  { name: "Karta gratis (0 bitów)", modifier: 0, description: "..." }
-]
+const availableEvents = ref([]);
 const formData = reactive({
   Name: 'Plansza podstawowa', LabelsUp: ['...'], LabelsRight: ['...'],
   DescriptionDown: '...', DescriptionLeft: '...', Rows: 8, Cols: 8,
@@ -281,7 +289,10 @@ const loadingPending = ref(true);
 const selectedCard = computed(() => cards.value.find(c => c.id === selectedCardId.value));
 const selectedTeam = computed(() => tables.value.find(t => t.teamId === selectedTableId.value));
 const currentBits = computed(() => selectedTeam.value ? selectedTeam.value.teamBud : 0);
-const selectedEvent = computed(() => availableEvents[selectedPendingEventIndex.value])
+const selectedEvent = computed(() => {
+    const selectedId = selectedPendingEventIndex.value; // Teraz 'v-model' będzie trzymać ID
+    return availableEvents.value.find(e => e.eventId === selectedId);
+});
 
 // --- FUNKCJE ---
 let hasLoadedOnce = false;
@@ -317,22 +328,35 @@ const fetchDecisionHistory = async () => {
 
     const response = await apiServices.post(apiConfig.player.getLogs, payload);
 
-    const newMapped = response.data.map(log => ({
-      cardId: log.cardId,
-      cardTitle: log.cardTitle,
-      tableId: log.teamId,
-      tableName: log.teamName,
-      timestamp: log.timestamp,
-      feedbackDescription: log.feedbackDescription,
-      result: log.status ? 'Pozytywny' : 'Negatywny',
-    }));
+    decisions.value = response.data.map(log => {
+      const isEvent = log.gameEventId && !log.teamId;
 
-    const oldSerialized = JSON.stringify(decisions.value);
-    const newSerialized = JSON.stringify(newMapped);
-
-    if (oldSerialized !== newSerialized) {
-      decisions.value = newMapped;
-    }
+      if (isEvent) {
+        // --- POPRAWKA TUTAJ ---
+        // Znajdź pełny obiekt zdarzenia na podstawie jego ID
+        const eventDetails = availableEvents.value.find(e => e.eventId === log.gameEventId);
+        
+        return {
+          isEventNotification: true,
+          timestamp: log.timestamp,
+          // Użyj LongDesc ze znalezionego obiektu
+          feedbackDescription: eventDetails ? eventDetails.longDesc : `Aktywowano wydarzenie (ID: ${log.gameEventId})`
+        };
+      } else {
+        // To jest zwykły log zagrania karty
+        return {
+          isEventNotification: false,
+          cardId: log.cardId,
+          cardTitle: log.cardTitle,
+          tableId: log.teamId,
+          tableName: log.teamName,
+          timestamp: log.timestamp,
+          feedbackDescription: log.feedbackDescription,
+          result: log.status ? 'Pozytywny' : 'Negatywny',
+          eventAppliedId: log.gameEventId
+        };
+      }
+    });
 
   } catch (error) {
     toast.error("Wystąpił błąd podczas ładowania historii decyzji.");
@@ -345,11 +369,6 @@ const fetchDecisionHistory = async () => {
 
 const decisionMode = ref('history')
 
-function getCardCost(cardId) {
-  const card = cards.value.find(c => c.cardId === Number(cardId))
-  return card ? card.cost : 0
-}
-
 const actionMode = ref('cards') // 'cards' albo 'items'
 
 const items = ref([])
@@ -357,21 +376,48 @@ const items = ref([])
 const selectedItemId = ref(null)
 const selectedItem = computed(() => items.value.find(i => i.id === selectedItemId.value));
 
-function applySelectedEvent() {
-  // Logika do zaimplementowania w przyszłości
-  toast.info("Funkcjonalność zdarzeń losowych zostanie podpięta wkrótce.");
+async function applySelectedEvent() {
+  // selectedPendingEventIndex teraz trzyma ID eventu (lub null)
+  const eventId = selectedPendingEventIndex.value;
+  
+  if (!eventId) {
+    toast.warning("Najpierw wybierz zdarzenie losowe z listy.");
+    return;
+  }
+  
+  // Nie potrzebujemy TeamId, bo event jest dla wszystkich
+  
+  try {
+    const payload = { eventId: eventId };
+    const response = await apiServices.post(apiConfig.games.applyEvent(gameId), payload);
+    toast.success(response.data.message || "Zdarzenie zostało aktywowane!");
+    
+    // Odśwież historię, aby zobaczyć powiadomienie o nowym zdarzeniu
+    fetchDecisionHistory();
+    
+  } catch (error) {
+    toast.error("Wystąpił błąd podczas aktywacji zdarzenia.");
+    console.error("Błąd applySelectedEvent:", error);
+  }
 }
 
 async function playCard() {
   const card = selectedCard.value;
   const team = selectedTeam.value;
   if (!card || !team) return;
-
-  // ... (reszta kodu walidacji budżetu i tworzenia payloadu bez zmian) ...
   if (team.teamBud < (card.cost || 0)) {
     toast.error(`Drużyna ${team.teamName} ma za mało bitów!`);
     return;
   }
+  
+  const hasEnablers = card.enablers && Array.isArray(card.enablers) && card.enablers.length > 0;
+  
+  const wasSuccess = !hasEnablers;
+  
+  const endpoint = wasSuccess 
+    ? apiConfig.player.playCardSuccess(card.id) 
+    : apiConfig.player.playCardFailure(card.id);
+
   const payload = {
     gameId: parseInt(gameId, 10),
     teamId: team.teamId,
@@ -382,15 +428,14 @@ async function playCard() {
   };
 
   try {
-    const response = await apiServices.post(apiConfig.player.playCardSuccess(card.id), payload);
-    toast.success(response.data.message || `Zagrano kartę dla ${team.teamName}.`);
+    const response = await apiServices.post(endpoint, payload);
     
-    // --- KLUCZOWA ZMIANA: ZAPEWNIENIE KOLEJNOŚCI ---
-    // 1. Najpierw odśwież dane drużyn i poczekaj na zakończenie.
+    // Dodajemy informację o wyniku do toasta
+    const resultText = wasSuccess ? "Sukces" : "Porażka";
+    toast.success(`${response.data.message || 'Akcja przetworzona.'} Wynik: ${resultText}`);
+    
     await fetchTeams();
-    // 2. Dopiero teraz, gdy dane drużyn są aktualne, odśwież dostępne karty.
     await fetchAvailableCardsForTeam();
-    // --- KONIEC ZMIANY ---
 
   } catch (error) {
     toast.error("Wystąpił błąd podczas zagrywania karty.");
@@ -549,6 +594,19 @@ const fetchAvailableCardsForTeam = async () => {
   }
 };
 
+const fetchGameEvents = async () => {
+  try {
+    const response = await apiServices.get(apiConfig.games.getGameEvents);
+    // Dodajemy opcję "Brak zdarzenia" na początku listy
+    availableEvents.value = [
+      { eventId: null, shortDesc: "Brak zdarzenia", longDesc: "" },
+      ...response.data
+    ];
+  } catch (error) {
+    toast.error("Nie udało się pobrać listy zdarzeń losowych.");
+    console.error("Błąd pobierania zdarzeń:", error);
+  }
+};
 
 let intervalId = null;
 
@@ -556,6 +614,7 @@ onMounted(() => {
   fetchTeams();  
   fetchDecisionHistory();
   fetchPendingDecisions();
+  fetchGameEvents();
 
   // Co 5 sekund aktualizuj historię
   intervalId = setInterval(() => {

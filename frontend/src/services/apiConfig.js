@@ -35,7 +35,9 @@ const endpoints = {
     unlockCard: (gameId) => `/player/game/${gameId}/unlock-card`,
     getPendingLogs: (gameId) => `/player/game/${gameId}/pending-logs`, 
     approveLog: (logId) => `/player/approve-log/${logId}`,           
-    rejectLog: (logId) => `/player/reject-log/${logId}`              
+    rejectLog: (logId) => `/player/reject-log/${logId}`,
+    getGameEvents: '/player/game-events',
+    applyEvent: (gameId) => `/player/game/${gameId}/apply-event`              
   },
   boards: {
     create: '/board/add',
@@ -49,7 +51,8 @@ const endpoints = {
     playCardFailure: (cardId) => `/player/failure/${cardId}`,
     getCards: (deckId) =>`player/deck/${deckId}/unified-cards`,
     getLogs: '/player/getLogs',
-    getCurrency: '/player/getCurrency'
+    getCurrency: '/player/getCurrency',
+    getPlayerHistory: '/player/player-history'
   }
   
 };

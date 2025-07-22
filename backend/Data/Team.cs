@@ -21,6 +21,7 @@ namespace backend.Data
         public int? GameEventId { get; set; } 
         public GameEvent? GameEvent { get; set; }
 
+        public int? TurnsLeft { get; set; }
         public bool IsIndependent { get; set; }
 
         public virtual ICollection<GameProcess> GameProcesses { get; set; } = new List<GameProcess>();

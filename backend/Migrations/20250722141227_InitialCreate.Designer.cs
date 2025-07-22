@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250721133044_InitialCreate")]
+    [Migration("20250722141227_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -403,19 +403,19 @@ namespace backend.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLogId"));
 
-                    b.Property<int>("BoardId")
+                    b.Property<int?>("BoardId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CardId")
+                    b.Property<int?>("CardId")
                         .HasColumnType("int");
 
-                    b.Property<double>("Cost")
+                    b.Property<double?>("Cost")
                         .HasColumnType("double");
 
                     b.Property<DateTime>("Data")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("DeckId")
+                    b.Property<int?>("DeckId")
                         .HasColumnType("int");
 
                     b.Property<int?>("FeedbackId")
@@ -424,7 +424,7 @@ namespace backend.Migrations
                     b.Property<int?>("GameEventId")
                         .HasColumnType("int");
 
-                    b.Property<int>("GameId")
+                    b.Property<int?>("GameId")
                         .HasColumnType("int");
 
                     b.Property<int?>("GameProcessId")
@@ -433,16 +433,16 @@ namespace backend.Migrations
                     b.Property<bool?>("IsApproved")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("MoveX")
+                    b.Property<int?>("MoveX")
                         .HasColumnType("int");
 
-                    b.Property<int>("MoveY")
+                    b.Property<int?>("MoveY")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Status")
+                    b.Property<bool?>("Status")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("TeamId")
+                    b.Property<int?>("TeamId")
                         .HasColumnType("int");
 
                     b.HasKey("GameLogId");
@@ -570,6 +570,9 @@ namespace backend.Migrations
                     b.Property<string>("TeamToken")
                         .HasMaxLength(6)
                         .HasColumnType("varchar(6)");
+
+                    b.Property<int?>("TurnsLeft")
+                        .HasColumnType("int");
 
                     b.HasKey("TeamId");
 
@@ -814,21 +817,15 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Data.Board", "Board")
                         .WithMany()
-                        .HasForeignKey("BoardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BoardId");
 
                     b.HasOne("backend.Data.Card", "Card")
                         .WithMany()
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CardId");
 
                     b.HasOne("backend.Data.Deck", "Deck")
                         .WithMany()
-                        .HasForeignKey("DeckId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("DeckId");
 
                     b.HasOne("backend.Data.Feedback", "Feedback")
                         .WithMany()
@@ -841,8 +838,7 @@ namespace backend.Migrations
                     b.HasOne("backend.Data.Game", "Game")
                         .WithMany("GameLogs")
                         .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("backend.Data.GameProcess", "GameProcess")
                         .WithMany()
@@ -850,9 +846,7 @@ namespace backend.Migrations
 
                     b.HasOne("backend.Data.Team", "Team")
                         .WithMany()
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TeamId");
 
                     b.Navigation("Board");
 
