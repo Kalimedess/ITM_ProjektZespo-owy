@@ -19,7 +19,7 @@ import resetPasswordView from '@/views/resetPasswordView.vue'
 import confirmEmailView from '@/views/confirmEmailView.vue'
 import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
-import tableView from '@/views/game/adminTableView.vue'
+import gameView from '@/views/admin/adminGameView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -89,9 +89,9 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
-          path: '/admin/game/:gameId',
+          path: ':gameId',
           name: 'table-view',
-          component: tableView,
+          component: gameView,
           props: true,
           meta: { requiresAuth: true }
         },

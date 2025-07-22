@@ -5,26 +5,30 @@
             <hr class ="my-4 border-lgray-accent"/>
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-6">
                 <tableCard
+                v-if="game"
                 v-for="table in tables"
                 :key="table.id"
                 :table="table"
+                :game="game"
                 :color="getGameColor(table.id)"
+                :gameUrl="`${origin}/player/${table.token}`"
                 />
             </div>
-        </div>
+        </div v-else class="text-center text-gray-300 mt-4">
     </div>
 
 </template>
 
-
+console.log('tableCard props:', { table, game });
 <script setup>
     import tableCard from '@/components/game/tableCard.vue'
     import { ref, onMounted, watch } from 'vue'
     import axios from 'axios'
     import { useRoute } from 'vue-router'
 
-    defineProps(['gameId'])
-    
+    const props = defineProps(['gameId'])
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
     const getGameColor = (gameId) => {
         
         const colors = [
@@ -43,15 +47,15 @@
     }
 
   const tables = ref([])
-  const route = useRoute()
-  const gameId = ref(Number(route.params.id))
+  const game = ref(null)
+  
 
 
 
 const getTeams = async () => {
   try {
-    console.log('Fetching teams for gameId:', gameId.value)
-    const response = await axios.get(`http://localhost:5023/api/adminpanel/teams/by-game/${gameId.value}`, {
+    console.log('Fetching teams for gameId:', props.gameId)
+    const response = await axios.get(`http://localhost:5023/api/adminpanel/teams/by-game/${props.gameId}`, {
       withCredentials: true
     })
     tables.value = response.data
@@ -59,5 +63,22 @@ const getTeams = async () => {
     console.error('Błąd przy pobieraniu drużyn:', error)
   }
 }
-      onMounted(getTeams)
+      
+
+const getGame = async () => {
+  try {
+    const response = await axios.get(`http://localhost:5023/api/games/${props.gameId}`, {
+      withCredentials: true
+    })
+    game.value = response.data
+  } catch (error) {
+    console.error('Błąd przy pobieraniu gry:', error)
+  }
+}
+
+onMounted(() => {
+  getTeams();
+  getGame(); 
+});
+
 </script>

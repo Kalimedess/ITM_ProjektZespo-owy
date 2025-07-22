@@ -56,7 +56,7 @@
             Kod QR do gry
         </h2>
         <div class="bg-white p-3 sm:p-4 md:p-6 rounded-lg flex justify-center">
-            <qrcode-vue :value="gameUrl" :size="qrSize" />
+            <qrcode-vue :value="props.gameUrl" :size="qrSize" />
         </div>
         </div>
     </div>
@@ -81,6 +81,10 @@
         color: {
         type: String,
         required: true
+        },
+        gameUrl: { 
+        type: String, 
+        required: true 
         }
     })
     //logika kodu QR
@@ -103,7 +107,6 @@
     //Dodać logike żeby pobierało token dla dostępnych drużyn z bazy danych 
 
     function openQrForTeam(token) {
-        gameUrl.value = `${window.location.origin}/player/${table.token}`;
         showQr.value = true;
     }
 

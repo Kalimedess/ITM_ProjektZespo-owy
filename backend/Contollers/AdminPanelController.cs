@@ -26,10 +26,31 @@ public class AdminPanelController : ControllerBase
             {
                 id = t.TeamId,
                 name = t.TeamName,
-                color = t.TeamColor
+                color = t.TeamColor,
+                token = t.TeamToken
             })
             .ToListAsync();
 
         return Ok(teams);
+    }
+
+    [Authorize]
+    [HttpGet("games/{gameId}")]
+    public async Task<ActionResult<object>> GetGameById(int gameId)
+    {
+        var game = await _context.Games
+            .Where(g => g.GameId == gameId)
+            .Select(g => new
+            {
+                id = g.GameId,
+            })
+            .FirstOrDefaultAsync();
+
+    if (game == null)
+    {
+        return NotFound(new { message = "Gra nie została znaleziona." });
+    }
+
+    return Ok(game);
     }
 }
