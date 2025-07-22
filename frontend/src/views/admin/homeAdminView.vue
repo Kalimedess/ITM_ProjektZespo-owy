@@ -34,7 +34,7 @@
     import CreateGame from '@/components/game/createGame.vue';
 
     import apiConfig from '@/services/apiConfig.js';
-import apiService from '@/services/apiServices.js';
+    import apiService from '@/services/apiServices.js';
 
     const toast = useToast();
     const showCreateGame = ref(false);
