@@ -26,7 +26,7 @@
         </button>
     </div>
     <RouterLink 
-        Dodać :to="`/admin/game/${game.id}/${table.id}`"
+        Dodać :to="`/admin/game/${game.id}/${table.token}`"
         @dblclick.stop
         class="w-full flex items-center justify-center border-2 border-lgray-accent py-2 px-3 rounded-md hover:border-accent transition-colors duration-300">
         <font-awesome-icon :icon="faMagnifyingGlass" class="h-4 mr-2 text-accent"/>     
