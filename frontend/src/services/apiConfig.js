@@ -19,20 +19,24 @@ const endpoints = {
     },
     settings: {
         licenses: '/admin/licenses'
+    },
+    games: {
+      getGames: (gameId) => `adminpanel/games/${gameId}`,
+      getTeams: (gameId) => `adminpanel/teams/by-game/${gameId}`
     }
   },
   games: {
-    create: '/games/create',
-    getById: (id) => `/games/${id}`,
-    getAll: '/games/active',
-    updateStatus: (id) => `/games/${id}/status`,
-    stopAll: '/games/stop-all',
-    endAll: '/games/end-all',
-    getTeamsManagement: (gameId) => `/player/game/${gameId}/teams-management`,
-    updateTeamBudget: (teamId) => `/player/team/${teamId}/budget`,
-    getDecisionCards: (gameId) => `/player/game/${gameId}/decision-cards`,
-    unlockCard: (gameId) => `/player/game/${gameId}/unlock-card`
-  },
+      create: '/games/create',
+      getById: (id) => `/games/${id}`,
+      getAll: '/games/active',
+      updateStatus: (id) => `/games/${id}/status`,
+      stopAll: '/games/stop-all',
+      endAll: '/games/end-all',
+      getTeamsManagement: (gameId) => `/player/game/${gameId}/teams-management`,
+      updateTeamBudget: (teamId) => `/player/team/${teamId}/budget`,
+      getDecisionCards: (gameId) => `/player/game/${gameId}/decision-cards`,
+      unlockCard: (gameId) => `/player/game/${gameId}/unlock-card`,
+    },
   boards: {
     create: '/board/add',
     getAll: '/board/get',
