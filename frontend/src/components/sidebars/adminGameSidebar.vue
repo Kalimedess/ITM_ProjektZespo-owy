@@ -19,12 +19,12 @@
         <!-- Strona główna -->
         <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
           <RouterLink 
-            :to="`/admin/game/${gameId}`"
+            :to="`/admin/game/market/${gameId}`"
             class="flex items-center gap-4 px-4 py-3 rounded-md"
             :class="isSideBarOpen ? '' : 'justify-center'"
           >
             <font-awesome-icon :icon="faUsers" class="h-4 text-accent"/>
-            <span v-if="isSideBarOpen">Panel sterowania grą</span>
+            <span v-if="isSideBarOpen">Moduł zarządzania rynkiem</span>
           </RouterLink>
         </li>
 
