@@ -31,6 +31,7 @@ const endpoints = {
     getTeamsManagement: (gameId) => `/player/game/${gameId}/teams-management`,
     updateTeamBudget: (teamId) => `/player/team/${teamId}/budget`,
     getDecisionCards: (gameId) => `/player/game/${gameId}/decision-cards`,
+    getItemCards: (gameId) => `/player/game/${gameId}/item-cards`, 
     unlockCard: (gameId) => `/player/game/${gameId}/unlock-card`,
     getPendingLogs: (gameId) => `/player/game/${gameId}/pending-logs`, 
     approveLog: (logId) => `/player/approve-log/${logId}`,           

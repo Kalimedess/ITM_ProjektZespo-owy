@@ -25,6 +25,9 @@ public class CardDataDTO
     public int BoardId { get; set; }
     public int? GameProcessId { get; set; }
     public double Cost { get; set; }
+
+    // Ominięcie sugerowania u admina
+    public bool ForceExecution { get; set; } = false;
 }
 
 public class LogData
@@ -39,6 +42,8 @@ public class TeamManagementDto
     public int TeamId { get; set; }
     public string TeamName { get; set; } = string.Empty;
     public int TeamBud { get; set; }
+    public int BoardId { get; set; } 
+    public int? DeckId { get; set; }
 }
 
 // DTO do odbierania nowej wartości budżetu
@@ -372,12 +377,12 @@ namespace backend.Controllers
                 MoveX = 0,
                 MoveY = 0,
                 // Ustawiamy IsApproved na podstawie flagi drużyny
-                IsApproved = team.IsIndependent ? (bool?)null : false
+                IsApproved = data.ForceExecution ? (bool?)null : (team.IsIndependent ? (bool?)null : false)
             };
             _context.GameLogs.Add(gameLogEntry);
 
-            // Jeśli drużyna jest niezależna, od razu wykonaj efekty
-            if (team.IsIndependent)
+            // Jeśli drużyna jest niezależna i administrator zagrywa kartę, od razu wykonaj efekty
+            if (team.IsIndependent || data.ForceExecution)
             {
                 await ExecuteCardEffects(gameLogEntry);
             }
@@ -437,21 +442,26 @@ namespace backend.Controllers
         [HttpGet("game/{gameId}/teams-management")]
         public async Task<ActionResult<IEnumerable<TeamManagementDto>>> GetTeamsForManagement(int gameId)
         {
+            var game = await _context.Games.Include(g => g.TeamBoard).FirstOrDefaultAsync(g => g.GameId == gameId);
+            if (game == null || game.TeamBoard == null)
+            {
+                return NotFound("Nie znaleziono gry lub gra nie ma przypisanej planszy.");
+            }
+            var boardId = game.TeamBoard.BoardId;
+            var deckId = game.DeckId;
+
             var teams = await _context.Teams
                 .Where(t => t.GameId == gameId)
                 .Select(t => new TeamManagementDto
                 {
                     TeamId = t.TeamId,
                     TeamName = t.TeamName,
-                    TeamBud = t.TeamBud
+                    TeamBud = t.TeamBud,
+                    BoardId = boardId,
+                    DeckId = deckId
                 })
                 .OrderBy(t => t.TeamName)
                 .ToListAsync();
-
-            if (teams == null)
-            {
-                return Ok(new List<TeamManagementDto>());
-            }
 
             return Ok(teams);
         }
@@ -510,6 +520,36 @@ namespace backend.Controllers
                 .ToListAsync();
 
             return Ok(decisionCards);
+        }
+
+        [HttpGet("game/{gameId}/item-cards")]
+        public async Task<ActionResult<IEnumerable<CardInfoDto>>> GetItemCardsForGame(int gameId)
+        {
+            var game = await _context.Games.FindAsync(gameId);
+            if (game == null)
+            {
+                return NotFound($"Gra o ID {gameId} nie została znaleziona.");
+            }
+
+            if (game.DeckId == null)
+            {
+                return BadRequest($"Gra o ID {gameId} nie ma przypisanej talii.");
+            }
+
+            var deckId = game.DeckId;
+
+            // Pobierz tylko karty przedmiotów dla tej talii
+            var itemCards = await _context.Items
+                .Where(i => i.DeckId == deckId)
+                .Select(i => new CardInfoDto 
+                { 
+                    CardId = i.CardId, 
+                    CardName = i.HardwareShortDesc // Używamy krótkiego opisu jako nazwy
+                })
+                .OrderBy(c => c.CardName)
+                .ToListAsync();
+            
+            return Ok(itemCards);
         }
 
         [HttpPost("game/{gameId}/unlock-card")]

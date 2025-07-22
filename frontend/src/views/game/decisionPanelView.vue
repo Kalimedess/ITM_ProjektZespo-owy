@@ -13,7 +13,7 @@
           :class="actionMode === 'cards' ? 'bg-accent text-black shadow' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
           class="px-4 py-1 rounded font-semibold transition"
         >
-          Karty
+          Decyzje
         </button>
         <button
           @click="actionMode = 'items'"
@@ -26,7 +26,7 @@
 
       <select v-model="selectedTableId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2">
         <option disabled value="">-- Wybierz stół --</option>
-        <option v-for="table in tables" :key="table" :value="table">Stół {{ table }}</option>
+        <option v-for="team in tables" :key="team.teamId" :value="team.teamId">{{ team.teamName }}</option>
       </select>
 
       <select
@@ -35,7 +35,7 @@
         class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2"
       >
         <option disabled value="">-- Wybierz kartę --</option>
-        <option v-for="card in cards" :key="card.id" :value="card.id">{{ card.name }}</option>
+        <option v-for="card in cards" :key="card.id" :value="card.id">{{ card.id }} - {{ card.title }}</option>
       </select>
 
       <select
@@ -44,7 +44,7 @@
         class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2"
       >
         <option disabled value="">-- Wybierz przedmiot --</option>
-        <option v-for="item in items" :key="item.id" :value="item.id">{{ item.name }}</option>
+        <option v-for="item in items" :key="item.id" :value="item.id">{{ item.id }} - {{ item.title }}</option>
       </select>
 
       <p v-if="actionMode === 'cards' && selectedCard" class="text-sm text-center text-gray-300 mt-2 italic">
@@ -54,25 +54,21 @@
         {{ selectedItem.description }}
       </p>
 
-      <p v-if="actionMode === 'cards' && selectedCardId" class="text-center text-sm mt-2">
-        Koszt karty: <span class="font-semibold">{{ getCardCost(selectedCardId) }} bitów</span>
+      <p v-if="actionMode === 'cards' && selectedCard" class="text-center text-sm mt-2">
+        Koszt karty: <span class="font-semibold">{{ selectedCard?.cost || 0 }} bitów</span>
       </p>
-      <p v-if="actionMode === 'items' && selectedItemId" class="text-center text-sm mt-2">
+      <p v-if="actionMode === 'items' && selectedItem" class="text-center text-sm mt-2">
         Koszt przedmiotu: <span class="font-semibold">{{ selectedItem?.cost || 0 }} bitów</span>
       </p>
 
       <p v-if="selectedTableId" class="text-center text-sm mt-1">
-        Bity stołu {{ selectedTableId }}: <span class="font-semibold">{{ currentBits }}</span>
-      </p>
-
-      <p v-if="selectedCardId && actionMode === 'cards' && isCardBlocked(parseInt(selectedCardId))" class="text-red-400 text-sm mt-2 text-center">
-        Ta karta jest zablokowana i nie może zostać zagrana.
+        Bity {{ selectedTeam.teamName }}: <span class="font-semibold">{{ currentBits }}</span>
       </p>
 
       <div class="flex justify-center mt-4">
         <button
           v-if="actionMode === 'cards'"
-          :disabled="!selectedCardId || !selectedTableId || isCardBlocked(parseInt(selectedCardId))"
+          :disabled="!selectedCardId || !selectedTableId" 
           @click="playCard"
           class="px-4 py-2 bg-lime-500 text-black font-bold rounded hover:bg-lime-600 disabled:opacity-50"
         >
@@ -237,6 +233,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
+import { watch } from 'vue';
 import GameBoard from '@/components/game/gameBoard.vue'
 import apiConfig from '@/services/apiConfig';
 import apiServices from '@/services/apiServices';
@@ -244,6 +241,14 @@ import apiServices from '@/services/apiServices';
 const toast = useToast()
 const route = useRoute();
 const gameId = route.params.gameId;
+
+const loading = reactive({
+  teams: true,
+  cards: true,
+  items: true,
+  history: true,
+  pending: true,
+});
 
 // --- DANE DYNAMICZNE Z API ---
 const decisions = ref([]) // Historia decyzji
@@ -253,18 +258,13 @@ const loadingHistory = ref(true);
 const showMenu = ref(true)
 const showOwnBoard = ref(true)
 const showOpponentsBoard = ref(true)
-const selectedCardId = ref('')
-const selectedTableId = ref('')
+const selectedCardId = ref(null)
+const selectedTableId = ref(null)
 const selectedEventIndex = ref(0)
 const selectedPendingEventIndex = ref(0)
 const eventReadyToUse = ref(false)
-const tables = [1, 2, 3, 4]
-const cards = [
-  { id: 1, name: "Stworzenie profilu organizacji", cost: 40, description: "...", result: "Pozytywny", feedback: "..." },
-  { id: 2, name: "Przeprowadź szkolenie techniczne", cost: 50, description: "...", result: "Negatywny", feedback: "..." },
-  { id: 3, name: "Zarządzanie danymi", cost: 60, description: "...", result: 'Pozytywny', feedback: '...' }
-]
-const bitsPerTable = reactive({ 1: 1000, 2: 800, 3: 500, 4: 1200 })
+const tables = ref([])
+const cards = ref([])
 const availableEvents = [
   { name: "Brak zdarzenia", modifier: 1, description: "" },
   { name: "Zniżka 10% na następną kartę", modifier: 0.9, description: "..." },
@@ -278,13 +278,28 @@ const formData = reactive({
 const pendingDecisions = ref([]); 
 const loadingPending = ref(true);
 
-// --- WŁAŚCIWOŚCI COMPUTED ---
-const selectedCard = computed(() => cards.find(c => c.id === Number(selectedCardId.value)))
-const currentBits = computed(() => selectedTableId.value ? bitsPerTable[selectedTableId.value] : 0)
+const selectedCard = computed(() => cards.value.find(c => c.id === selectedCardId.value));
+const selectedTeam = computed(() => tables.value.find(t => t.teamId === selectedTableId.value));
+const currentBits = computed(() => selectedTeam.value ? selectedTeam.value.teamBud : 0);
 const selectedEvent = computed(() => availableEvents[selectedPendingEventIndex.value])
 
 // --- FUNKCJE ---
 let hasLoadedOnce = false;
+
+watch(selectedTableId, (newTeamId) => {
+  // Resetuj wybór karty/przedmiotu przy zmianie drużyny
+  selectedCardId.value = null;
+  selectedItemId.value = null;
+  
+  // Jeśli wybrano nową drużynę, pobierz dla niej dostępne karty
+  if (newTeamId) {
+    fetchAvailableCardsForTeam();
+  } else {
+    // Jeśli odznaczono drużynę, wyczyść listy
+    cards.value = [];
+    items.value = [];
+  }
+});
 
 const fetchDecisionHistory = async () => {
   if (!gameId) {
@@ -330,63 +345,93 @@ const fetchDecisionHistory = async () => {
 
 const decisionMode = ref('history')
 
-function isCardBlocked(cardId) {
-  // Logika do zaimplementowania w przyszłości
-  return false
-}
-
 function getCardCost(cardId) {
-  const card = cards.find(c => c.id === Number(cardId))
+  const card = cards.value.find(c => c.cardId === Number(cardId))
   return card ? card.cost : 0
 }
 
 const actionMode = ref('cards') // 'cards' albo 'items'
 
-const items = [
-  {
-    id: 201,
-    name: "Przedmiot 1",
-    cost: 30,
-    description: "opis"
-  },
-  {
-    id: 202,
-    name: "Przedmiot 2",
-    cost: 50,
-    description: "opis"
-  }
-]
+const items = ref([])
 
-const selectedItemId = ref('')
-const selectedItem = computed(() =>
-  items.find(i => i.id === Number(selectedItemId.value))
-)
+const selectedItemId = ref(null)
+const selectedItem = computed(() => items.value.find(i => i.id === selectedItemId.value));
 
 function applySelectedEvent() {
   // Logika do zaimplementowania w przyszłości
   toast.info("Funkcjonalność zdarzeń losowych zostanie podpięta wkrótce.");
 }
 
-function playCard() {
-  // Logika do zaimplementowania w przyszłości
-  toast.info("Funkcjonalność zagrywania kart przez admina zostanie podpięta wkrótce.");
+async function playCard() {
+  const card = selectedCard.value;
+  const team = selectedTeam.value;
+  if (!card || !team) return;
+
+  // ... (reszta kodu walidacji budżetu i tworzenia payloadu bez zmian) ...
+  if (team.teamBud < (card.cost || 0)) {
+    toast.error(`Drużyna ${team.teamName} ma za mało bitów!`);
+    return;
+  }
+  const payload = {
+    gameId: parseInt(gameId, 10),
+    teamId: team.teamId,
+    deckId: team.deckId,
+    boardId: team.boardId,
+    cost: card.cost || 0,
+    ForceExecution: true
+  };
+
+  try {
+    const response = await apiServices.post(apiConfig.player.playCardSuccess(card.id), payload);
+    toast.success(response.data.message || `Zagrano kartę dla ${team.teamName}.`);
+    
+    // --- KLUCZOWA ZMIANA: ZAPEWNIENIE KOLEJNOŚCI ---
+    // 1. Najpierw odśwież dane drużyn i poczekaj na zakończenie.
+    await fetchTeams();
+    // 2. Dopiero teraz, gdy dane drużyn są aktualne, odśwież dostępne karty.
+    await fetchAvailableCardsForTeam();
+    // --- KONIEC ZMIANY ---
+
+  } catch (error) {
+    toast.error("Wystąpił błąd podczas zagrywania karty.");
+    console.error(error);
+  }
 }
 
-function giveItem() {
-  const item = items.find(i => i.id === Number(selectedItemId.value))
-  const tableId = selectedTableId.value
-  if (!item || !tableId) return
+async function giveItem() {
+  const item = selectedItem.value;
+  const team = selectedTeam.value;
+  if (!item || !team) return;
 
-  if (bitsPerTable[tableId] < item.cost) {
-    toast.error(`Stół ${tableId} ma za mało bitów (wymagane ${item.cost})`)
-    return
+  // ... (reszta kodu walidacji budżetu i tworzenia payloadu bez zmian) ...
+  if (team.teamBud < (item.cost || 0)) {
+    toast.error(`Drużyna ${team.teamName} ma za mało bitów!`);
+    return;
   }
+  const payload = {
+    gameId: parseInt(gameId, 10),
+    teamId: team.teamId,
+    deckId: team.deckId,
+    boardId: team.boardId,
+    cost: item.cost || 0,
+    ForceExecution: true
+  };
+  
+  try {
+    const response = await apiServices.post(apiConfig.player.playCardSuccess(item.id), payload);
+    toast.success(response.data.message || `Użyto przedmiot dla ${team.teamName}.`);
 
-  bitsPerTable[tableId] -= item.cost
-
-  toast.success(`Użyto przedmiot: ${item.name} za ${item.cost} bitów (Stół ${tableId})`)
-
-  selectedItemId.value = ''
+    // --- KLUCZOWA ZMIANA: ZAPEWNIENIE KOLEJNOŚCI ---
+    // 1. Najpierw odśwież dane drużyn i poczekaj na zakończenie.
+    await fetchTeams();
+    // 2. Dopiero teraz, gdy dane drużyn są aktualne, odśwież dostępne karty.
+    await fetchAvailableCardsForTeam();
+    // --- KONIEC ZMIANY ---
+    
+  } catch (error) {
+    toast.error("Wystąpił błąd podczas używania przedmiotu.");
+    console.error(error);
+  }
 }
 
 
@@ -455,10 +500,60 @@ const rejectDecision = async (logId) => {
   }
 };
 
+const fetchTeams = async () => {
+  if (!gameId) return;
+  try {
+    const response = await apiServices.get(apiConfig.games.getTeamsManagement(gameId));
+    tables.value = response.data; // Zapisujemy drużyny do 'tables'
+  } catch (error) { toast.error("Błąd pobierania drużyn."); }
+};
+
+const fetchAvailableCardsForTeam = async () => {
+  if (!selectedTableId.value) {
+    cards.value = [];
+    items.value = [];
+    return;
+  }
+  
+  const team = selectedTeam.value;
+  if (!team || !team.deckId) {
+    toast.error("Wybrana drużyna nie ma przypisanej talii.");
+    return;
+  }
+
+  // Używamy poprawnych właściwości obiektu 'loading'
+  loading.cards = true;
+  loading.items = true;
+  
+  try {
+    const response = await apiServices.get(apiConfig.player.getCards(team.deckId), {
+      params: { 
+        gameId: parseInt(gameId, 10), 
+        teamId: team.teamId 
+      }
+    });
+
+    if (response.data && response.data.decisionCards && response.data.itemCards) {
+      cards.value = response.data.decisionCards;
+      items.value = response.data.itemCards;
+    } else {
+      toast.error("Otrzymano nieprawidłowe dane kart z serwera.");
+    }
+  } catch (error) {
+    toast.error("Wystąpił błąd podczas pobierania dostępnych kart.");
+    console.error(error);
+  } finally {
+    // Używamy poprawnych właściwości obiektu 'loading'
+    loading.cards = false;
+    loading.items = false;
+  }
+};
+
 
 let intervalId = null;
 
 onMounted(() => {
+  fetchTeams();  
   fetchDecisionHistory();
   fetchPendingDecisions();
 
