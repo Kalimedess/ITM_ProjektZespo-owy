@@ -270,6 +270,7 @@ namespace backend.Controllers
                     gb.GameProcessId
                 })
                 .ToListAsync();
+                //Pamiętajcie pozycję podzielić przez 100, żęby dobrze wyświetlić na planszy
 
             return Ok(boardData);
         }
@@ -287,6 +288,7 @@ namespace backend.Controllers
                     TeamColor = gb.Team.TeamColor
                 })
                 .ToListAsync();
+                //Pamiętajcie pozycję podzielić przez 100, żęby dobrze wyświetlić na planszy
 
             return Ok(boardData);
         }
