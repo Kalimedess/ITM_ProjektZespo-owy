@@ -128,7 +128,8 @@ namespace backend.Services
                         DeckId = newDeckId,
                         ProcessDesc = processTemplate.ProcessDesc,
                         ProcessLongDesc = processTemplate.ProcessLongDesc,
-                        ProcessColor = processTemplate.ProcessColor
+                        ProcessColor = processTemplate.ProcessColor,
+                        ProcessWeight = processTemplate.ProcessWeight
                     };
                     context.Processes.Add(newProcess);
                     await context.SaveChangesAsync(); // Czekamy na zakończenie zapisu

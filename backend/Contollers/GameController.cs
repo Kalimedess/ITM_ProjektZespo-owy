@@ -120,7 +120,7 @@ namespace backend.Controllers
                     TeamName = teamDto.Name,
                     TeamColor = teamDto.Colour,
                     TeamBud = gameDto.StartBits,
-                    TeamToken = "ABCDEF", // Zastąp swoją logiką generatora tokenów
+                    TeamToken = TokenGenerator.GenerateRandomAlphanumericToken(6),
                     IsIndependent = teamDto.IsAbleToMakeDecisions,
                     Game = newGame // Powiązanie z grą (EF Core sam ustawi GameId)
                 };
