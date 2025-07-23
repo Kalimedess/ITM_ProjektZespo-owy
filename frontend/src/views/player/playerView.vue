@@ -151,7 +151,7 @@ import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
 import GameBoard from '@/components/game/testGameBoard.vue'
 import Footer from '@/components/footers/adminFooter.vue'
-import CardCarousel from '@/components/playerComponents/testCardCarousel.vue'
+import CardCarousel from '@/components/playerComponents/CardCarousel.vue'
 import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
 import apiConfig from '@/services/apiConfig'
@@ -212,6 +212,8 @@ const fetchGameDataByToken = async (token) => {
   gameData.value = null;
   try {
     const response = await apiServices.get(apiConfig.player.getTeamInfo(token));
+    console.log("Dane z backendu (team info):", response.data);
+
 
     gameData.value = {
         ...response.data,
@@ -238,6 +240,8 @@ const fetchGameDataByToken = async (token) => {
     if (playerMenuRef.value && currentPanel.value === 'menu') {
       playerMenuRef.value.fetchGameLog();
     }
+    await fetchPawnsForGame(); // po ustawieniu gameData
+
 
     
 
@@ -294,17 +298,42 @@ function showRightPanel() {
   rightOpen.value = true
 }
 
-const pawns = ref([
-  { id: 1, color: '#ff0000', x: 0, y: 0 },
-  { id: 2, color: '#00ff00', x: 3, y: 4 },
-  { id: 3, color: '#0000ff', x: 5, y: 5 },
-])
 
-const enemypawns = ref([
-  { id: 1, color: '#ff0000', x: 0, y: 0 },
-  { id: 2, color: '#00ff00', x: 3, y: 4 },
-  { id: 3, color: '#0000ff', x: 5, y: 5 },
-])
+const pawns = ref([]);
+const enemypawns = ref([]);
+
+const fetchPawnsForGame = async () => {
+  try {
+    const response = await apiServices.get(
+      `/player/gameboard/game/${gameData.value.gameId}`
+    );
+
+    const allPawns = response.data;
+
+    pawns.value = allPawns
+      .filter(p => p.teamId === gameData.value.teamId)
+      .map(p => ({
+        id: p.id,
+        x: Number(p.posX),
+        y: Number(p.posY),
+        color: 'blue' // lub dynamicznie np. z drużyny
+      }));
+
+    enemypawns.value = allPawns
+      .filter(p => p.teamId !== gameData.value.teamId)
+      .map(p => ({
+        id: p.id,
+        x: Number(p.posX),
+        y: Number(p.posY),
+        color: 'red'
+      }));
+
+  } catch (err) {
+    console.error("Błąd pobierania pionków:", err);
+  }
+};
+
+
 
 </script>
 <style scoped>

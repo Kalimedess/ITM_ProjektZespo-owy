@@ -248,7 +248,7 @@ namespace backend.Controllers
                     BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
                 },
 
-                rivalBoardConfig = team.Game.RivalBoard = new
+                rivalBoardConfig = team.Game.RivalBoard != null ? new
                 {
                     boardId = team.Game.RivalBoard.BoardId,
                     Name = team.Game.RivalBoard.Name,
@@ -261,7 +261,7 @@ namespace backend.Controllers
                     CellColor = team.Game.RivalBoard.CellColor,
                     BorderColor = team.Game.RivalBoard.BorderColor,
                     BorderColors = team.Game.RivalBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
-                } 
+                } : null
 
                 // ... inne potrzebne dane
             };
@@ -305,6 +305,22 @@ namespace backend.Controllers
             return Ok(boardData);
         }
 
+[HttpGet("gameboard/game/{gameId}")]
+public async Task<IActionResult> GetAllPawnsForGame(int gameId)
+{
+    var pawns = await _context.GameBoards
+        .Where(gb => gb.GameId == gameId && gb.GameProcessId != null)
+        .Select(gb => new {
+            id = gb.GameProcessId,
+            teamId = gb.TeamId,
+            posX = gb.PozX,
+            posY = gb.PozY,
+            color = gb.Team.TeamColor // jeśli masz kolory drużyn
+        })
+        .ToListAsync();
+
+    return Ok(pawns);
+}
 
 
 
