@@ -19,6 +19,10 @@ const endpoints = {
     },
     settings: {
         licenses: '/admin/licenses'
+    },
+    games: {
+      getGames: (gameId) => `adminpanel/games/${gameId}`,
+      getTeams: (gameId) => `adminpanel/teams/by-game/${gameId}`
     }
   },
   games: {

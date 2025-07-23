@@ -23,8 +23,8 @@
             class="flex items-center gap-4 px-4 py-3 rounded-md"
             :class="isSideBarOpen ? '' : 'justify-center'"
           >
-            <font-awesome-icon :icon="faUsers" class="h-4 text-accent"/>
-            <span v-if="isSideBarOpen">Moduł zarządzania rynkiem</span>
+            <font-awesome-icon :icon="faTable" class="h-4 text-accent"/>
+            <span v-if="isSideBarOpen">Stoły</span>
           </RouterLink>
         </li>
 
@@ -164,7 +164,7 @@ import {
   faArrowLeft,
   faArrowRight,
   faUsers,
-  faFileLines
+  faTable
 } from '@fortawesome/free-solid-svg-icons'
 
 const isSideBarOpen = ref(true)
