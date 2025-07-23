@@ -251,6 +251,7 @@ import { watch } from 'vue';
 import GameBoard from '@/components/game/gameBoard.vue'
 import apiConfig from '@/services/apiConfig';
 import apiServices from '@/services/apiServices';
+import signalService from '@/services/signalService';
 
 const toast = useToast()
 const route = useRoute();
@@ -630,20 +631,39 @@ const fetchGameEvents = async () => {
   }
 };
 
-let intervalId = null;
+onMounted(async () => {
+    // Pierwsze ładowanie danych
+    fetchDecisionHistory();
+    fetchPendingDecisions();
+    fetchTeams();
+    fetchGameEvents()
 
-onMounted(() => {
-  fetchTeams();  
-  fetchDecisionHistory();
-  fetchPendingDecisions();
-  fetchGameEvents();
+    try {
+        // Uruchomienie połączenia i dołączenie do pokoju
+        await signalService.start();
+        await signalService.joinGameRoom(gameId);
+        console.log("Połączono z SignalR i dołączono do pokoju gry.");
 
-  intervalId = setInterval(checkForUpdates, 3000);
+        // Nasłuchuj na wiadomości od serwera
+        signalService.connection.on("HistoryUpdated", () => {
+            console.log("Otrzymano powiadomienie: Historia się zmieniła. Odświeżam...");
+            fetchDecisionHistory();
+        });
+        signalService.connection.on("PendingUpdated", () => {
+            console.log("Otrzymano powiadomienie: Sugestie się zmieniły. Odświeżam...");
+            fetchPendingDecisions();
+        });
+
+    } catch (err) {
+        console.error("Błąd połączenia SignalR: ", err);
+    }
 });
 
 onUnmounted(() => {
-  // Czyścimy timer przy przełączaniu komponentu
-  clearInterval(intervalId);
+    // Opuść pokój i zamknij połączenie
+    signalService.leaveGameRoom(gameId);
+    // Można też zatrzymać połączenie, jeśli to ostatni komponent
+    // signalrService.connection.stop();
 });
 
 

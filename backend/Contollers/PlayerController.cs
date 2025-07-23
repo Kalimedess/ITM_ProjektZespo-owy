@@ -4,6 +4,7 @@ using backend.Data;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Configuration;
+using Microsoft.AspNetCore.SignalR;
 
 public class UnifiedCardDto
 {
@@ -89,10 +90,12 @@ namespace backend.Controllers
     public class PlayerController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IHubContext<GameHub> _hubContext; 
 
-        public PlayerController(AppDbContext context)
+        public PlayerController(AppDbContext context, IHubContext<GameHub> hubContext) 
         {
             _context = context;
+            _hubContext = hubContext; 
         }
 
         [HttpGet("deck/{deckId}/unified-cards")]
@@ -473,8 +476,19 @@ namespace backend.Controllers
             
             await _context.SaveChangesAsync();
 
-            return Ok(new 
-            { 
+            if (team.IsIndependent || data.ForceExecution)
+            {
+                // Jeśli akcja została wykonana, odśwież historię
+                await _hubContext.Clients.Group($"game-{gameLogEntry.GameId}").SendAsync("HistoryUpdated");
+            }
+            else
+            {
+                // Jeśli to była tylko sugestia, odśwież listę oczekujących
+                await _hubContext.Clients.Group($"game-{gameLogEntry.GameId}").SendAsync("PendingUpdated");
+            }
+
+            return Ok(new
+            {
                 message = (team.IsIndependent || data.ForceExecution) ? "Akcja karty została wykonana." : "Sugestia zagrania karty została wysłana do zatwierdzenia.",
                 newTeamBudget = team.TeamBud
             });
@@ -695,6 +709,10 @@ namespace backend.Controllers
 
             await ExecuteCardEffects(logToApprove);
             await _context.SaveChangesAsync();
+            // Odśwież listę oczekujących (bo jedna sugestia zniknęła)
+            await _hubContext.Clients.Group($"game-{logToApprove.GameId}").SendAsync("PendingUpdated");
+            // Odśwież historię (bo pojawił się w niej nowy wpis)
+            await _hubContext.Clients.Group($"game-{logToApprove.GameId}").SendAsync("HistoryUpdated");
 
             return Ok(new { message = "Sugestia została zatwierdzona." });
         }
@@ -714,6 +732,7 @@ namespace backend.Controllers
 
             _context.GameLogs.Remove(logToReject);
             await _context.SaveChangesAsync();
+            await _hubContext.Clients.Group($"game-{logToReject.GameId}").SendAsync("PendingUpdated");
 
             return Ok(new { message = "Sugestia została odrzucona." });
         }
@@ -784,6 +803,7 @@ namespace backend.Controllers
 
             // Zapisz wszystkie zmiany w jednej transakcji
             await _context.SaveChangesAsync();
+            await _hubContext.Clients.Group($"game-{gameId}").SendAsync("HistoryUpdated");
 
             return Ok(new { message = $"Zdarzenie '{gameEvent.EventShortDesc}' zostało aktywowane dla wszystkich drużyn." });
         }
