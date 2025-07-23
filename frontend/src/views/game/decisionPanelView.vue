@@ -294,6 +294,9 @@ const selectedEvent = computed(() => {
     return availableEvents.value.find(e => e.eventId === selectedId);
 });
 
+const historyVersion = ref(null);
+const pendingVersion = ref(null);
+
 // --- FUNKCJE ---
 let hasLoadedOnce = false;
 
@@ -357,7 +360,8 @@ const fetchDecisionHistory = async () => {
         };
       }
     });
-
+    const versionResponse = await apiServices.get(apiConfig.games.getHistoryVersion(gameId));
+    historyVersion.value = versionResponse.data.version;
   } catch (error) {
     toast.error("Wystąpił błąd podczas ładowania historii decyzji.");
     console.error("Błąd ładowania historii:", error);
@@ -510,7 +514,8 @@ const fetchPendingDecisions = async () => {
     if (oldSerialized !== newSerialized) {
       pendingDecisions.value = newMapped;
     }
-
+    const versionResponse = await apiServices.get(apiConfig.games.getPendingVersion(gameId));
+    pendingVersion.value = versionResponse.data.version;
   } catch (error) {
     toast.error("Błąd podczas pobierania sugestii do zatwierdzenia.");
     console.error(error);
@@ -518,6 +523,23 @@ const fetchPendingDecisions = async () => {
     if (!hasLoadedPendingOnce) loadingPending.value = false;
     hasLoadedPendingOnce = true;
   }
+};
+
+const checkForUpdates = async () => {
+  try {
+    const historyVRes = await apiServices.get(apiConfig.games.getHistoryVersion(gameId));
+    if (historyVRes.data.version !== historyVersion.value) {
+      await fetchDecisionHistory();
+    }
+
+    const pendingVRes = await apiServices.get(apiConfig.games.getPendingVersion(gameId));
+    if (pendingVRes.data.version !== pendingVersion.value) {
+      await fetchPendingDecisions();
+    }
+  } catch (error) { 
+    toast.error("Błąd przy sprawdzaniu aktualizacji");
+    console.error(error);
+   }
 };
 
 const approveDecision = async (logId) => {
@@ -616,11 +638,7 @@ onMounted(() => {
   fetchPendingDecisions();
   fetchGameEvents();
 
-  // Co 5 sekund aktualizuj historię
-  intervalId = setInterval(() => {
-    fetchDecisionHistory();
-    fetchPendingDecisions();
-  }, 5000);
+  intervalId = setInterval(checkForUpdates, 3000);
 });
 
 onUnmounted(() => {

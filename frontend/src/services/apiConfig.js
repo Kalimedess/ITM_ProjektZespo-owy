@@ -41,7 +41,9 @@ const endpoints = {
     approveLog: (logId) => `/player/approve-log/${logId}`,           
     rejectLog: (logId) => `/player/reject-log/${logId}`,
     getGameEvents: '/player/game-events',
-    applyEvent: (gameId) => `/player/game/${gameId}/apply-event`              
+    applyEvent: (gameId) => `/player/game/${gameId}/apply-event`,   
+    getHistoryVersion: (gameId) => `/player/game/${gameId}/history-version`,
+    getPendingVersion: (gameId) => `/player/game/${gameId}/pending-version`           
   },
   boards: {
     create: '/board/add',
@@ -56,7 +58,8 @@ const endpoints = {
     getCards: (deckId) =>`player/deck/${deckId}/unified-cards`,
     getLogs: '/player/getLogs',
     getCurrency: '/player/getCurrency',
-    getPlayerHistory: '/player/player-history'
+    getPlayerHistory: '/player/player-history',
+    getPlayerHistoryVersion: (gameId, teamId) => `/player/game/${gameId}/history-version?teamId=${teamId}`
   }
   
 };

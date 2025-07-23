@@ -840,5 +840,39 @@ namespace backend.Controllers
 
             return Ok(result);
         }
+        
+        /// Zwraca "wersję" historii (zatwierdzonych logów) dla gry lub konkretnej drużyny.
+        [HttpGet("game/{gameId}/history-version")]
+        public async Task<IActionResult> GetHistoryVersion(int gameId, [FromQuery] int teamId = 0)
+        {
+            var query = _context.GameLogs.Where(gl => gl.GameId == gameId && gl.IsApproved != false);
+
+            if (teamId > 0)
+            {
+                // Wersja dla gracza: jego logi + logi globalne (bez teamId)
+                query = query.Where(gl => gl.TeamId == teamId || gl.TeamId == null);
+            }
+
+            var logCount = await query.CountAsync();
+            var lastLogDate = await query.OrderByDescending(gl => gl.Data).Select(gl => gl.Data).FirstOrDefaultAsync();
+
+            if (logCount == 0) return Ok(new { version = "empty" });
+
+            return Ok(new { version = $"{logCount}-{lastLogDate.Ticks}" });
+        }
+
+        /// Zwraca "wersję" sugestii (oczekujących logów) dla całej gry.
+        [HttpGet("game/{gameId}/pending-version")]
+        public async Task<IActionResult> GetPendingLogsVersion(int gameId)
+        {
+            var query = _context.GameLogs.Where(gl => gl.GameId == gameId && gl.IsApproved == false);
+            
+            var logCount = await query.CountAsync();
+            var lastLogDate = await query.OrderByDescending(gl => gl.Data).Select(gl => gl.Data).FirstOrDefaultAsync();
+
+            if (logCount == 0) return Ok(new { version = "empty" });
+
+            return Ok(new { version = $"{logCount}-{lastLogDate.Ticks}" });
+        }
     }
 }

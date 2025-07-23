@@ -60,11 +60,13 @@
   <script setup>
   import apiConfig from '@/services/apiConfig';
 import apiServices from '@/services/apiServices';
-import { ref, watch, onMounted} from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
   
   const gameLogEntries = ref([]);
+
+  const playerHistoryVersion = ref(null);
   
- 
+  let intervalId = null;
 
 const props = defineProps({
   gameId: {
@@ -111,10 +113,25 @@ const fetchGameLog = async () => {
                 }
             });
         }
+      const versionResponse = await apiServices.get(apiConfig.player.getPlayerHistoryVersion(props.gameId, props.teamId));
+      playerHistoryVersion.value = versionResponse.data.version;  
     } catch (error) {
         console.error("Błąd podczas pobierania historii gracza:", error);
     }
 }
+
+const checkPlayerHistoryForUpdates = async () => {
+    if (!props.gameId || !props.teamId) return;
+    try {
+        const response = await apiServices.get(apiConfig.player.getPlayerHistoryVersion(props.gameId, props.teamId));
+        if (response.data.version !== playerHistoryVersion.value) {
+            await fetchGameLog();
+            await fetchTeamBud(); // Dobrze jest odświeżyć budżet razem z historią
+        }
+    } catch (error) { 
+      console.error("Błąd przy sprawdzaniu aktualizacji",error);
+    }
+};
 
 const fetchTeamBud = async () => {
   const response = await apiServices.get(apiConfig.player.getCurrency, {params: {teamId: props.teamId }});
@@ -125,13 +142,20 @@ const fetchTeamBud = async () => {
 
  defineExpose({ fetchGameLog, fetchTeamBud});
 
-watch(() => props.budget, (newBudget) => {
-  currentBudget.value = newBudget;
-  fetchGameLog();
-  fetchTeamBud();
+let playerIntervalId = null;
+
+watch(() => [props.gameId, props.teamId], () => {
+    if(props.gameId && props.teamId) {
+        fetchGameLog();
+        fetchTeamBud();
+    }
 }, { immediate: true });
 
  onMounted(() => {
-    fetchGameLog();
+    playerIntervalId = setInterval(checkPlayerHistoryForUpdates, 3000);
+});
+
+  onUnmounted(() => {
+      clearInterval(intervalId);
   });
 </script>
