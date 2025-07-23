@@ -215,9 +215,8 @@ const fetchGameDataByToken = async (token) => {
 
     gameData.value = {
         ...response.data,
-        boardConfig: response.data.boardConfig, 
-        teamPosX: parseInt(response.data.teamPositionX, 10),
-        teamPosY: parseInt(response.data.teamPositionY, 10),
+        boardConfig: response.data.boardConfig,
+        rivalBoardConfig: response.data.rivalBoardConfig, 
     };
 
     formData.Name = gameData.value.boardConfig.name;
@@ -231,9 +230,16 @@ const fetchGameDataByToken = async (token) => {
     formData.CellColor = gameData.value.boardConfig.cellColor;
     formData.BorderColor = gameData.value.boardConfig.borderColor;
 
-    posX.value = gameData.value.teamPosX;
-    posY.value = gameData.value.teamPosY;
-
+    enemyformData.Name = gameData.value.rivalBoardConfig.name;
+    enemyformData.LabelsUp = gameData.value.rivalBoardConfig.labelsUp;
+    enemyformData.LabelsRight = gameData.value.rivalBoardConfig.labelsRight;
+    enemyformData.BorderColors = gameData.value.rivalBoardConfig.borderColors;
+    enemyformData.DescriptionDown = gameData.value.rivalBoardConfig.descriptionDown;
+    enemyformData.DescriptionLeft = gameData.value.rivalBoardConfig.descriptionLeft;
+    enemyformData.Rows = gameData.value.rivalBoardConfig.rows;
+    enemyformData.Cols = gameData.value.rivalBoardConfig.cols;
+    enemyformData.CellColor = gameData.value.rivalBoardConfig.cellColor;
+    enemyformData.BorderColor = gameData.value.rivalBoardConfig.borderColor;
 
     if (playerMenuRef.value && currentPanel.value === 'menu') {
       playerMenuRef.value.fetchGameLog();
