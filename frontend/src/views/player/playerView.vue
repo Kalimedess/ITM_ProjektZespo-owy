@@ -310,9 +310,14 @@ const enemypawns = ref([]);
 
 const fetchPawnsForGame = async () => {
   try {
-    const response = await apiServices.get(
-      `/player/gameboard/game/${gameData.value.gameId}`
-    );
+   const response = await apiServices.get('/player/team-board', {
+  params: {
+    gameId: gameData.value.gameId,
+    teamId: gameData.value.teamId,
+    boardId: gameData.value.boardConfig.boardId
+  }
+});
+
 
     const allPawns = response.data;
 

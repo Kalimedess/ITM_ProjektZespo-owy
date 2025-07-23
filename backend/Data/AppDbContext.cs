@@ -26,7 +26,7 @@ namespace backend.Data
         public DbSet<GameLog> GameLogs { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<Process> Processes { get; set; }
-        public DbSet<GameProcess> GameProcess { get; set; }
+        public DbSet<GameProcess> GameProcesses { get; set; }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
