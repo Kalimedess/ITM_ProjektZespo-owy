@@ -49,7 +49,9 @@ const endpoints = {
     playCardFailure: (cardId) => `/player/failure/${cardId}`,
     getCards: (deckId) =>`player/deck/${deckId}/unified-cards`,
     getLogs: '/player/getLogs',
-    getCurrency: '/player/getCurrency'
+    getCurrency: '/player/getCurrency',
+    getPawn: '/player/team-board'
+
   },
   processes: {
     getByDeck: (deckId) => `/processes/by-deck/${deckId}`

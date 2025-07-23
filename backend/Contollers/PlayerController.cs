@@ -271,21 +271,29 @@ namespace backend.Controllers
 
         
        [HttpGet("team-board")]
-        public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQuery] int teamId, [FromQuery] int boardId)
-        {
-            var boardData = await _context.GameBoards
-                .Where(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.BoardId == boardId && gb.GameProcessId != null)
-                .Select(gb => new
-                {
-                    gb.PozX,
-                    gb.PozY,
-                    gb.GameProcessId
-                })
-                .ToListAsync();
-                //Pamiętajcie pozycję podzielić przez 100, żęby dobrze wyświetlić na planszy
+public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQuery] int teamId, [FromQuery] int boardId)
+{
+    var boardData = await _context.GameBoards
+        .Where(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.BoardId == boardId && gb.GameProcessId != null)
+        .Join(_context.GameProcesses,
+              gb => gb.GameProcessId,
+              gp => gp.GameProcessId,
+              (gb, gp) => new { gb, gp })
+        .Join(_context.Processes,
+              x => x.gp.ProcessId,
+              p => p.ProcessId,
+              (x, p) => new
+              {
+                  x.gb.PozX,
+                  x.gb.PozY,
+                  x.gb.GameProcessId,
+                  color = p.ProcessColor // <<< KOLOR z bazy danych
+              })
+        .ToListAsync();
 
-            return Ok(boardData);
-        }
+    return Ok(boardData);
+}
+
 
         
         [HttpGet("rival-board")]
@@ -305,22 +313,6 @@ namespace backend.Controllers
             return Ok(boardData);
         }
 
-[HttpGet("gameboard/game/{gameId}")]
-public async Task<IActionResult> GetAllPawnsForGame(int gameId)
-{
-    var pawns = await _context.GameBoards
-        .Where(gb => gb.GameId == gameId && gb.GameProcessId != null)
-        .Select(gb => new {
-            id = gb.GameProcessId,
-            teamId = gb.TeamId,
-            posX = gb.PozX,
-            posY = gb.PozY,
-            color = gb.Team.TeamColor // jeśli masz kolory drużyn
-        })
-        .ToListAsync();
-
-    return Ok(pawns);
-}
 
 
 
