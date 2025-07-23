@@ -155,14 +155,13 @@
     
     const router = useRouter();
 
-    import { useRoute } from 'vue-router';
-    import apiClient from '@/assets/plugins/axios';
+    
 
-    const route = useRoute();
+
     const token = ref('');
 
     onMounted(async () => {
-      token.value = route.params.token;
+      token.value = router.currentRoute.value.params.token;
 
       try {
       const res = await apiService.get(apiConfig.auth.validateResetToken(token.value));
