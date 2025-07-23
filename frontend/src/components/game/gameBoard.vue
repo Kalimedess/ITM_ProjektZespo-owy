@@ -249,24 +249,50 @@ const drawBoard = () => {
   const originalCenterX = 147;
   const originalCenterY = 186;
 
-  if (Array.isArray(props.pawns)) {
-    props.pawns.forEach((pawn) => {
-      const centerX = pawn.x * cellSize.value + marginLeft.value + cellSize.value / 2;
-      const centerY = (props.config.Rows - 1 - pawn.y) * cellSize.value + marginTop.value + cellSize.value / 2;
+if (Array.isArray(props.pawns)) {
+  // Grupuj pionki wg pola
+  const grouped = {};
+  props.pawns.forEach(pawn => {
+    const key = `${pawn.x},${pawn.y}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(pawn);
+  });
 
-      svg.append("path")
-        .attr("class", `pawn pawn-${pawn.id}`)
-        .attr("d", pawnPath)
-        .attr("fill", pawn.color || "gray")
-        .attr("stroke", "black")
-        .attr("stroke-width", 1.2 / scale)
-        .attr("transform", `
-          translate(${centerX}, ${centerY})
-          scale(${scale})
-          translate(${-originalCenterX}, ${-originalCenterY})
-        `);
+  // Rysuj pionki w grupach
+  Object.entries(grouped).forEach(([key, group]) => {
+    const [x, y] = key.split(',').map(Number);
+    const baseX = x * cellSize.value + marginLeft.value + cellSize.value / 2;
+    const baseY = (props.config.Rows - 1 - y) * cellSize.value + marginTop.value + cellSize.value / 2;
+
+    const count = group.length;
+    const radius = Math.min(cellSize.value / 4, 10 + count * 2);
+    const scaleFactor = 1 / Math.sqrt(count); // np. 1.0 dla 1, 0.7 dla 2, 0.5 dla 4, 0.35 dla 8
+    const baseScale = cellSize.value * 0.002 * scaleFactor;
+
+    group.forEach((pawn, index) => {
+  const angle = (index / count) * 2 * Math.PI;
+  const offsetX = count === 1 ? 0 : Math.cos(angle) * radius;
+  const offsetY = count === 1 ? 0 : Math.sin(angle) * radius;
+
+  const pawnGroup = svg.append("g");
+
+  pawnGroup.append("path")
+    .attr("class", `pawn pawn-${pawn.id}`)
+    .attr("d", pawnPath)
+    .attr("fill", pawn.color || "gray")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1.2 / baseScale)
+    .attr("transform", `
+      translate(${baseX + offsetX}, ${baseY + offsetY})
+      scale(${baseScale})
+      translate(${-originalCenterX}, ${-originalCenterY})
+    `);
+
+    pawnGroup.append("title")
+      .text(pawn.name || `Pionek ${pawn.id}`);
     });
-  }
+  });
+}
 };
 
 

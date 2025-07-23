@@ -217,8 +217,9 @@ const fetchGameDataByToken = async (token) => {
 
     gameData.value = {
         ...response.data,
-        boardConfig: response.data.boardConfig,
-        rivalBoardConfig: response.data.rivalBoardConfig, 
+        boardConfig: response.data.boardConfig, 
+        teamPosX: parseInt(response.data.teamPositionX, 10),
+        teamPosY: parseInt(response.data.teamPositionY, 10),
     };
 
     formData.Name = gameData.value.boardConfig.name;
@@ -232,21 +233,30 @@ const fetchGameDataByToken = async (token) => {
     formData.CellColor = gameData.value.boardConfig.cellColor;
     formData.BorderColor = gameData.value.boardConfig.borderColor;
 
-    enemyformData.Name = gameData.value.rivalBoardConfig.name;
-    enemyformData.LabelsUp = gameData.value.rivalBoardConfig.labelsUp;
-    enemyformData.LabelsRight = gameData.value.rivalBoardConfig.labelsRight;
-    enemyformData.BorderColors = gameData.value.rivalBoardConfig.borderColors;
-    enemyformData.DescriptionDown = gameData.value.rivalBoardConfig.descriptionDown;
-    enemyformData.DescriptionLeft = gameData.value.rivalBoardConfig.descriptionLeft;
-    enemyformData.Rows = gameData.value.rivalBoardConfig.rows;
-    enemyformData.Cols = gameData.value.rivalBoardConfig.cols;
-    enemyformData.CellColor = gameData.value.rivalBoardConfig.cellColor;
-    enemyformData.BorderColor = gameData.value.rivalBoardConfig.borderColor;
+    posX.value = gameData.value.teamPosX;
+    posY.value = gameData.value.teamPosY;
+
 
     if (playerMenuRef.value && currentPanel.value === 'menu') {
       playerMenuRef.value.fetchGameLog();
     }
     await fetchPawnsForGame(); // po ustawieniu gameData
+
+    if (gameData.value.rivalBoardConfig) {
+      enemyformData.Name = gameData.value.rivalBoardConfig.name;
+      enemyformData.LabelsUp = gameData.value.rivalBoardConfig.labelsUp;
+      enemyformData.LabelsRight = gameData.value.rivalBoardConfig.labelsRight;
+      enemyformData.BorderColors = gameData.value.rivalBoardConfig.borderColors;
+      enemyformData.DescriptionDown = gameData.value.rivalBoardConfig.descriptionDown;
+      enemyformData.DescriptionLeft = gameData.value.rivalBoardConfig.descriptionLeft;
+      enemyformData.Rows = gameData.value.rivalBoardConfig.rows;
+      enemyformData.Cols = gameData.value.rivalBoardConfig.cols;
+      enemyformData.CellColor = gameData.value.rivalBoardConfig.cellColor;
+      enemyformData.BorderColor = gameData.value.rivalBoardConfig.borderColor;
+    } else 
+    {
+      console.warn("Brak konfiguracji rivalBoardConfig dla planszy rywala/rynku. Prawdopodobnie gra offline lub brak planszy rywala.");
+    }
 
 
     
@@ -304,6 +314,12 @@ function showRightPanel() {
   rightOpen.value = true
 }
 
+const testpawns = ref([
+  { id: 1, x: 0, y: 1, color: "red", name: "Król" },
+  { id: 2, x: 0, y: 1, color: "blue", name: "Mag" },
+  { id: 2, x: 0, y: 1, color: "green", name: "A" },
+  { id: 2, x: 0, y: 1, color: "black", name: "A" }
+]);
 
 const pawns = ref([]);
 const enemypawns = ref([]);
