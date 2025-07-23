@@ -14,23 +14,47 @@
         >
           <RouterView />
           <QuestionBox />
+
+                    <!-- 2. Dodajemy przyciski przełączające -->
+          <div class="flex justify-center space-x-2 my-4">
+              <button
+                  @click="showingDecisionCards = true"
+                  :class="showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-white text-black'"
+                  class="px-5 py-2 rounded-md border font-semibold"
+              >
+                  Decyzje
+              </button>
+              <button
+                  @click="showingDecisionCards = false"
+                  :class="!showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-white text-black'"
+                  class="px-5 py-2 rounded-md border font-semibold"
+              >
+                  Przedmioty
+              </button>
+          </div>
+
           <Suspense>
-            <template #default>
-              <CardCarousel
-                ref="cardCarouselRef"
-                v-if="gameData && gameData.deckId"
-                :deck-id="gameData.deckId"
-                :team-id="gameData.teamId"
-                :game-id="gameData.gameId"
-                :board-id="gameData.boardConfig?.boardId"
-                :current-budget="currentGlobalBudget"
-                :show-descriptions="isOnline"
-                @card-action-completed="handleCardActionCompleted"
-              />
-            </template>
-            <template #fallback>
-              <div>Ładowanie karuzeli kart... (Fallback ze Suspense)</div>
-            </template>
+              <template #default>
+                  <CardCarousel
+                      ref="cardCarouselRef"
+                      v-if="gameData && gameData.deckId" 
+                      :deck-id="gameData.deckId" 
+                      :team-id="gameData.teamId"
+                      :game-id="gameData.gameId"
+                      :board-id="gameData.boardConfig?.boardId"
+                      :current-budget="currentGlobalBudget"
+                    
+                      :showing-decision-cards="showingDecisionCards"
+
+                      :is-online-game="gameData?.isOnline"
+                      :is-independent-team="gameData?.isIndependent"
+
+                      @card-action-completed="handleCardActionCompleted"
+                  />
+              </template>
+              <template #fallback>
+                  <div>Ładowanie karuzeli kart...</div>
+              </template>
           </Suspense>
         </div>
       </Transition>
@@ -86,6 +110,12 @@
           :gameMode="true"
           :pawns="pawnPositions"
         />
+        <GameBoard
+          v-if="currentBoard === 'market'"
+          :config="formData"
+          :gameMode="true"
+          :pawns="pawns"
+        />
       </div>
 
       <!-- Prawy panel -->
@@ -93,7 +123,7 @@
         v-if="rightOpen"
         class="absolute right-0 top-0 w-1/2 h-full bg-secondary border-l border-gray-400 shadow-lg z-40 overflow-auto p-4"
       >
-        <PlayerMenu
+        <PlayerMenu 
           ref="playerMenuRef"
           v-if="currentPanel === 'menu' && gameData"
           :game-id="gameData?.gameId"
@@ -113,6 +143,9 @@
 
 
 <script setup>
+
+
+//---------------------------------------------------------------
 import { reactive, ref, watch} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
@@ -121,8 +154,10 @@ import Footer from '@/components/footers/adminFooter.vue'
 import CardCarousel from '@/components/playerComponents/testCardCarousel.vue'
 import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
-import apiClient from '@/assets/plugins/axios';
+import apiConfig from '@/services/apiConfig'
+import apiServices from '@/services/apiServices'
 
+const showingDecisionCards = ref(true);
 const currentPanel = ref('menu')
 
     const formData = reactive({
@@ -165,7 +200,7 @@ const fetchGameDataByToken = async (token) => {
   errorLoading.value = null;
   gameData.value = null;
   try {
-    const response = await apiClient.get(`/api/player/team/${token}`);
+    const response = await apiServices.get(apiConfig.player.getTeamInfo(token));
 
     gameData.value = {
         ...response.data,
@@ -174,6 +209,7 @@ const fetchGameDataByToken = async (token) => {
         teamPosY: parseInt(response.data.teamPositionY, 10),
     };
 
+<<<<<<< HEAD
     const pawnsResponse = await apiClient.get(`/api/player/gameboard/teams/${gameData.value.gameId}`);
     pawnPositions.value = pawnsResponse.data.map(p => ({
       id: p.id,                          // ← ID jest wymagane do renderu
@@ -186,6 +222,8 @@ const fetchGameDataByToken = async (token) => {
 
   
 
+=======
+>>>>>>> 40b361d48c0b86de17815bd0ed3b30e3ef109017
     formData.Name = gameData.value.boardConfig.name;
     formData.LabelsUp = gameData.value.boardConfig.labelsUp;
     formData.LabelsRight = gameData.value.boardConfig.labelsRight;

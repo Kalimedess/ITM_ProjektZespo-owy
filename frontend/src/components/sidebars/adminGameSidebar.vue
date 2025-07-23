@@ -23,10 +23,11 @@
             class="flex items-center gap-4 px-4 py-3 rounded-md"
             :class="isSideBarOpen ? '' : 'justify-center'"
           >
-            <font-awesome-icon :icon="faHouse" class="h-4 text-accent"/>
-            <span v-if="isSideBarOpen">Strona główna</span>
+            <font-awesome-icon :icon="faTable" class="h-4 text-accent"/>
+            <span v-if="isSideBarOpen">Stoły</span>
           </RouterLink>
         </li>
+        
 
         <!-- Statystyki -->
         <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
@@ -188,7 +189,8 @@ import {
   faHouse,
   faArrowLeft,
   faArrowRight,
-  faUsers
+  faUsers,
+  faTable
 } from '@fortawesome/free-solid-svg-icons'
 
 const isSideBarOpen = ref(true)

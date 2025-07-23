@@ -1,20 +1,21 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-primary">
-    <!-- Górny pasek -->
+  <div class="flex flex-col min-h-screen bg-primary relative overflow-hidden">
     <PlayerNavbar
-      :team-name="gameData?.teamName" 
+      :team-name="gameData?.teamName"
       :nav-bg-color="gameData?.teamColor"
     />
 
-    <!-- Główna zawartość -->
-    <div class="flex flex-1 mt-2">
-      
-      <!-- Lewa kolumna: wybór kart -->
-      <div class="flex-1 ml-4 mr-2 ...">
+    <div class="flex flex-1 flex-row relative overflow-hidden">
+      <!-- Lewy panel -->
+      <Transition name="fade-slide" appear>
+        <div
+          v-if="leftOpen"
+          class="absolute left-0 top-0 w-1/2 h-full bg-secondary border-r border-gray-400 shadow-lg z-40 overflow-auto p-4 transition-all duration-500 ease-in-out"
+        >
           <RouterView />
           <QuestionBox />
 
-          <!-- 2. Dodajemy przyciski przełączające -->
+                    <!-- 2. Dodajemy przyciski przełączające -->
           <div class="flex justify-center space-x-2 my-4">
               <button
                   @click="showingDecisionCards = true"
@@ -55,72 +56,106 @@
                   <div>Ładowanie karuzeli kart...</div>
               </template>
           </Suspense>
-      </div>
+        </div>
+      </Transition>
 
-      <!-- Prawa kolumna: decyzje -->
-      <div class="flex-1 ml-4 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 w-1/3 mr-4 flex flex-col space-y-4">
-        <!-- Przyciski przełączania paneli -->
-        <div class="flex justify-center space-x-2">
+      <!-- Plansza -->
+      <div
+        class="transition-all duration-300 h-full bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 z-30"
+        :class="[
+          leftOpen ? 'w-1/2 ml-auto' : '',
+          rightOpen ? 'w-1/2 mr-auto' : '',
+          (!leftOpen && !rightOpen) ? 'w-1/2 mx-auto' : ''
+        ]"
+      >
+        <div class="flex justify-center space-x-2 mb-4">
           <button
-            @click="currentPanel = 'menu'"
-            :class="currentPanel === 'menu' ? 'bg-black text-white' : 'bg-white text-black'"
-            class="px-4 py-1 rounded-md border"
-          >
-            Menu
-          </button>
-          <button
-            @click="currentPanel = 'gameboard'"
-            :class="currentPanel === 'gameboard' ? 'bg-black text-white' : 'bg-white text-black'"
+            @click="currentBoard = 'player'"
+            :class="currentBoard === 'player' ? 'bg-black text-white' : 'bg-white text-black'"
             class="px-4 py-1 rounded-md border"
           >
             Twoja plansza
           </button>
           <button
-            @click="currentPanel = 'panel2'"
-            :class="currentPanel === 'panel2' ? 'bg-black text-white' : 'bg-white text-black'"
+            @click="currentBoard = 'market'"
+            :class="currentBoard === 'market' ? 'bg-black text-white' : 'bg-white text-black'"
             class="px-4 py-1 rounded-md border"
           >
-            Plansza Rywali
+            Plansza rynku
           </button>
         </div>
 
-        <PlayerMenu 
-         ref="playerMenuRef"
-            v-if="currentPanel === 'menu' && gameData"
-            :game-id="gameData?.gameId"
-            :team-id="gameData?.teamId"
-          @budget-changed-in-menu="handleBudgetChangeFromMenu"
+        <div class="flex justify-between items-center mb-4">
+          <!-- Lewy przycisk -->
+          <button
+            @click="showLeftPanel"
+            class="bg-gray-800 text-white px-4 py-2 rounded-md"
+          >
+            Panel kart
+          </button>
+
+          <!-- Prawy przycisk -->
+          <button
+            @click="showRightPanel"
+            class="bg-gray-800 text-white px-4 py-2 rounded-md"
+          >
+            Panel decyzji
+          </button>
+        </div>
+        <!-- Zamienić pawnCount na liczbe graczy w danym stole -->
+        <!-- Zamienić pawnPositions na pozycje pionkow w grze (w testgameboard jest lokiga dzielenia pionków na grid wiec podajemy 1,1 albo 1,2) -->
+        <GameBoard
+          v-if="currentBoard === 'player'"
+          :config="formData"
+          :gameMode="true"
+          :pawns="pawns"
         />
-        <GameBoard v-else-if="currentPanel === 'gameboard'"
-        :config="formData"
-        :gameMode="true"
-        :posX="posX"
-        :posY="posY"
-        :pawnColor="gameData?.teamColor" />
+        <GameBoard
+          v-if="currentBoard === 'market'"
+          :config="enemyformData"
+          :gameMode="true"
+          :pawns="enemypawns"
+        />
       </div>
 
+      <!-- Prawy panel -->
+      <div
+        v-if="rightOpen"
+        class="absolute right-0 top-0 w-1/2 h-full bg-secondary border-l border-gray-400 shadow-lg z-40 overflow-auto p-4"
+      >
+        <PlayerMenu 
+          ref="playerMenuRef"
+          v-if="currentPanel === 'menu' && gameData"
+          :game-id="gameData?.gameId"
+          :team-id="gameData?.teamId"
+          @budget-changed-in-menu="handleBudgetChangeFromMenu"
+        />
+      </div>
     </div>
 
     <!-- Stopka -->
     <div class="mt-2">
-      <Footer/>
+      <Footer />
     </div>
   </div>
 </template>
 
+
+
 <script setup>
+
+
+//---------------------------------------------------------------
 import { reactive, ref, watch} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
-import GameBoard from '@/components/game/gameBoard.vue'
+import GameBoard from '@/components/game/testGameBoard.vue'
 import Footer from '@/components/footers/adminFooter.vue'
-import CardCarousel from '@/components/playerComponents/CardCarousel.vue'
+import CardCarousel from '@/components/playerComponents/testCardCarousel.vue'
 import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
 import apiConfig from '@/services/apiConfig'
 import apiServices from '@/services/apiServices'
-
-
 
 const showingDecisionCards = ref(true);
 const currentPanel = ref('menu')
@@ -137,7 +172,18 @@ const currentPanel = ref('menu')
         BorderColor: '#595959', 
         BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
     });
-
+    const enemyformData = reactive({
+        Name: 'Plansza podstawowa', 
+        LabelsUp: ['Podstawowa kordynacja', 'Standaryzacja procesów', 'Zintegrowane działania', 'Pełna integracja strategiczna'], 
+        LabelsRight: ['Nowicjusz', 'Naśladowca', 'Innowator', 'Lider cyfrowy'], 
+        DescriptionDown: 'Poziom integracji wew/zew', 
+        DescriptionLeft: 'Zawansowanie Cyfrowe', 
+        Rows: 8,
+        Cols: 8,
+        CellColor: '#fefae0', 
+        BorderColor: '#595959', 
+        BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
+    });
     const posX = ref(7);
     const posY = ref(7);
 
@@ -152,6 +198,8 @@ const currentGlobalBudget = ref(0);
 
 const playerMenuRef = ref(null);
 const cardCarouselRef = ref(null);
+const pawnPositions = ref([]);
+
 
 const fetchGameDataByToken = async (token) => {
   if (!token) {
@@ -225,4 +273,51 @@ const handleBudgetChangeFromMenu = (newBudgetFromMenu) => {
   currentGlobalBudget.value = newBudgetFromMenu;
 };
 
+//funkcja odpowiedzialna za pokazywanie tekstu na kartach
+const isOnline = ref(true)
+
+//funckja pokazujaca aktualną planszę
+const currentBoard = ref('player')
+
+//logika rozsuwania paneli
+
+const leftOpen = ref(false)
+const rightOpen = ref(true)
+
+function showLeftPanel() {
+  rightOpen.value = false
+  leftOpen.value = true
+}
+
+function showRightPanel() {
+  leftOpen.value = false
+  rightOpen.value = true
+}
+
+const pawns = ref([
+  { id: 1, color: '#ff0000', x: 0, y: 0 },
+  { id: 2, color: '#00ff00', x: 3, y: 4 },
+  { id: 3, color: '#0000ff', x: 5, y: 5 },
+])
+
+const enemypawns = ref([
+  { id: 1, color: '#ff0000', x: 0, y: 0 },
+  { id: 2, color: '#00ff00', x: 3, y: 4 },
+  { id: 3, color: '#0000ff', x: 5, y: 5 },
+])
+
 </script>
+<style scoped>
+  .fade-slide-enter-active,
+  .fade-slide-leave-active {
+    transition: all 0.5s ease;
+  }
+  .fade-slide-enter-from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  .fade-slide-leave-to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+</style>

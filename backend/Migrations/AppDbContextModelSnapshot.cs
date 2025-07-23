@@ -505,6 +505,9 @@ namespace backend.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<double>("ProcessWeight")
+                        .HasColumnType("double");
+
                     b.HasKey("ProcessId");
 
                     b.HasIndex("DeckId");

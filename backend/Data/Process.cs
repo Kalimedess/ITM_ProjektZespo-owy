@@ -12,6 +12,7 @@ namespace backend.Data
         public string ProcessLongDesc { get; set; } = string.Empty;
         [MaxLength(7)]
         public string ProcessColor { get; set; } = string.Empty;
+        public double ProcessWeight { get; set; }
         public int DeckId { get; set; }
         public Deck Deck { get; set; } = null!;
     }

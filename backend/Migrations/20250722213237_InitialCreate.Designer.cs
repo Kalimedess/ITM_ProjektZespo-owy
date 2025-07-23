@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250721191030_InitialCreate")]
+    [Migration("20250722213237_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -507,6 +507,9 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<double>("ProcessWeight")
+                        .HasColumnType("double");
 
                     b.HasKey("ProcessId");
 
