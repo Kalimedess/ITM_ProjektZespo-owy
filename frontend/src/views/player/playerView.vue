@@ -327,7 +327,7 @@ const enemypawns = ref([]);
 const fetchPawnsForGame = async () => {
   try {
     const response = await apiServices.get(
-      `/player/gameboard/game/${gameData.value.gameId}`
+      `/player/team-board`, {params: {gameId: gameData.value.gameId, teamId: gameData.value.teamId, boardId: gameData.value.boardId}}
     );
 
     const allPawns = response.data;
@@ -349,6 +349,7 @@ const fetchPawnsForGame = async () => {
         y: Number(p.posY),
         color: 'red'
       }));
+      console.log(pawns.value)
 
   } catch (err) {
     console.error("Błąd pobierania pionków:", err);

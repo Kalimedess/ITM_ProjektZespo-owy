@@ -341,8 +341,6 @@ public async Task<IActionResult> GetAllPawnsForGame(int gameId)
                     FeedbackDescription = gl.Feedback.LongDescription,
                     Status = gl.Status,
                     Cost = gl.Cost,
-                    MoveX = gl.MoveX,
-                    MoveY = gl.MoveY
                 })
                 .ToListAsync();
 
@@ -429,12 +427,9 @@ public async Task<IActionResult> GetAllPawnsForGame(int gameId)
                 CardId = selectedCard,
                 DeckId = data.DeckId,
                 BoardId = data.BoardId, 
-                GameProcessId = data?.GameProcessId,
                 FeedbackId = feedback?.FeedbackId,
                 Cost = finalCost,
-                Status = finalStatus, 
-                MoveX = 0,
-                MoveY = 0
+                Status = finalStatus,
             };
             _context.GameLogs.Add(gameLogEntry);
 

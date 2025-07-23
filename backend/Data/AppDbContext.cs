@@ -27,6 +27,7 @@ namespace backend.Data
         public DbSet<Item> Items { get; set; }
         public DbSet<Process> Processes { get; set; }
         public DbSet<GameProcess> GameProcess { get; set; }
+        public DbSet<GameLogSpec> GameLogSpecs { get; set; }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
@@ -177,10 +178,6 @@ namespace backend.Data
                         entity.HasOne(gl => gl.Board)
                         .WithMany()
                         .HasForeignKey(gl => gl.BoardId);
-
-                        entity.HasOne(gl => gl.GameProcess)
-                        .WithMany()
-                        .HasForeignKey(gl => gl.GameProcessId);
                   });
 
                   // Decision Configuration
@@ -263,23 +260,39 @@ namespace backend.Data
                   // GameProcess Configuration
                   modelBuilder.Entity<GameProcess>(entity =>
                   {
-                      entity.HasKey(gp => gp.GameProcessId);
+                        entity.HasKey(gp => gp.GameProcessId);
 
-                      // Relacja z Process
-                      entity.HasOne(gp => gp.Process)
-                            .WithMany() // Process nie ma kolekcji GameProcess
-                            .HasForeignKey(gp => gp.ProcessId)
-                            .OnDelete(DeleteBehavior.Restrict);
-                            
-                      entity.HasOne(gp => gp.Game)
-                            .WithMany(g => g.GameProcesses)
-                            .HasForeignKey(gp => gp.GameId);
-                      
-                      entity.HasOne(gp => gp.Team)
-                            .WithMany(t => t.GameProcesses)
-                            .HasForeignKey(gp => gp.TeamId);
+                        // Relacja z Process
+                        entity.HasOne(gp => gp.Process)
+                              .WithMany() // Process nie ma kolekcji GameProcess
+                              .HasForeignKey(gp => gp.ProcessId)
+                              .OnDelete(DeleteBehavior.Restrict);
+
+                        entity.HasOne(gp => gp.Game)
+                              .WithMany(g => g.GameProcesses)
+                              .HasForeignKey(gp => gp.GameId);
+
+                        entity.HasOne(gp => gp.Team)
+                              .WithMany(t => t.GameProcesses)
+                              .HasForeignKey(gp => gp.TeamId);
+                  });
+                  
+                  // GameLogSpec Configuration
+                  modelBuilder.Entity<GameLogSpec>(entity =>
+                  {
+                        entity.HasKey(gls => gls.GameLogSpecId);
+
+                        entity.HasOne<GameLog>()
+                              .WithMany(gl => gl.GameLogSpecs)
+                              .HasForeignKey(gls => gls.GameLogId)
+                              .OnDelete(DeleteBehavior.Cascade);
+
+                        entity.HasOne(gls => gls.GameProcess)
+                              .WithMany()
+                              .HasForeignKey(gls => gls.GameProcessId)
+                              .OnDelete(DeleteBehavior.SetNull);
                   });
 
-        }
+            }
     }
 }

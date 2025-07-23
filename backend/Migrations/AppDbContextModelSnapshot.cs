@@ -379,15 +379,6 @@ namespace backend.Migrations
                     b.Property<int>("GameId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("GameProcessId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MoveX")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MoveY")
-                        .HasColumnType("int");
-
                     b.Property<bool>("Status")
                         .HasColumnType("tinyint(1)");
 
@@ -406,11 +397,38 @@ namespace backend.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("GameProcessId");
-
                     b.HasIndex("TeamId");
 
                     b.ToTable("GameLogs");
+                });
+
+            modelBuilder.Entity("backend.Data.GameLogSpec", b =>
+                {
+                    b.Property<int>("GameLogSpecId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("GameLogSpecId"));
+
+                    b.Property<int>("GameLogId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GameProcessId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MoveX")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MoveY")
+                        .HasColumnType("int");
+
+                    b.HasKey("GameLogSpecId");
+
+                    b.HasIndex("GameLogId");
+
+                    b.HasIndex("GameProcessId");
+
+                    b.ToTable("GameLogSpecs");
                 });
 
             modelBuilder.Entity("backend.Data.GameProcess", b =>
@@ -807,10 +825,6 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Data.GameProcess", "GameProcess")
-                        .WithMany()
-                        .HasForeignKey("GameProcessId");
-
                     b.HasOne("backend.Data.Team", "Team")
                         .WithMany()
                         .HasForeignKey("TeamId")
@@ -827,9 +841,23 @@ namespace backend.Migrations
 
                     b.Navigation("Game");
 
-                    b.Navigation("GameProcess");
-
                     b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("backend.Data.GameLogSpec", b =>
+                {
+                    b.HasOne("backend.Data.GameLog", null)
+                        .WithMany("GameLogSpecs")
+                        .HasForeignKey("GameLogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Data.GameProcess", "GameProcess")
+                        .WithMany()
+                        .HasForeignKey("GameProcessId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("GameProcess");
                 });
 
             modelBuilder.Entity("backend.Data.GameProcess", b =>
@@ -927,6 +955,11 @@ namespace backend.Migrations
                     b.Navigation("GameProcesses");
 
                     b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("backend.Data.GameLog", b =>
+                {
+                    b.Navigation("GameLogSpecs");
                 });
 
             modelBuilder.Entity("backend.Data.Team", b =>
