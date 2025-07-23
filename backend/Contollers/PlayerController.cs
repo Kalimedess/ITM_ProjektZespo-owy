@@ -248,7 +248,7 @@ namespace backend.Controllers
                     BorderColors = team.Game.TeamBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
                 },
 
-                rivalBoardConfig = team.Game.RivalBoard = new
+                rivalBoardConfig = team.Game.RivalBoard != null ? new
                 {
                     boardId = team.Game.RivalBoard.BoardId,
                     Name = team.Game.RivalBoard.Name,
@@ -261,7 +261,7 @@ namespace backend.Controllers
                     CellColor = team.Game.RivalBoard.CellColor,
                     BorderColor = team.Game.RivalBoard.BorderColor,
                     BorderColors = team.Game.RivalBoard.BorderColors?.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() ?? Array.Empty<string>()
-                } 
+                } : null
 
                 // ... inne potrzebne dane
             };
