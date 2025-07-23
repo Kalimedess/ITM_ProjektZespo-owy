@@ -113,7 +113,7 @@ const drawBoard = () => {
     for (let col = 0; col < props.config.Cols; col++) {
       svg.append("rect")
         .attr("x", col * cellSize.value + marginLeft.value)
-        .attr("y", row * cellSize.value + marginTop.value)
+        .attr("y", (props.config.Rows - 1 - row) * cellSize.value + marginTop.value)
         .attr("width", cellSize.value)
         .attr("height", cellSize.value)
         .attr("fill", props.config.CellColor || '#fefae0')
@@ -160,7 +160,7 @@ const drawBoard = () => {
   labelsY.value.forEach((label, i) => {
     svg.append("text")
       .attr("x", marginLeft.value - 20)
-      .attr("y", boardSizeY.value - i * cellSize.value + marginTop.value - cellSize.value / 2)
+      .attr("y", i * cellSize.value + marginTop.value + cellSize.value / 2)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle")
       .attr("font-size", cellSize.value * 0.25)
@@ -252,7 +252,7 @@ const drawBoard = () => {
   if (Array.isArray(props.pawns)) {
     props.pawns.forEach((pawn) => {
       const centerX = pawn.x * cellSize.value + marginLeft.value + cellSize.value / 2;
-      const centerY = pawn.y * cellSize.value + marginTop.value + cellSize.value / 2;
+      const centerY = (props.config.Rows - 1 - pawn.y) * cellSize.value + marginTop.value + cellSize.value / 2;
 
       svg.append("path")
         .attr("class", `pawn pawn-${pawn.id}`)
