@@ -250,7 +250,7 @@ namespace backend.Controllers
                 },
 
                 // DRUGI BOARD CONFIG DLA RYWALI BOARDA ZROBIC
-
+                
                 // ... inne potrzebne dane
             };
 

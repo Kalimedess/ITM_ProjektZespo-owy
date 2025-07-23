@@ -84,7 +84,7 @@
           v-if="currentBoard === 'player'"
           :config="formData"
           :gameMode="true"
-          :pawns="pawns"
+          :pawns="pawnPositions"
         />
       </div>
 
@@ -176,10 +176,14 @@ const fetchGameDataByToken = async (token) => {
 
     const pawnsResponse = await apiClient.get(`/api/player/gameboard/teams/${gameData.value.gameId}`);
     pawnPositions.value = pawnsResponse.data.map(p => ({
-      x: p.posX,
-      y: p.posY,
+      id: p.id,                          // ← ID jest wymagane do renderu
+      x: Number(p.posX),                // Upewnij się, że to liczby
+      y: Number(p.posY),
       color: p.color || 'gray'
     }));
+    console.log("Pobrane pionki:", pawnPositions.value)
+
+
   
 
     formData.Name = gameData.value.boardConfig.name;
@@ -256,11 +260,8 @@ function showRightPanel() {
   rightOpen.value = true
 }
 
-const pawns = ref([
-  { id: 1, color: '#ff0000', x: 0, y: 0 },
-  { id: 2, color: '#00ff00', x: 3, y: 4 },
-  { id: 3, color: '#0000ff', x: 5, y: 5 },
-])
+
+
 
 </script>
 <style scoped>
