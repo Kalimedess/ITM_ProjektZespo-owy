@@ -96,7 +96,7 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
-          path: '/admin/game/:gameId/decision',
+          path: '/admin/game/market/:gameId',
           name: 'decision-panel',
           component: decisionPanel,
           props: true,

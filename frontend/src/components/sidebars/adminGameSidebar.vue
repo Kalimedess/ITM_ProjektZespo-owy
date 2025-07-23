@@ -19,7 +19,7 @@
         <!-- Strona główna -->
         <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
           <RouterLink 
-            :to="`/admin/game/market/${gameId}`"
+            :to="`/admin/game/${gameId}`"
             class="flex items-center gap-4 px-4 py-3 rounded-md"
             :class="isSideBarOpen ? '' : 'justify-center'"
           >
@@ -27,6 +27,19 @@
             <span v-if="isSideBarOpen">Stoły</span>
           </RouterLink>
         </li>
+
+        <!--Moduł zarzadzania rynkiem-->
+        <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
+          <RouterLink 
+            :to="`/admin/game/market/${gameId}`"
+            class="flex items-center gap-4 px-4 py-3 rounded-md"
+            :class="isSideBarOpen ? '' : 'justify-center'"
+          >
+            <font-awesome-icon :icon="faUsers" class="h-4 text-accent"/>
+            <span v-if="isSideBarOpen">Moduł zarządzania rynkiem</span>
+          </RouterLink>
+        </li>
+
 
         <!-- Panel stołu -->
         <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer"
