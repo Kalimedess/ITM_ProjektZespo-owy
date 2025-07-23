@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-primary relative overflow-hidden">
+  <div class="flex flex-col h-screen bg-primary relative overflow-hidden">
     <PlayerNavbar
       :team-name="gameData?.teamName"
       :nav-bg-color="gameData?.teamColor"
@@ -61,14 +61,14 @@
 
       <!-- Plansza -->
       <div
-        class="transition-all duration-300 h-full bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 z-30"
+        class="transition-all duration-300 h-full bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 pb-10 z-30"
         :class="[
           leftOpen ? 'w-1/2 ml-auto' : '',
           rightOpen ? 'w-1/2 mr-auto' : '',
           (!leftOpen && !rightOpen) ? 'w-1/2 mx-auto' : ''
         ]"
       >
-        <div class="flex justify-center space-x-2 mb-4">
+        <div class="flex justify-center">
           <button
             @click="currentBoard = 'player'"
             :class="currentBoard === 'player' ? 'bg-black text-white' : 'bg-white text-black'"
@@ -85,7 +85,7 @@
           </button>
         </div>
 
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center">
           <!-- Lewy przycisk -->
           <button
             @click="showLeftPanel"
@@ -134,7 +134,7 @@
     </div>
 
     <!-- Stopka -->
-    <div class="mt-2">
+    <div class="mt-auto">
       <Footer />
     </div>
   </div>
@@ -146,7 +146,7 @@
 
 
 //---------------------------------------------------------------
-import { reactive, ref, watch} from 'vue'
+import { reactive, ref, watch, onMounted} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
 import GameBoard from '@/components/game/gameBoard.vue'
@@ -198,8 +198,6 @@ const currentGlobalBudget = ref(0);
 
 const playerMenuRef = ref(null);
 const cardCarouselRef = ref(null);
-const pawnPositions = ref([]);
-
 
 const fetchGameDataByToken = async (token) => {
   if (!token) {
@@ -240,7 +238,7 @@ const fetchGameDataByToken = async (token) => {
     if (playerMenuRef.value && currentPanel.value === 'menu') {
       playerMenuRef.value.fetchGameLog();
     }
-    await fetchPawnsForGame(); // po ustawieniu gameData
+
 
     if (gameData.value.rivalBoardConfig) {
       enemyformData.Name = gameData.value.rivalBoardConfig.name;
@@ -272,11 +270,13 @@ const fetchGameDataByToken = async (token) => {
   }
 };
 
-watch(() => props.teamToken, (newToken) => {
-  if (newToken) {
-    fetchGameDataByToken(newToken);
+onMounted(() => {
+  if (props.teamToken) {
+    fetchGameDataByToken(props.teamToken);
   }
-}, { immediate: true });
+});
+
+
 
 const handleCardActionCompleted = async (eventPayload) => {
     if (eventPayload.success) {
@@ -286,6 +286,8 @@ const handleCardActionCompleted = async (eventPayload) => {
       } else {
         console.warn("PlayerView: Nie można wywołać fetchGameLog - PlayerMenu nie jest dostępne lub aktywne.");
       }
+      fetchPawns();
+      fetchRivalPawns();
   }
 }
 
@@ -314,19 +316,12 @@ function showRightPanel() {
   rightOpen.value = true
 }
 
-const testpawns = ref([
-  { id: 1, x: 0, y: 1, color: "red", name: "Król" },
-  { id: 2, x: 0, y: 1, color: "blue", name: "Mag" },
-  { id: 2, x: 0, y: 1, color: "green", name: "A" },
-  { id: 2, x: 0, y: 1, color: "black", name: "A" }
-]);
-
 const pawns = ref([]);
 const enemypawns = ref([]);
 
-const fetchPawnsForGame = async () => {
+const fetchPawns= async () => {
   try {
-   const response = await apiServices.get('/player/team-board', {
+   const response = await apiServices.get(apiConfig.player.getPawns, {
   params: {
     gameId: gameData.value.gameId,
     teamId: gameData.value.teamId,
@@ -334,25 +329,13 @@ const fetchPawnsForGame = async () => {
   }
 });
 
-
-    const allPawns = response.data;
-
-    pawns.value = allPawns
-      .filter(p => p.teamId === gameData.value.teamId)
+    pawns.value = response.data
       .map(p => ({
-        id: p.id,
+        id: p.gpId,
         x: Number(p.posX),
         y: Number(p.posY),
-        color: 'blue' // lub dynamicznie np. z drużyny
-      }));
-
-    enemypawns.value = allPawns
-      .filter(p => p.teamId !== gameData.value.teamId)
-      .map(p => ({
-        id: p.id,
-        x: Number(p.posX),
-        y: Number(p.posY),
-        color: 'red'
+        color: p.color,
+        name: p.name
       }));
       console.log(pawns.value)
 
@@ -361,7 +344,35 @@ const fetchPawnsForGame = async () => {
   }
 };
 
+const fetchRivalPawns= async () => {
+  try {
+   const response = await apiServices.get(apiConfig.player.getRivalPawns, {
+  params: {
+    gameId: gameData.value.gameId,
+    boardId: gameData.value.rivalBoardConfig.boardId
+  }
+});
 
+    enemypawns.value = response.data
+      .map(p => ({
+        id: p.teamId,
+        x: Number(p.posX),
+        y: Number(p.posY),
+        color: p.teamColor,
+        name: p.teamName
+
+      }));
+      console.log(enemypawns.value)
+
+  } catch (err) {
+    console.error("Błąd pobierania pionków:", err);
+  }
+};
+
+watch(() => {
+  fetchPawns();
+  fetchRivalPawns();
+});
 
 </script>
 <style scoped>

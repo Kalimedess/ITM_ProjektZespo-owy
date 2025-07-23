@@ -26,7 +26,7 @@ namespace backend.Data
         public DbSet<GameLog> GameLogs { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<Process> Processes { get; set; }
-        public DbSet<GameProcess> GameProcess { get; set; }
+        public DbSet<GameProcess> GameProcesses { get; set; }
         public DbSet<GameLogSpec> GameLogSpecs { get; set; }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -282,7 +282,7 @@ namespace backend.Data
                   {
                         entity.HasKey(gls => gls.GameLogSpecId);
 
-                        entity.HasOne<GameLog>()
+                        entity.HasOne<GameLog>(gls => gls.GameLog)
                               .WithMany(gl => gl.GameLogSpecs)
                               .HasForeignKey(gls => gls.GameLogId)
                               .OnDelete(DeleteBehavior.Cascade);

@@ -446,7 +446,7 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "GameProcess",
+                name: "GameProcesses",
                 columns: table => new
                 {
                     GameProcessId = table.Column<int>(type: "int", nullable: false)
@@ -457,21 +457,21 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameProcess", x => x.GameProcessId);
+                    table.PrimaryKey("PK_GameProcesses", x => x.GameProcessId);
                     table.ForeignKey(
-                        name: "FK_GameProcess_Games_GameId",
+                        name: "FK_GameProcesses_Games_GameId",
                         column: x => x.GameId,
                         principalTable: "Games",
                         principalColumn: "GameId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GameProcess_Processes_ProcessId",
+                        name: "FK_GameProcesses_Processes_ProcessId",
                         column: x => x.ProcessId,
                         principalTable: "Processes",
                         principalColumn: "ProcessId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GameProcess_Teams_TeamId",
+                        name: "FK_GameProcesses_Teams_TeamId",
                         column: x => x.TeamId,
                         principalTable: "Teams",
                         principalColumn: "TeamId",
@@ -488,8 +488,8 @@ namespace backend.Migrations
                     TeamId = table.Column<int>(type: "int", nullable: false),
                     GameId = table.Column<int>(type: "int", nullable: false),
                     GameProcessId = table.Column<int>(type: "int", nullable: true),
-                    PozX = table.Column<int>(type: "int", nullable: false),
-                    PozY = table.Column<int>(type: "int", nullable: false),
+                    PozX = table.Column<double>(type: "double", nullable: false),
+                    PozY = table.Column<double>(type: "double", nullable: false),
                     BoardId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -502,9 +502,9 @@ namespace backend.Migrations
                         principalColumn: "BoardId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GameBoards_GameProcess_GameProcessId",
+                        name: "FK_GameBoards_GameProcesses_GameProcessId",
                         column: x => x.GameProcessId,
-                        principalTable: "GameProcess",
+                        principalTable: "GameProcesses",
                         principalColumn: "GameProcessId");
                     table.ForeignKey(
                         name: "FK_GameBoards_Games_GameId",
@@ -542,9 +542,9 @@ namespace backend.Migrations
                         principalColumn: "GameLogId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GameLogSpecs_GameProcess_GameProcessId",
+                        name: "FK_GameLogSpecs_GameProcesses_GameProcessId",
                         column: x => x.GameProcessId,
-                        principalTable: "GameProcess",
+                        principalTable: "GameProcesses",
                         principalColumn: "GameProcessId",
                         onDelete: ReferentialAction.SetNull);
                 })
@@ -676,18 +676,18 @@ namespace backend.Migrations
                 column: "GameProcessId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GameProcess_GameId",
-                table: "GameProcess",
+                name: "IX_GameProcesses_GameId",
+                table: "GameProcesses",
                 column: "GameId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GameProcess_ProcessId",
-                table: "GameProcess",
+                name: "IX_GameProcesses_ProcessId",
+                table: "GameProcesses",
                 column: "ProcessId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GameProcess_TeamId",
-                table: "GameProcess",
+                name: "IX_GameProcesses_TeamId",
+                table: "GameProcesses",
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
@@ -756,7 +756,7 @@ namespace backend.Migrations
                 name: "GameLogs");
 
             migrationBuilder.DropTable(
-                name: "GameProcess");
+                name: "GameProcesses");
 
             migrationBuilder.DropTable(
                 name: "Feedbacks");

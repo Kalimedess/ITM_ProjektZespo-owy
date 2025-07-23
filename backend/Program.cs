@@ -37,6 +37,8 @@ builder.Services.AddScoped<JwtService>();
 
 builder.Services.AddScoped<IUserInitializationService, UserInitializationService>();
 
+builder.Services.AddScoped<IPlayerService, PlayerService>();
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {

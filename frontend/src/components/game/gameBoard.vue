@@ -160,7 +160,9 @@ const drawBoard = () => {
   labelsY.value.forEach((label, i) => {
     svg.append("text")
       .attr("x", marginLeft.value - 20)
-      .attr("y", i * cellSize.value + marginTop.value + cellSize.value / 2)
+      .attr("y", (props.config.Rows - 1 - i) * cellSize.value
+                 + marginTop.value
+                 + cellSize.value / 2)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle")
       .attr("font-size", cellSize.value * 0.25)

@@ -50,7 +50,8 @@ const endpoints = {
     getCards: (deckId) =>`player/deck/${deckId}/unified-cards`,
     getLogs: '/player/getLogs',
     getCurrency: '/player/getCurrency',
-    getPawn: '/player/team-board'
+    getPawns: '/player/team-board',
+    getRivalPawns: `/player/rival-board`,
 
   },
   processes: {

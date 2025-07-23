@@ -4,6 +4,8 @@ using backend.Data;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Configuration;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using backend.Services;
 
 public class UnifiedCardDto
 {
@@ -72,13 +74,15 @@ namespace backend.Controllers
     public class PlayerController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IPlayerService _playerService;
 
-        public PlayerController(AppDbContext context)
+        public PlayerController(AppDbContext context, IPlayerService playerService)
         {
             _context = context;
+            _playerService = playerService;
         }
 
-         [HttpGet("deck/{deckId}/unified-cards")]
+        [HttpGet("deck/{deckId}/unified-cards")]
         public async Task<ActionResult<CategorizedCardsDto>> GetUnifiedCardsForDeck(int deckId, [FromQuery] int gameId, [FromQuery] int teamId)
         {
             var deckExists = await _context.Decks.AnyAsync(d => d.DeckId == deckId);
@@ -108,16 +112,17 @@ namespace backend.Controllers
                 .Select(d => new { d.CardId, Title = d.DecisionShortDesc, Description = d.DecisionLongDesc, Cost = d.DecisionBaseCost })
                 .OrderBy(c => c.CardId)
                 .ToListAsync();
-            
+
             // Pobieranie kart PRZEDMIOTÓW
             var itemCardsInfo = await _context.Items
                 .Where(i => i.DeckId == deckId && !playedCardIds.Contains(i.CardId))
                 .Select(i => new { i.CardId, Title = i.HardwareShortDesc, Description = i.HardwareLongDesc, Cost = i.ItemsBaseCost })
                 .OrderBy(c => c.CardId)
                 .ToListAsync();
-            
+
             // Mapowanie DECYZJI na DTO
-            var decisionCards = decisionCardsInfo.Select((c, index) => {
+            var decisionCards = decisionCardsInfo.Select((c, index) =>
+            {
                 enablersMap.TryGetValue(c.CardId, out var enablersForCard);
                 return new UnifiedCardDto
                 {
@@ -133,7 +138,8 @@ namespace backend.Controllers
             }).ToList();
 
             // Mapowanie PRZEDMIOTÓW na DTO
-            var itemCards = itemCardsInfo.Select((c, index) => {
+            var itemCards = itemCardsInfo.Select((c, index) =>
+            {
                 enablersMap.TryGetValue(c.CardId, out var enablersForCard);
                 return new UnifiedCardDto
                 {
@@ -147,7 +153,7 @@ namespace backend.Controllers
                     Enablers = enablersForCard?.Where(id => id.HasValue).Select(id => id.Value).ToList() ?? new List<int>()
                 };
             }).ToList();
-            
+
             // Złożenie ostateczn   ej odpowiedzi
             var result = new CategorizedCardsDto
             {
@@ -217,7 +223,7 @@ namespace backend.Controllers
                 gameName = team.Game.GameDesc,
                 gameStatus = team.Game.GameStatus?.ToString(),
 
-                isOnline = team.Game.IsOnline, 
+                isOnline = team.Game.IsOnline,
 
                 teamId = team.TeamId,
                 teamName = team.TeamName,
@@ -269,51 +275,53 @@ namespace backend.Controllers
             return Ok(sessionData);
         }
 
-        
-       [HttpGet("team-board")]
-public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQuery] int teamId, [FromQuery] int boardId)
-{
-    var boardData = await _context.GameBoards
-        .Where(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.BoardId == boardId && gb.GameProcessId != null)
-        .Join(_context.GameProcesses,
-              gb => gb.GameProcessId,
-              gp => gp.GameProcessId,
-              (gb, gp) => new { gb, gp })
-        .Join(_context.Processes,
-              x => x.gp.ProcessId,
-              p => p.ProcessId,
-              (x, p) => new
-              {
-                  x.gb.PozX,
-                  x.gb.PozY,
-                  x.gb.GameProcessId,
-                  color = p.ProcessColor // <<< KOLOR z bazy danych
-              })
-        .ToListAsync();
 
-    return Ok(boardData);
-}
-
-
-        
-        [HttpGet("rival-board")]
-        public async Task<IActionResult> GetRivalBoardData([FromQuery] int gameId, [FromQuery] int boardId)
+        [HttpGet("team-board")]
+        public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQuery] int teamId, [FromQuery] int boardId)
         {
-            var boardData = await _context.GameBoards
-                .Where(gb => gb.GameId == gameId && gb.BoardId == boardId && gb.GameProcessId == null)
+            // Pobieramy pionki reprezentujące PROCESY dla konkretnej drużyny na jej planszy
+            var processPawns = await _context.GameBoards
+                .Where(gb =>
+                    gb.GameId == gameId &&
+                    gb.TeamId == teamId &&
+                    gb.BoardId == boardId &&
+                    gb.GameProcessId != null) // Warunek: POBIERZ PIONKI Z PROCESEM
                 .Select(gb => new
                 {
-                    gb.PozX,
-                    gb.PozY,
-                    TeamColor = gb.Team.TeamColor
+                    // Spójne nazewnictwo (PascalCase)
+                    GPId = gb.GameProcessId,
+                    PosX = gb.PozX,
+                    PosY = gb.PozY,
+                    // Pionki procesów mogą mieć kolor zdefiniowany w procesie, nie w drużynie
+                    Color = gb.GameProcess.Process.ProcessColor,
+                    Name = gb.GameProcess.Process.ProcessDesc
                 })
                 .ToListAsync();
-                //Pamiętajcie pozycję podzielić przez 100, żęby dobrze wyświetlić na planszy
 
-            return Ok(boardData);
+            return Ok(processPawns);
         }
 
+   [    HttpGet("rival-board")]
+        public async Task<IActionResult> GetRivalBoardData([FromQuery] int gameId, [FromQuery] int boardId)
+        {
+            var RivalPawns = await _context.GameBoards
+                .Where(gb =>
+                    gb.GameId == gameId &&
+                    gb.BoardId == boardId &&
+                    gb.GameProcessId == null) 
+                .Include(gb => gb.Team) 
+                .Select(gb => new
+                {
+                    PosX = gb.PozX,
+                    PosY = gb.PozY,
+                    TeamColor = gb.Team.TeamColor,
+                    TeamId = gb.Team.TeamId,
+                    TeamName = gb.Team.TeamName
+                })
+                .ToListAsync();
 
+            return Ok(RivalPawns);
+        }
 
 
         [HttpPost("getLogs")]
@@ -367,7 +375,7 @@ public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQ
             return await ProcessCardPlay(selectedCard, false, cardData);
         }
 
-       private async Task<IActionResult> ProcessCardPlay(int selectedCard, bool wasSuccess, CardDataDTO? data = null)
+        private async Task<IActionResult> ProcessCardPlay(int selectedCard, bool wasSuccess, CardDataDTO? data = null)
         {
             var team = await _context.Teams.FirstOrDefaultAsync(t => t.TeamId == data.TeamId);
             if (team == null) return NotFound($"Drużyna o ID {data.TeamId} nie została znaleziona.");
@@ -391,7 +399,7 @@ public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQ
             else
             {
                 // KROK 2: BRAK SPECJALNEGO ENABLERA -> Użyj standardowej logiki.
-                
+
                 // >>> TUTAJ JEST POPRAWIONY WARUNEK, KTÓRY ZNIKNĄŁ <<<
                 var isItem = await _context.Items.AnyAsync(i => i.CardId == selectedCard);
 
@@ -418,17 +426,20 @@ public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQ
                 GameId = data.GameId,
                 CardId = selectedCard,
                 DeckId = data.DeckId,
-                BoardId = data.BoardId, 
+                BoardId = data.BoardId,
                 FeedbackId = feedback?.FeedbackId,
                 Cost = finalCost,
                 Status = finalStatus,
             };
             _context.GameLogs.Add(gameLogEntry);
 
-            team.TeamBud -= (int)finalCost;
+            
+            await _context.SaveChangesAsync(); // To zapisze log i da GameLogId
 
-            // Zapisze wszystkie zmiany (log, budżet ORAZ ewentualne usunięcie enablera) w jednej transakcji.
-            await _context.SaveChangesAsync();
+            if(gameLogEntry.Status)
+                await AddGameLogSpecsForCard(gameLogEntry);
+                
+            team.TeamBud -= (int)finalCost;
 
             if (feedback != null)
             {
@@ -446,9 +457,10 @@ public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQ
             }
             else
             {
-                return Ok(new { 
-                    message = $"Akcja karty przetworzona.", 
-                    newTeamBudget = team.TeamBud 
+                return Ok(new
+                {
+                    message = $"Akcja karty przetworzona.",
+                    newTeamBudget = team.TeamBud
                 });
             }
         }
@@ -567,5 +579,29 @@ public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQ
 
             return Ok(new { message = $"Karta (ID: {unlockData.CardId}) została pomyślnie odblokowana dla drużyny (ID: {unlockData.TeamId})." });
         }
+
+        private async Task AddGameLogSpecsForCard(GameLog gameLogEntry)
+        {
+            var cardId = gameLogEntry.CardId;
+            var deckId = gameLogEntry.DeckId;
+
+            var decisionWeights = await _context.DecisionWeights
+                .Where(dw => dw.CardId == cardId && dw.DeckId == deckId)
+                .ToListAsync();
+
+            var gameLogSpecs = decisionWeights.Select(dw => new GameLogSpec
+            {
+                GameLogId = gameLogEntry.GameLogId,
+                GameProcessId = dw.ProcessId,
+                MoveX = dw.WeightX,
+                MoveY = dw.WeightY,
+            }).ToList();
+
+            _context.GameLogSpecs.AddRange(gameLogSpecs);
+
+            await _context.SaveChangesAsync(); // To zapisze GameLogSpec
+            _=_playerService.SetGameProcessPos(gameLogEntry.GameId, gameLogEntry.TeamId);
+        }
+
     }
 }

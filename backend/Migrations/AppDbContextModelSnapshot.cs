@@ -328,11 +328,11 @@ namespace backend.Migrations
                     b.Property<int?>("GameProcessId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PozX")
-                        .HasColumnType("int");
+                    b.Property<double>("PozX")
+                        .HasColumnType("double");
 
-                    b.Property<int>("PozY")
-                        .HasColumnType("int");
+                    b.Property<double>("PozY")
+                        .HasColumnType("double");
 
                     b.Property<int>("TeamId")
                         .HasColumnType("int");
@@ -456,7 +456,7 @@ namespace backend.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("GameProcess");
+                    b.ToTable("GameProcesses");
                 });
 
             modelBuilder.Entity("backend.Data.Item", b =>
@@ -846,7 +846,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Data.GameLogSpec", b =>
                 {
-                    b.HasOne("backend.Data.GameLog", null)
+                    b.HasOne("backend.Data.GameLog", "GameLog")
                         .WithMany("GameLogSpecs")
                         .HasForeignKey("GameLogId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -856,6 +856,8 @@ namespace backend.Migrations
                         .WithMany()
                         .HasForeignKey("GameProcessId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("GameLog");
 
                     b.Navigation("GameProcess");
                 });
