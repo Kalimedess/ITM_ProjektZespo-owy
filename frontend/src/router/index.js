@@ -13,7 +13,6 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
-import testPlayerView from '@/views/player/test-playerView.vue'
 import decisionPanel from '@/views/game/decisionPanelView.vue'
 import blockCards from '@/views/game/blockCardsView.vue'
 import resetPasswordView from '@/views/resetPasswordView.vue'
@@ -149,11 +148,6 @@ const router = createRouter({
       path:'/tempdecisions',
       name:'decision-history',
       component: decisionHistoryView,
-    },
-    {
-      path:'/testplayer',
-      name:'testplayer-dashboard',
-      component: testPlayerView,
     },
   ]
 })

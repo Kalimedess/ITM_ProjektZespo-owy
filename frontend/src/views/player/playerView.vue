@@ -149,7 +149,7 @@
 import { reactive, ref, watch} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
-import GameBoard from '@/components/game/testGameBoard.vue'
+import GameBoard from '@/components/game/gameBoard.vue'
 import Footer from '@/components/footers/adminFooter.vue'
 import CardCarousel from '@/components/playerComponents/CardCarousel.vue'
 import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
