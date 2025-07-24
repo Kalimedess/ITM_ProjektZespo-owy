@@ -93,13 +93,13 @@ namespace backend.Controllers
     public class PlayerController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly IHubContext<GameHub> _hubContext; 
+        private readonly IHubContext<GameHub> _hubContext;
         private readonly IPlayerService _playerService;
 
-        public PlayerController(AppDbContext context, IPlayerService playerService, IHubContext<GameHub> hubContext) 
+        public PlayerController(AppDbContext context, IPlayerService playerService, IHubContext<GameHub> hubContext)
         {
             _context = context;
-            _hubContext = hubContext; 
+            _hubContext = hubContext;
             _playerService = playerService;
         }
 
@@ -325,15 +325,15 @@ namespace backend.Controllers
             return Ok(processPawns);
         }
 
-   [    HttpGet("rival-board")]
+        [HttpGet("rival-board")]
         public async Task<IActionResult> GetRivalBoardData([FromQuery] int gameId, [FromQuery] int boardId)
         {
             var RivalPawns = await _context.GameBoards
                 .Where(gb =>
                     gb.GameId == gameId &&
                     gb.BoardId == boardId &&
-                    gb.GameProcessId == null) 
-                .Include(gb => gb.Team) 
+                    gb.GameProcessId == null)
+                .Include(gb => gb.Team)
                 .Select(gb => new
                 {
                     PosX = gb.PozX,
@@ -371,7 +371,7 @@ namespace backend.Controllers
             }
 
             var gameLogs = await query.OrderByDescending(gl => gl.Data).ToListAsync();
-            
+
             if (!gameLogs.Any()) return Ok(new List<object>());
 
             // Zbierz tylko te ID, które nie są null
@@ -379,7 +379,7 @@ namespace backend.Controllers
 
             var decisions = await _context.Decisions.Where(d => cardIds.Contains(d.CardId)).ToListAsync();
             var decisionTitles = decisions.GroupBy(d => d.CardId).ToDictionary(g => g.Key, g => g.First().DecisionShortDesc);
-            
+
             var items = await _context.Items.Where(i => cardIds.Contains(i.CardId)).ToListAsync();
             var itemTitles = items.GroupBy(i => i.CardId).ToDictionary(g => g.Key, g => g.First().HardwareShortDesc);
 
@@ -394,7 +394,7 @@ namespace backend.Controllers
                     itemTitles.TryGetValue(gl.CardId.Value, out var itemTitle);
                     cardTitle = decisionTitle ?? itemTitle;
                 }
-                
+
                 return new
                 {
                     LogId = gl.GameLogId, // Zakładam, że model GameLog ma pole Id
@@ -510,7 +510,7 @@ namespace backend.Controllers
             {
                 finalStatus = wasSuccess;
             }
-            
+
             var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f => f.CardId == selectedCard && f.DeckId == data.DeckId && f.Status == finalStatus);
 
             var gameLogEntry = new GameLog
@@ -524,7 +524,7 @@ namespace backend.Controllers
                 FeedbackId = feedback?.FeedbackId,
                 Cost = finalCost, // Używamy finalnego, zmodyfikowanego kosztu
                 GameEventId = eventIdForLog, // Zapisujemy ID eventu, jeśli był użyty
-                Status = finalStatus, 
+                Status = finalStatus,
                 IsApproved = data.ForceExecution ? (bool?)null : (team.IsIndependent ? (bool?)null : false)
             };
             _context.GameLogs.Add(gameLogEntry);
@@ -539,7 +539,7 @@ namespace backend.Controllers
             {
                 await ExecuteCardEffects(gameLogEntry);
             }
-            
+
             await _context.SaveChangesAsync();
 
             if (team.IsIndependent || data.ForceExecution)
@@ -561,54 +561,54 @@ namespace backend.Controllers
         }
 
         private async Task ExecuteCardEffects(GameLog log)
-{
-    // --- Krok 1: Zastosuj efekty związane z drużyną (np. budżet) ---
-    var trackedTeam = await _context.Teams.FindAsync(log.TeamId);
-    if (trackedTeam == null)
-    {
-        // To nie powinno się zdarzyć, jeśli dane są spójne. Rzuć wyjątek lub zaloguj krytyczny błąd.
-        throw new InvalidOperationException($"Drużyna o ID {log.TeamId} nie istnieje.");
-    }
-    
-    // Odejmij koszt karty od budżetu drużyny.
-    trackedTeam.TeamBud -= (int)(log.Cost ?? 0); // Używamy ?? 0 dla bezpieczeństwa, gdyby koszt był null
-
-    // --- Krok 2: Zaktualizuj status logu, jeśli była to sugestia ---
-    // Logika jest taka sama, ale komentarz wyjaśnia intencję.
-    // Jeśli log był sugestią (IsApproved == false), zatwierdź go.
-    if (log.IsApproved == false)
-    {
-        log.IsApproved = true;
-    }
-
-    // --- Krok 3: Usuń specjalny enabler, jeśli został użyty do zagrania tej karty ---
-    // Zapytanie jest takie samo jak wcześniej.
-    var specialEnabler = await _context.DecisionEnablers.FirstOrDefaultAsync(de =>
-        de.CardId == log.CardId &&
-        de.GameId == log.GameId &&
-        de.TeamId == log.TeamId &&
-        de.EnablerId == null);
-
-    if (specialEnabler != null)
-    {
-        _context.DecisionEnablers.Remove(specialEnabler);
-    }
-    
-    // --- Krok 4: Zastosuj ruchy na planszy, uwzględniając eventy ---
-    // Jeśli zagranie karty zakończyło się sukcesem, dodaj powiązane ruchy.
-    if (log.Status == true)
-    {
-        // Pobierz aktywny event, jeśli log był z nim powiązany
-        GameEvent? activeEvent = null;
-        if (log.GameEventId.HasValue)
         {
-            activeEvent = await _context.GameEvents.FindAsync(log.GameEventId.Value);
-        }
+            // --- Krok 1: Zastosuj efekty związane z drużyną (np. budżet) ---
+            var trackedTeam = await _context.Teams.FindAsync(log.TeamId);
+            if (trackedTeam == null)
+            {
+                // To nie powinno się zdarzyć, jeśli dane są spójne. Rzuć wyjątek lub zaloguj krytyczny błąd.
+                throw new InvalidOperationException($"Drużyna o ID {log.TeamId} nie istnieje.");
+            }
 
-        // Wywołaj metodę odpowiedzialną TYLKO za dodanie specyfikacji i ruchów
-        await AddGameLogSpecsForCard(log, activeEvent);
-    }
-}
+            // Odejmij koszt karty od budżetu drużyny.
+            trackedTeam.TeamBud -= (int)(log.Cost ?? 0); // Używamy ?? 0 dla bezpieczeństwa, gdyby koszt był null
+
+            // --- Krok 2: Zaktualizuj status logu, jeśli była to sugestia ---
+            // Logika jest taka sama, ale komentarz wyjaśnia intencję.
+            // Jeśli log był sugestią (IsApproved == false), zatwierdź go.
+            if (log.IsApproved == false)
+            {
+                log.IsApproved = true;
+            }
+
+            // --- Krok 3: Usuń specjalny enabler, jeśli został użyty do zagrania tej karty ---
+            // Zapytanie jest takie samo jak wcześniej.
+            var specialEnabler = await _context.DecisionEnablers.FirstOrDefaultAsync(de =>
+                de.CardId == log.CardId &&
+                de.GameId == log.GameId &&
+                de.TeamId == log.TeamId &&
+                de.EnablerId == null);
+
+            if (specialEnabler != null)
+            {
+                _context.DecisionEnablers.Remove(specialEnabler);
+            }
+
+            // --- Krok 4: Zastosuj ruchy na planszy, uwzględniając eventy ---
+            // Jeśli zagranie karty zakończyło się sukcesem, dodaj powiązane ruchy.
+            if (log.Status == true)
+            {
+                // Pobierz aktywny event, jeśli log był z nim powiązany
+                GameEvent? activeEvent = null;
+                if (log.GameEventId.HasValue)
+                {
+                    activeEvent = await _context.GameEvents.FindAsync(log.GameEventId.Value);
+                }
+
+                // Wywołaj metodę odpowiedzialną TYLKO za dodanie specyfikacji i ruchów
+                await AddGameLogSpecsForCard(log, activeEvent);
+            }
+        }
 
         [HttpGet("game/{gameId}/teams-management")]
         public async Task<ActionResult<IEnumerable<TeamManagementDto>>> GetTeamsForManagement(int gameId)
@@ -914,10 +914,10 @@ namespace backend.Controllers
             if (!combinedLogs.Any()) return Ok(new List<object>());
 
             var cardIds = combinedLogs.Where(gl => gl.CardId.HasValue).Select(gl => gl.CardId.Value).Distinct().ToList();
-            
+
             var decisions = await _context.Decisions.Where(d => cardIds.Contains(d.CardId)).ToListAsync();
             var decisionTitles = decisions.GroupBy(d => d.CardId).ToDictionary(g => g.Key, g => g.First().DecisionShortDesc);
-            
+
             var items = await _context.Items.Where(i => cardIds.Contains(i.CardId)).ToListAsync();
             var itemTitles = items.GroupBy(i => i.CardId).ToDictionary(g => g.Key, g => g.First().HardwareShortDesc);
 
@@ -937,13 +937,13 @@ namespace backend.Controllers
                     EventDescription = gl.GameEvent?.EventLongDesc, // Opis z dołączonego eventu
                     Status = gl.Status,
                     Cost = gl.Cost,
-                    GameEventId = gl.GameEventId 
+                    GameEventId = gl.GameEventId
                 };
             });
 
             return Ok(result);
         }
-        
+
         /// Zwraca "wersję" historii (zatwierdzonych logów) dla gry lub konkretnej drużyny.
         [HttpGet("game/{gameId}/history-version")]
         public async Task<IActionResult> GetHistoryVersion(int gameId, [FromQuery] int teamId = 0)
@@ -969,7 +969,7 @@ namespace backend.Controllers
         public async Task<IActionResult> GetPendingLogsVersion(int gameId)
         {
             var query = _context.GameLogs.Where(gl => gl.GameId == gameId && gl.IsApproved == false);
-            
+
             var logCount = await query.CountAsync();
             var lastLogDate = await query.OrderByDescending(gl => gl.Data).Select(gl => gl.Data).FirstOrDefaultAsync();
 
@@ -978,54 +978,86 @@ namespace backend.Controllers
             return Ok(new { version = $"{logCount}-{lastLogDate.Ticks}" });
         }
 
-         private async Task AddGameLogSpecsForCard(GameLog gameLogEntry, GameEvent? activeEvent)
+        private async Task AddGameLogSpecsForCard(GameLog gameLogEntry, GameEvent? activeEvent)
         {
             var cardId = gameLogEntry.CardId;
             var deckId = gameLogEntry.DeckId;
+            var gameId = gameLogEntry.GameId;
+            var teamId = gameLogEntry.TeamId.Value; // Wiemy, że tu nie będzie null
 
+            // Krok 1: Pobierz wagi dla danej karty
             var decisionWeights = await _context.DecisionWeights
                 .Where(dw => dw.CardId == cardId && dw.DeckId == deckId)
                 .ToListAsync();
 
-            var gameLogSpecs = decisionWeights.Select(dw => 
+            if (!decisionWeights.Any()) return; // Jeśli nie ma wag, nie ma nic do roboty
+
+            // --- KLUCZOWA POPRAWKA ---
+            // Krok 2: Stwórz mapę tłumaczącą ProcessId -> GameProcessId dla tej gry i drużyny
+            var processIdToGameProcessIdMap = await _context.GameProcesses
+                .Where(gp => gp.GameId == gameId && gp.TeamId == teamId)
+                .ToDictionaryAsync(
+                    gp => gp.ProcessId,      // Klucz: ID ogólnego procesu (np. 5)
+                    gp => gp.GameProcessId   // Wartość: ID instancji tego procesu w grze (np. 123)
+                );
+
+            var gameLogSpecs = new List<GameLogSpec>();
+
+            foreach (var dw in decisionWeights)
             {
-                double finalMoveX = dw.WeightX;
-                double finalMoveY = dw.WeightY;
-
-                // --- NOWA LOGIKA BOOSTERÓW Z EVENTU ---
-                if (activeEvent != null)
+                // Krok 3: Znajdź odpowiedni GameProcessId dla ProcessId z wagi
+                if (processIdToGameProcessIdMap.TryGetValue(dw.ProcessId, out var gameProcessId))
                 {
-                    // Stosujemy modyfikator tylko jeśli event ma zdefiniowany booster
-                    if (activeEvent.BoosterX.HasValue)
+                    // Mamy pasujący GameProcessId, możemy stworzyć poprawny wpis
+                    var (finalMoveX, finalMoveY) = CalculateBoostedMoves(dw, activeEvent); // Używamy metody pomocniczej
+
+                    gameLogSpecs.Add(new GameLogSpec
                     {
-                        finalMoveX = dw.WeightX * (1 + activeEvent.BoosterX.Value);
-                    }
-                    if (activeEvent.BoosterY.HasValue)
-                    {
-                        finalMoveY = dw.WeightY * (1 + activeEvent.BoosterY.Value);
-                    }
+                        GameLogId = gameLogEntry.GameLogId,
+                        GameProcessId = gameProcessId, // Używamy POPRAWNEGO ID
+                        MoveX = finalMoveX,
+                        MoveY = finalMoveY,
+                    });
                 }
-                // --- KONIEC LOGIKI BOOSTERÓW ---
-
-                return new GameLogSpec
-                {
-                    GameLogId = gameLogEntry.GameLogId,
-                    GameProcessId = dw.ProcessId,
-                    MoveX = (int)finalMoveX,
-                    MoveY = (int)finalMoveY,
-                };
-            }).ToList();
+            }
+            // --- KONIEC POPRAWKI ---
 
             if (gameLogSpecs.Any())
             {
                 _context.GameLogSpecs.AddRange(gameLogSpecs);
-                await _context.SaveChangesAsync(); // Zapisz specyfikacje
+                // SaveChanges() jest w metodzie nadrzędnej, więc tutaj tylko dodajemy do kontekstu
             }
 
-            // Wywołujemy serwisy do aktualizacji pozycji
-            await _playerService.SetGameProcessPosAsync(gameLogEntry.GameId, gameLogEntry.TeamId.Value);
-            await _playerService.SetTeamPosAsync(gameLogEntry.GameId, gameLogEntry.TeamId.Value);
+            // Wywołania do PlayerService zostają bez zmian
+            await _playerService.SetGameProcessPosAsync(gameId, teamId);
+            await _playerService.SetTeamPosAsync(gameId, teamId);
         }
+        private (int MoveX, int MoveY) CalculateBoostedMoves(DecisionWeight weight, GameEvent? activeEvent)
+        {
+            // Zaczynamy od wartości bazowych z DecisionWeight
+            double finalMoveX = weight.WeightX;
+            double finalMoveY = weight.WeightY;
+
+            // Jeśli nie ma aktywnego eventu, nie ma nic więcej do roboty
+            if (activeEvent != null)
+            {
+                // Stosujemy modyfikatory, jeśli istnieją, używając drugiej funkcji pomocniczej
+                finalMoveX = ApplyBooster(finalMoveX, activeEvent.BoosterX);
+                finalMoveY = ApplyBooster(finalMoveY, activeEvent.BoosterY);
             }
 
+            // Używamy Math.Round do jawnego zaokrąglenia do najbliższej liczby całkowitej,
+            // co jest bezpieczniejsze i bardziej przewidywalne niż proste rzutowanie (int).
+            return ((int)Math.Round(finalMoveX), (int)Math.Round(finalMoveY));
+        }
+
+        private double ApplyBooster(double baseValue, double? booster)
+        {
+            // Jeśli booster ma wartość (nie jest null), zastosuj go.
+            // W przeciwnym razie, zwróć niezmienioną wartość bazową.
+            // Przykład: baseValue=100, booster=0.2 -> 100 * (1 + 0.2) = 120
+            return booster.HasValue ? baseValue * (1 + booster.Value) : baseValue;
+        }
     }
+
+}

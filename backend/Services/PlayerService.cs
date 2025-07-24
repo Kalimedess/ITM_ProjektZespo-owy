@@ -115,60 +115,161 @@ namespace backend.Services
         }
 
         /// Aktualizuje pozycję głównego pionka drużyny jako średnią ważoną pozycji pionków-procesów.
-        public async Task SetTeamPosAsync(int gameId, int teamId)
+       public async Task SetTeamPosAsync(int gameId, int teamId)
+{
+    // Krok 1: Pobierz wszystkie pionki-procesy dla drużyny, łącznie z ich pozycjami i wagami.
+    // Teraz pobieramy również ProcessId, aby móc śledzić, które procesy mają wagę.
+    var processPawns = await _context.GameBoards
+        .Where(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.GameProcessId != null)
+        .Select(gb => new PawnData
         {
-            // Krok 1: Pobierz dane o pionkach-procesach (pozycja i waga) w jednym zapytaniu.
-            var processPawns = await _context.GameBoards
-                .Where(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.GameProcessId != null)
-                .Select(gb => new
-                {
-                    gb.PozX,
-                    gb.PozY,
-                    Weight = gb.GameProcess.Process.ProcessWeight
-                })
-                .ToListAsync();
+            ProcessId = gb.GameProcess.ProcessId, // Pobieramy ID ogólnego procesu
+            PosX = gb.PozX,
+            PosY = gb.PozY,
+            Weight = gb.GameProcess.Process.ProcessWeight
+        })
+        .ToListAsync();
 
-            if (!processPawns.Any())
-            {
-                _logger.LogWarning("Nie znaleziono pionków-procesów dla drużyny {TeamId} w grze {GameId}. Nie można obliczyć średniej pozycji drużyny.", teamId, gameId);
-                return;
-            }
+    if (!processPawns.Any())
+    {
+        _logger.LogWarning("Nie znaleziono pionków-procesów dla drużyny {TeamId} w grze {GameId}. Nie można obliczyć pozycji.", teamId, gameId);
+        return;
+    }
 
-            // Krok 2: Oblicz średnią ważoną w pamięci.
-            double totalWeight = processPawns.Sum(p => p.Weight);
-            if (totalWeight == 0)
-            {
-                _logger.LogWarning("Suma wag procesów dla drużyny {TeamId} w grze {GameId} wynosi zero. Ustawiam pozycję na (0,0).", teamId, gameId);
-                // Aby uniknąć dzielenia przez zero, można przyjąć domyślną pozycję lub zwrócić błąd.
-                // Ustawienie na (0,0) jest bezpiecznym wyjściem.
-                totalWeight = 1;
-            }
+    // Krok 2: Przetwórz wagi - zidentyfikuj brakujące i dokonaj redystrybucji.
+    List<NormalizedPawnData> normalizedPawns = ProcessAndNormalizeWeights(processPawns);
 
-            double weightedSumX = processPawns.Sum(p => p.PozX * p.Weight);
-            double weightedSumY = processPawns.Sum(p => p.PozY * p.Weight);
+    // Krok 3: Oblicz średnią ważoną na podstawie znormalizowanych wag.
+    // Ponieważ suma znormalizowanych wag wynosi 1, nie musimy przez nią dzielić.
+    double weightedSumX = normalizedPawns.Sum(p => p.PosX * p.NormalizedWeight);
+    double weightedSumY = normalizedPawns.Sum(p => p.PosY * p.NormalizedWeight);
 
-            int finalAvgX = (int)Math.Round(weightedSumX / totalWeight);
-            int finalAvgY = (int)Math.Round(weightedSumY / totalWeight);
+    // Wynik nie wymaga już dzielenia, bo suma wag to 1.
+    int finalAvgX = (int)Math.Round(weightedSumX);
+    int finalAvgY = (int)Math.Round(weightedSumY);
 
-            // Krok 3: Znajdź i zaktualizuj główny pionek drużyny.
-            var teamPawnEntry = await _context.GameBoards
-                .FirstOrDefaultAsync(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.GameProcessId == null);
+    // Krok 4: Znajdź i zaktualizuj główny pionek drużyny (logika pozostaje taka sama).
+    var teamPawnEntry = await _context.GameBoards
+        .FirstOrDefaultAsync(gb => gb.GameId == gameId && gb.TeamId == teamId && gb.GameProcessId == null);
 
-            if (teamPawnEntry == null)
-            {
-                _logger.LogError("BŁĄD KRYTYCZNY: Nie znaleziono głównego pionka (GameProcessId is null) dla drużyny {TeamId} w grze {GameId}.", teamId, gameId);
-                return;
-            }
+    if (teamPawnEntry == null)
+    {
+        _logger.LogError("BŁĄD KRYTYCZNY: Nie znaleziono głównego pionka dla drużyny {TeamId} w grze {GameId}.", teamId, gameId);
+        return;
+    }
 
-            teamPawnEntry.PozX = finalAvgX;
-            teamPawnEntry.PozY = finalAvgY;
+    teamPawnEntry.PozX = finalAvgX;
+    teamPawnEntry.PozY = finalAvgY;
 
-            // Krok 4: Zapisz zmiany.
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Zaktualizowano średnią ważoną pozycję ({PosX}, {PosY}) dla drużyny {TeamId} w grze {GameId}.", finalAvgX, finalAvgY, teamId, gameId);
+    // Krok 5: Zapisz zmiany i wyślij powiadomienie.
+    await _context.SaveChangesAsync();
+    _logger.LogInformation("Zaktualizowano średnią ważoną pozycję ({PosX}, {PosY}) dla drużyny {TeamId} w grze {GameId}.", finalAvgX, finalAvgY, teamId, gameId);
 
-            await _hubContext.Clients.Group($"game-{gameId}").SendAsync("BoardUpdated");
-            await _hubContext.Clients.Group($"game-{gameId}").SendAsync("BoardUpdated", new { teamId = teamId });
-        }
+    // Powiadomienie SignalR (zakładając, że _hubContext jest wstrzyknięty)
+    await _hubContext.Clients.Group(gameId.ToString()).SendAsync("BoardUpdated", new { teamId });
+}
+
+/// <summary>
+/// Prywatna metoda pomocnicza do przetwarzania i normalizacji wag.
+/// To jest serce nowej logiki biznesowej.
+/// </summary>
+private List<NormalizedPawnData> ProcessAndNormalizeWeights(List<PawnData> pawns)
+{
+    // Dzielimy pionki na te z wagą i te bez (waga <= 0)
+    var pawnsWithWeight = pawns.Where(p => p.Weight > 0).ToList();
+    var pawnsWithoutWeight = pawns.Where(p => p.Weight <= 0).ToList();
+
+    double totalWeightProvided = pawnsWithWeight.Sum(p => p.Weight);
+    double missingWeight = 1.0 - totalWeightProvided; // Zakładamy, że docelowa suma to 1.0
+
+    // Jeśli wagi są poprawne (suma >= 1) lub nie ma komu oddać brakującej wagi,
+    // po prostu je znormalizuj i zwróć.
+    if (missingWeight <= 0 || !pawnsWithWeight.Any())
+    {
+        _logger.LogInformation("Wagi nie wymagają redystrybucji. Normalizowanie {PawnCount} pionków.", pawns.Count);
+        return Normalize(pawns, pawns.Sum(p => p.Weight));
+    }
+
+    _logger.LogInformation(
+        "Wykryto brakującą wagę: {MissingWeight}. Rozdzielanie jej między {PawnCount} pionków.",
+        missingWeight, pawnsWithWeight.Count);
+        
+    var temporaryWeights = new Dictionary<int, double>();
+
+    // Przypisz oryginalne wagi
+    foreach (var pawn in pawnsWithWeight)
+    {
+        temporaryWeights[pawn.ProcessId] = pawn.Weight;
+    }
+
+    // Dokonaj redystrybucji brakującej wagi proporcjonalnie
+    foreach (var pawn in pawnsWithWeight)
+    {
+        // Udział danego pionka w sumie istniejących wag
+        double proportion = pawn.Weight / totalWeightProvided;
+        // Dodaj do jego wagi odpowiednią część brakującej wagi
+        temporaryWeights[pawn.ProcessId] += missingWeight * proportion;
+    }
+
+    // Teraz stwórz finalną listę z nowymi, redystrybuowanymi wagami.
+    var finalPawnData = pawns.Select(p => new PawnData
+    {
+        ProcessId = p.ProcessId,
+        PosX = p.PosX,
+        PosY = p.PosY,
+        // Użyj nowej wagi, jeśli istnieje, w przeciwnym razie waga to 0
+        Weight = temporaryWeights.GetValueOrDefault(p.ProcessId, 0)
+    }).ToList();
+
+    // Na koniec znormalizuj wszystko, aby mieć pewność, że suma wynosi dokładnie 1.
+    return Normalize(finalPawnData, finalPawnData.Sum(p => p.Weight));
+}
+
+/// <summary>
+/// Normalizuje listę wag tak, aby ich suma wynosiła 1.0.
+/// </summary>
+private List<NormalizedPawnData> Normalize(List<PawnData> pawns, double totalWeight)
+{
+    // Zabezpieczenie przed dzieleniem przez zero
+    if (totalWeight == 0)
+    {
+        _logger.LogWarning("Całkowita suma wag wynosi 0, nie można znormalizować. Zwracam wagi zerowe.");
+        return pawns.Select(p => new NormalizedPawnData(p, 0)).ToList();
+    }
+    
+    return pawns.Select(p => new NormalizedPawnData(p, p.Weight / totalWeight)).ToList();
+}
+
+// --- Klasy pomocnicze DTO do przechowywania danych w pamięci ---
+
+/// <summary>
+/// Przechowuje surowe dane o pionku pobrane z bazy.
+/// </summary>
+private class PawnData
+{
+    public int ProcessId { get; set; }
+    public double PosX { get; set; }
+    public double PosY { get; set; }
+    public double Weight { get; set; }
+}
+
+/// <summary>
+/// Przechowuje dane o pionku wraz ze znormalizowaną wagą.
+/// </summary>
+private class NormalizedPawnData
+{
+    public int ProcessId { get; }
+    public double PosX { get; }
+    public double PosY { get; }
+    public double NormalizedWeight { get; }
+
+    public NormalizedPawnData(PawnData source, double normalizedWeight)
+    {
+        ProcessId = source.ProcessId;
+        PosX = source.PosX;
+        PosY = source.PosY;
+        NormalizedWeight = normalizedWeight;
+    }
+}
     }
 }
