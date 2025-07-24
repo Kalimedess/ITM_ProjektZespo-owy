@@ -34,15 +34,18 @@ namespace backend.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
         private readonly JwtService _jwtService;
+        private readonly IUserInitializationService _initializationService;
 
-        public AuthController(AppDbContext context, EmailService emailService, JwtService jwtService, IConfiguration configuration)  
+        public AuthController(AppDbContext context, IEmailService emailService, JwtService jwtService, IConfiguration configuration, IUserInitializationService initializationService)
         {
             _context = context;
             _configuration = configuration;
             _emailService = emailService;
             _jwtService = jwtService;
+            _initializationService = initializationService;
+
         }
 
         [HttpPost("login")]
@@ -63,10 +66,11 @@ namespace backend.Controllers
             if (!user.EmailConfirmed)
             {
                 // wygeneruj nowy token
-                user.ConfirmationToken = Guid.NewGuid().ToString();
+                user.LinkToken = Guid.NewGuid().ToString();
+                user.TokenExpireDate = DateTime.Now.AddMinutes(15).RoundUpToNearestMinute();
                 await _context.SaveChangesAsync();
 
-                await SendConfirmationEmail(user.Email);
+                _ = _emailService.SendConfirmationEmailAsync(user.Email, user.LinkToken, user.TokenExpireDate.Value);
 
                 return BadRequest("E-mail nie został potwierdzony. Wysłano ponownie link aktywacyjny.");
             }
@@ -106,66 +110,6 @@ namespace backend.Controllers
             return Ok(new { success = true, message = "Wylogowano pomyślnie" });
         }
 
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user == null)
-            {
-                return BadRequest("Email not found.");
-            }
-
-
-            var ResetPasswordToken = Guid.NewGuid().ToString();
-            user.ConfirmationToken = ResetPasswordToken;
-            await _context.SaveChangesAsync();
-            var frontendBaseUrl = _configuration.GetValue<string>("CorsSettings:AllowedOrigins:0");
-            var ResetPasswordLink = $"{frontendBaseUrl}/resetPassword/{ResetPasswordToken}";
-
-            if (string.IsNullOrEmpty(ResetPasswordLink))
-            {
-                ResetPasswordLink = $"{frontendBaseUrl}/resetPassword/{ResetPasswordToken}";
-            }
-
-            try
-            {
-                await _emailService.SendEmailAsync(request.Email, "reset hasla", $"Reset Password: {ResetPasswordLink}");
-                return Ok(new { success = true, message = "Reset Password test" });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending reset email: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "failed to send reset email.");
-            }
-            
-        }  
-        private async Task<bool> SendConfirmationEmail(string email)
-{
-    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-    var frontendBaseUrl = _configuration.GetValue<string>("CorsSettings:AllowedOrigins:0");
-    var confirmationLink = $"{frontendBaseUrl}/confirm/{user.ConfirmationToken}";
-    
-    if (string.IsNullOrEmpty(confirmationLink))
-            {
-                confirmationLink = $"{frontendBaseUrl}/confirm/{user.ConfirmationToken}";
-            }
-
-    try
-    {
-        await _emailService.SendEmailAsync(user.Email, "Potwierdzenie rejestracji", $"Kliknij w link aby aktywować konto: {confirmationLink}");
-        return true;
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error sending confirmation email: {ex.Message}");
-        return false;
-    }
-}
-
-
-
-
-
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -183,155 +127,52 @@ namespace backend.Controllers
                 Email = request.Email,
                 Password = hashedPassword,
                 EmailConfirmed = false,
-                ConfirmationToken = confirmationToken
+                LinkToken = confirmationToken,
+                TokenExpireDate = DateTime.Now.AddMinutes(15).RoundUpToNearestMinute()
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // --- Kopiowanie szablonowego Decku wraz z zawartością ---
-            int templateDeckId = 1;
-            var templateDeck = await _context.Decks
-                .Include(d => d.Decisions)
-                .Include(d => d.Items)
-                .Include(d => d.Feedbacks)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(d => d.DeckId == templateDeckId && d.UserId == null);
+            // 1. Inicjalizacja danych w bazie
+            _ = _initializationService.InitializeUserAsync(user.UserId);
 
-            if (templateDeck != null)
-            {
-                // Stwórz nowy Deck dla użytkownika
-                var newDeckForUser = new Deck
-                {
-                    DeckName = $"Podstawowy",
-                    UserId = user.UserId
-                };
-                _context.Decks.Add(newDeckForUser);
-                await _context.SaveChangesAsync();
-                Console.WriteLine($"New deck {newDeckForUser.DeckId} created for user {user.UserId}.");
+            // 2. Wysyłka e-maila
+            _ = _emailService.SendConfirmationEmailAsync(user.Email, user.LinkToken, user.TokenExpireDate.Value);
 
-                // Kopiuj Decisions
-                int decisionsPrepared = 0;
-                if (templateDeck.Decisions != null && templateDeck.Decisions.Any())
-                {
-                    foreach (var decisionTemplate in templateDeck.Decisions)
-                    {
-                        _context.Decisions.Add(new Decision
-                        {
-                            DeckId = newDeckForUser.DeckId,
-                            CardId = decisionTemplate.CardId,
-                            DecisionShortDesc = decisionTemplate.DecisionShortDesc,
-                            DecisionLongDesc = decisionTemplate.DecisionLongDesc,
-                            DecisionBaseCost = decisionTemplate.DecisionBaseCost,
-                            DecisionCostWeight = decisionTemplate.DecisionCostWeight,
-                        });
-                        decisionsPrepared++;
-                    }
-                }
-                Console.WriteLine($"{decisionsPrepared} Decisions prepared for Deck {newDeckForUser.DeckId}.");
-
-                // Kopiuj Items
-                if (templateDeck.Items != null)
-                {
-                    foreach (var itemTemplate in templateDeck.Items)
-                    {
-                        _context.Items.Add(new Item
-                        {
-                            DeckId = newDeckForUser.DeckId,
-                            CardId = itemTemplate.CardId,
-                            HardwareShortDesc = itemTemplate.HardwareShortDesc,
-                            HardwareLongDesc = itemTemplate.HardwareLongDesc,
-                            ItemsBaseCost = itemTemplate.ItemsBaseCost,
-                            ItemsCostWeight = itemTemplate.ItemsCostWeight
-                        });
-                    }
-                }
-
-                // Kopiuj Feedbacks
-                if (templateDeck.Feedbacks != null)
-                {
-                    foreach (var feedbackTemplate in templateDeck.Feedbacks)
-                    {
-                        _context.Feedbacks.Add(new Feedback
-                        {
-                            DeckId = newDeckForUser.DeckId,
-                            CardId = feedbackTemplate.CardId,
-                            Status = feedbackTemplate.Status,
-                            LongDescription = feedbackTemplate.LongDescription,
-                            FeedbackPDF = feedbackTemplate.FeedbackPDF
-                        });
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine($"WARNING: Template Deck ID {templateDeckId} (UserId NULL) NOT FOUND. Cannot copy deck contents for user {user.Email}.");
-            }
-
-
-            // --- Kopiowanie szablonowej Board ---
-            int[] templateBoardIds = { 1, 2, 3 };
-
-            foreach (var templateBoardId in templateBoardIds)
-            {
-                var templateBoard = await _context.Boards
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(b => b.BoardId == templateBoardId && b.UserId == null);
-
-                if (templateBoard != null)
-                {
-                    _context.Boards.Add(new Board
-                    {
-                        UserId = user.UserId,
-                        Name = $"{templateBoard.Name}",
-                        LabelsUp = templateBoard.LabelsUp,
-                        LabelsRight = templateBoard.LabelsRight,
-                        DescriptionDown = templateBoard.DescriptionDown,
-                        DescriptionLeft = templateBoard.DescriptionLeft,
-                        Rows = templateBoard.Rows,
-                        Cols = templateBoard.Cols,
-                        BorderColor = templateBoard.BorderColor,
-                        CellColor = templateBoard.CellColor,
-                        BorderColors = templateBoard.BorderColors
-                    });
-                }
-            }
-
-            await _context.SaveChangesAsync();
-
-            if (await SendConfirmationEmail(user.Email))
-            {
-                return Ok(new { success = true, message = "Registration successful. Please check your email." });
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Registration succeeded but failed to send confirmation email.");
-            }
+            // --- Zwróć odpowiedź NATYCHMIAST ---
+            return Ok(new { success = true, message = "Registration successful. Please check your email for a confirmation link." });
 
         }
 
 
-        [HttpGet("confirm")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        [HttpGet("confirm/{token}")]
+        public async Task<IActionResult> ConfirmEmail(string token)
         {
+            Console.WriteLine("Potwierdzanie maila");
             if (string.IsNullOrEmpty(token))
             {
                 return BadRequest("Invalid token.");
             }
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.ConfirmationToken == token);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.LinkToken == token);
 
             if (user == null)
             {
                 return BadRequest("Invalid or expired confirmation token.");
             }
-
-            if (user.EmailConfirmed)
+            Console.WriteLine($"Obecny czas {DateTime.Now}");
+            if (user.TokenExpireDate < DateTime.Now)
             {
-                return Ok(new { success = true, message = "Email already confirmed." });
+                return BadRequest("Expired Link");
             }
 
+            if (user.EmailConfirmed)
+                {
+                    return Ok(new { success = true, message = "Email already confirmed." });
+                }
+
             user.EmailConfirmed = true;
-            user.ConfirmationToken = null;
+            user.LinkToken = null;
             await _context.SaveChangesAsync();
 
             return Ok(new { success = true, message = "Email confirmed successfully. You can now log in." });
@@ -369,6 +210,25 @@ namespace backend.Controllers
                 email = user.Email
             });
         }
+    }
+    public static class DateTimeExtensions
+    {
+        public static DateTime RoundUpToNearestMinute(this DateTime dateTime)
+        {
+            if (dateTime.Second > 0 || dateTime.Millisecond > 0)
+            {
+                dateTime = dateTime.AddMinutes(1);
+            }
 
+            return new DateTime(
+                dateTime.Year,
+                dateTime.Month,
+                dateTime.Day,
+                dateTime.Hour,
+                dateTime.Minute,
+                0,
+                dateTime.Kind
+            );
+        }
     }
 }

@@ -13,6 +13,7 @@ namespace backend.Data
         public virtual ICollection<Decision> Decisions { get; set; } = new HashSet<Decision>();
         public virtual ICollection<Item> Items { get; set; } = new HashSet<Item>();
         public virtual ICollection<Feedback> Feedbacks { get; set; } = new HashSet<Feedback>();
+        public virtual ICollection<Process> Processes { get; set; } = new HashSet<Process>();
 
     }
 }

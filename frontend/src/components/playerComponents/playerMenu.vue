@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen w-full max-w-md mx-auto bg-yellow rounded-xl shadow p-4 flex flex-col">
+  <div class="h-full w-full max-w-md mx-auto bg-yellow rounded-xl shadow p-4 flex flex-col">
     <!-- Góra: bity + etap -->
     <div class="flex justify-between items-center mb-2">
       <div class="text-xl font-bold text-green-600">Bity: {{ currentBudget  }}</div>
