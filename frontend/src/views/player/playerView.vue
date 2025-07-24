@@ -327,28 +327,33 @@ const fetchPawns= async () => {
   }
 };
 
-const fetchRivalPawns= async () => {
-  try {
-   const response = await apiServices.get(apiConfig.player.getRivalPawns, {
-  params: {
-    gameId: gameData.value.gameId,
-    boardId: gameData.value.rivalBoardConfig.boardId
+const fetchRivalPawns = async () => {
+  const game = gameData.value;
+  if (!game || !game.rivalBoardConfig) {
+    console.warn("Brak gameData lub rivalBoardConfig");
+    return;
   }
-});
 
-    enemypawns.value = response.data
-      .map(p => ({
-        id: p.teamId,
-        x: Number(p.posX),
-        y: Number(p.posY),
-        color: p.teamColor,
-        name: p.teamName
+  try {
+    const response = await apiServices.get(apiConfig.player.getRivalPawns, {
+      params: {
+        gameId: game.gameId,
+        boardId: game.rivalBoardConfig.boardId
+      }
+    });
 
-      }));
-      console.log(enemypawns.value)
+    enemypawns.value = response.data.map(p => ({
+      id: p.teamId,
+      x: Number(p.posX),
+      y: Number(p.posY),
+      color: p.teamColor,
+      name: p.teamName
+    }));
+
+    console.log("ENEMY PAWNS:", enemypawns.value);
 
   } catch (err) {
-    console.error("Błąd pobierania pionków:", err);
+    console.error("Błąd pobierania pionków rynku:", err);
   }
 };
 

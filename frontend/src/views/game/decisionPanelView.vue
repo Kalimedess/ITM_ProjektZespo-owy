@@ -152,13 +152,19 @@
       <!-- GameBoard -->
       <div class="w-full flex justify-center">
         <GameBoard
+          v-if="teamId"
           :config="formData"
           :game-mode="true"
-          :pos-x="7"
-          :pos-y="7"
-          :pawn-color="'#000000'"
+          :pawns="pawns"
+        />
+        <GameBoard
+          v-else
+          :config="enemyformData"
+          :game-mode="false"
+          :pawns="enemypawns"
         />
       </div>
+
     </div>
 
     <!-- Prawa kolumna: decyzje do zatwierdzenia -->
@@ -289,10 +295,29 @@ const tables = ref([])
 const cards = ref([])
 const availableEvents = ref([]);
 const formData = reactive({
-  Name: 'Plansza podstawowa', LabelsUp: ['...'], LabelsRight: ['...'],
-  DescriptionDown: '...', DescriptionLeft: '...', Rows: 8, Cols: 8,
-  CellColor: '#fefae0', BorderColor: '#595959', BorderColors: ['...']
-})
+        Name: 'Plansza podstawowa', 
+        LabelsUp: ['Podstawowa kordynacja', 'Standaryzacja procesów', 'Zintegrowane działania', 'Pełna integracja strategiczna'], 
+        LabelsRight: ['Nowicjusz', 'Naśladowca', 'Innowator', 'Lider cyfrowy'], 
+        DescriptionDown: 'Poziom integracji wew/zew', 
+        DescriptionLeft: 'Zawansowanie Cyfrowe', 
+        Rows: 8,
+        Cols: 8,
+        CellColor: '#fefae0', 
+        BorderColor: '#595959', 
+        BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
+    });
+    const enemyformData = reactive({
+        Name: 'Plansza podstawowa', 
+        LabelsUp: ['Podstawowa kordynacja', 'Standaryzacja procesów', 'Zintegrowane działania', 'Pełna integracja strategiczna'], 
+        LabelsRight: ['Nowicjusz', 'Naśladowca', 'Innowator', 'Lider cyfrowy'], 
+        DescriptionDown: 'Poziom integracji wew/zew', 
+        DescriptionLeft: 'Zawansowanie Cyfrowe', 
+        Rows: 8,
+        Cols: 8,
+        CellColor: '#fefae0', 
+        BorderColor: '#595959', 
+        BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
+    });
 const pendingDecisions = ref([]); 
 const loadingPending = ref(true);
 
@@ -308,6 +333,38 @@ const historyVersion = ref(null);
 const pendingVersion = ref(null);
 
 // --- FUNKCJE ---
+
+function updateBoardConfigFromSelectedTeam() {
+  if (!selectedTeam.value || !selectedTeam.value.boardConfig) return;
+
+  const config = selectedTeam.value.boardConfig;
+  formData.Name = config.name;
+  formData.LabelsUp = config.labelsUp;
+  formData.LabelsRight = config.labelsRight;
+  formData.DescriptionDown = config.descriptionDown;
+  formData.DescriptionLeft = config.descriptionLeft;
+  formData.Rows = config.rows;
+  formData.Cols = config.cols;
+  formData.CellColor = config.cellColor;
+  formData.BorderColor = config.borderColor;
+  formData.BorderColors = config.borderColors;
+
+  // 🔄 Dodajemy część dla enemyformData
+  const rival = selectedTeam.value.rivalBoardConfig;
+  if (rival) {
+    enemyformData.Name = rival.name;
+    enemyformData.LabelsUp = rival.labelsUp;
+    enemyformData.LabelsRight = rival.labelsRight;
+    enemyformData.DescriptionDown = rival.descriptionDown;
+    enemyformData.DescriptionLeft = rival.descriptionLeft;
+    enemyformData.Rows = rival.rows;
+    enemyformData.Cols = rival.cols;
+    enemyformData.CellColor = rival.cellColor;
+    enemyformData.BorderColor = rival.borderColor;
+    enemyformData.BorderColors = rival.borderColors;
+  }
+}
+
 let hasLoadedOnce = false;
 
 watch(selectedTableId, (newTeamId) => {
@@ -317,7 +374,10 @@ watch(selectedTableId, (newTeamId) => {
   
   // Jeśli wybrano nową drużynę, pobierz dla niej dostępne karty
   if (newTeamId) {
+    updateBoardConfigFromSelectedTeam();
     fetchAvailableCardsForTeam();
+    fetchPawns();
+    fetchRivalPawns();
   } else {
     // Jeśli odznaczono drużynę, wyczyść listy
     cards.value = [];
@@ -659,6 +719,52 @@ const fetchGameEvents = async () => {
   }
 };
 
+const pawns = ref([]);
+const enemypawns = ref([]);
+
+const fetchPawns = async () => {
+  if (!selectedTeam.value) return;
+  try {
+    const response = await apiServices.get(apiConfig.player.getPawns, {
+      params: {
+        gameId: gameId,
+        teamId: selectedTeam.value.teamId,
+        boardId: selectedTeam.value.boardId
+      }
+    });
+    pawns.value = response.data.map(p => ({
+      id: p.gpId,
+      x: Number(p.posX),
+      y: Number(p.posY),
+      color: p.color,
+      name: p.name
+    }));
+  } catch (err) {
+    console.error("Błąd pobierania pionków:", err);
+  }
+};
+
+const fetchRivalPawns = async () => {
+  if (!selectedTeam.value?.rivalBoardId) return;
+  try {
+    const response = await apiServices.get(apiConfig.player.getRivalPawns, {
+      params: {
+        gameId: gameId,
+        boardId: selectedTeam.value.rivalBoardId
+      }
+    });
+    enemypawns.value = response.data.map(p => ({
+      id: p.teamId,
+      x: Number(p.posX),
+      y: Number(p.posY),
+      color: p.teamColor,
+      name: p.teamName
+    }));
+  } catch (err) {
+    console.error("Błąd pobierania pionków rywala:", err);
+  }
+};
+
 onMounted(async () => {
   await fetchDecisionHistory();
   await fetchPendingDecisions();
@@ -677,6 +783,11 @@ onMounted(async () => {
     signalService.connection.on("PendingUpdated", () => {
       console.log("Otrzymano powiadomienie: Sugestie się zmieniły. Odświeżam...");
       fetchPendingDecisions();
+    });
+    signalService.connection.on("BoardUpdated", () => {
+      console.log("SignalR: BoardUpdated – odświeżam pionki");
+      fetchPawns();
+      fetchRivalPawns();
     });
   } catch (err) {
     console.error("Błąd połączenia SignalR: ", err);
