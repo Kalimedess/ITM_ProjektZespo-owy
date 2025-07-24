@@ -32,7 +32,7 @@
                 EVENT
               </div>
             
-              <div><strong>{{ decision.player }}</strong> → {{ decision.choice }}</div>
+              <div><strong>{{ decision.cardId }}</strong> → {{ decision.choice }}</div>
               <div class="border-t border-gray-500 w-full my-1"></div>
               <div>
                 Wynik:

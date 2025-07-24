@@ -33,15 +33,7 @@ namespace backend.Data
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                   base.OnModelCreating(modelBuilder);
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                  base.OnModelCreating(modelBuilder);
 
-                  // User Configuration
-                  modelBuilder.Entity<User>(entity =>
-                  {
-                        entity.HasKey(u => u.UserId);
-                  });
                   // User Configuration
                   modelBuilder.Entity<User>(entity =>
                   {
@@ -52,20 +44,7 @@ namespace backend.Data
                   modelBuilder.Entity<Board>(entity =>
                   {
                         entity.HasKey(b => b.BoardId);
-                  // Board Configuration
-                  modelBuilder.Entity<Board>(entity =>
-                  {
-                        entity.HasKey(b => b.BoardId);
 
-                        entity.HasOne(b => b.User)
-                        .WithMany()
-                        .HasForeignKey(b => b.UserId);
-                  });
-
-                  // Deck Configuration
-                  modelBuilder.Entity<Deck>(entity =>
-                  {
-                        entity.HasKey(d => d.DeckId);
                         entity.HasOne(b => b.User)
                         .WithMany()
                         .HasForeignKey(b => b.UserId);
@@ -81,26 +60,13 @@ namespace backend.Data
                               .HasForeignKey(d => d.UserId)
                               .OnDelete(DeleteBehavior.Cascade);
                   });
-                        entity.HasOne(d => d.User)
-                              .WithMany()
-                              .HasForeignKey(d => d.UserId)
-                              .OnDelete(DeleteBehavior.Cascade);
-                  });
 
                   // Card Configuration
                   modelBuilder.Entity<Card>(entity =>
                   {
                         entity.HasKey(c => c.CardId);
                         entity.Property(c => c.CardType).HasConversion<string>();
-                  // Card Configuration
-                  modelBuilder.Entity<Card>(entity =>
-                  {
-                        entity.HasKey(c => c.CardId);
-                        entity.Property(c => c.CardType).HasConversion<string>();
 
-                        entity.HasMany(c => c.DecisionEnablers)
-                        .WithOne(de => de.Card)
-                        .HasForeignKey(de => de.CardId);
                         entity.HasMany(c => c.DecisionEnablers)
                         .WithOne(de => de.Card)
                         .HasForeignKey(de => de.CardId);
@@ -115,36 +81,15 @@ namespace backend.Data
                   {
                         entity.HasKey(g => g.GameId);
                         entity.Property(g => g.GameId).ValueGeneratedOnAdd();
-                        entity.HasMany(c => c.DecisionEnablerOfThis)
-                        .WithOne(de => de.CardEnabler)
-                        .HasForeignKey(de => de.EnablerId);
-                  });
-
-                  // Game Configuration
-                  modelBuilder.Entity<Game>(entity =>
-                  {
-                        entity.HasKey(g => g.GameId);
-                        entity.Property(g => g.GameId).ValueGeneratedOnAdd();
 
                         entity.Property(g => g.GameStatus)
                         .HasConversion<string>()
                         .IsRequired(false);
-                        entity.Property(g => g.GameStatus)
-                        .HasConversion<string>()
-                        .IsRequired(false);
-
-                        // Foreign Keys
-                        entity.HasOne(g => g.User)
-                        .WithMany()
-                        .HasForeignKey(g => g.UserId);
                         // Foreign Keys
                         entity.HasOne(g => g.User)
                         .WithMany()
                         .HasForeignKey(g => g.UserId);
 
-                        entity.HasOne(g => g.Deck)
-                        .WithMany()
-                        .HasForeignKey(g => g.DeckId);
                         entity.HasOne(g => g.Deck)
                         .WithMany()
                         .HasForeignKey(g => g.DeckId);
@@ -157,36 +102,7 @@ namespace backend.Data
                         entity.HasOne(g => g.RivalBoard)
                         .WithMany()
                         .HasForeignKey(g => g.RivalBoardId);
-                        // --- POPRAWKA: Poprawna konfiguracja dwóch relacji do plansz (Board) ---
-                        entity.HasOne(g => g.TeamBoard)
-                        .WithMany() // Zakładając, że jedna plansza może być użyta w wielu grach
-                        .HasForeignKey(g => g.TeamBoardId);
 
-                        entity.HasOne(g => g.RivalBoard)
-                        .WithMany()
-                        .HasForeignKey(g => g.RivalBoardId);
-
-                        // Relationships to other entities that reference Game
-                        entity.HasMany(g => g.Teams)
-                        .WithOne(t => t.Game)
-                        .HasForeignKey(t => t.GameId)
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                        entity.HasMany(g => g.GameProcesses)
-                        .WithOne(p => p.Game)
-                        .HasForeignKey(p => p.GameId)
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                        entity.HasMany(g => g.GameBoards)
-                        .WithOne(gb => gb.Game)
-                        .HasForeignKey(gb => gb.GameId)
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                        entity.HasMany(g => g.GameLogs)
-                        .WithOne(gl => gl.Game)
-                        .HasForeignKey(gl => gl.GameId)
-                        .OnDelete(DeleteBehavior.Cascade);
-                  });
                         // Relationships to other entities that reference Game
                         entity.HasMany(g => g.Teams)
                         .WithOne(t => t.Game)
@@ -214,6 +130,7 @@ namespace backend.Data
                   {
                         entity.HasKey(t => t.TeamId);
                         entity.Property(t => t.TeamId).ValueGeneratedOnAdd();
+
                         entity.HasMany(t => t.GameProcesses)
                             .WithOne(p => p.Team)
                             .HasForeignKey(p => p.TeamId)
@@ -228,26 +145,11 @@ namespace backend.Data
                   modelBuilder.Entity<GameBoard>(entity =>
                   {
                         entity.HasKey(gb => gb.GameBoardId);
-                  // GameBoard Configuration
-                  modelBuilder.Entity<GameBoard>(entity =>
-                  {
-                        entity.HasKey(gb => gb.GameBoardId);
 
                         entity.HasOne(gb => gb.Team)
                         .WithMany()
                         .HasForeignKey(gb => gb.TeamId);
-                        entity.HasOne(gb => gb.Team)
-                        .WithMany()
-                        .HasForeignKey(gb => gb.TeamId);
 
-                        entity.HasOne(gb => gb.GameProcess)
-                        .WithMany()
-                        .HasForeignKey(gb => gb.GameProcessId);
-
-                        entity.HasOne(gb => gb.Board)
-                        .WithMany()
-                        .HasForeignKey(gb => gb.BoardId);
-                  });
                         entity.HasOne(gb => gb.GameProcess)
                         .WithMany()
                         .HasForeignKey(gb => gb.GameProcessId);
@@ -261,25 +163,11 @@ namespace backend.Data
                   modelBuilder.Entity<GameLog>(entity =>
                   {
                         entity.HasKey(gl => gl.GameLogId);
-                  // GameLog Configuration
-                  modelBuilder.Entity<GameLog>(entity =>
-                  {
-                        entity.HasKey(gl => gl.GameLogId);
 
                         entity.HasOne(gl => gl.Team)
                         .WithMany()
                         .HasForeignKey(gl => gl.TeamId);
-                        entity.HasOne(gl => gl.Team)
-                        .WithMany()
-                        .HasForeignKey(gl => gl.TeamId);
 
-                        entity.HasOne(gl => gl.Card)
-                        .WithMany()
-                        .HasForeignKey(gl => gl.CardId);
-
-                        entity.HasOne(gl => gl.Deck)
-                        .WithMany()
-                        .HasForeignKey(gl => gl.DeckId);
                         entity.HasOne(gl => gl.Card)
                         .WithMany()
                         .HasForeignKey(gl => gl.CardId);
@@ -305,15 +193,7 @@ namespace backend.Data
                   modelBuilder.Entity<Decision>(entity =>
                   {
                         entity.HasKey(d => d.DecisionId);
-                  // Decision Configuration
-                  modelBuilder.Entity<Decision>(entity =>
-                  {
-                        entity.HasKey(d => d.DecisionId);
 
-                        entity.HasOne(d => d.Deck)
-                        .WithMany(deck => deck.Decisions)
-                        .HasForeignKey(d => d.DeckId)
-                        .OnDelete(DeleteBehavior.Cascade);
                         entity.HasOne(d => d.Deck)
                         .WithMany(deck => deck.Decisions)
                         .HasForeignKey(d => d.DeckId)
@@ -323,11 +203,6 @@ namespace backend.Data
                         .WithMany()
                         .HasForeignKey(d => d.CardId);
                   });
-                        entity.HasOne(d => d.Card)
-                        .WithMany()
-                        .HasForeignKey(d => d.CardId);
-                  });
-
                   // DecisionWeight Configuration
                   modelBuilder.Entity<DecisionWeight>(entity =>
                   {
@@ -360,29 +235,16 @@ namespace backend.Data
                         .WithMany()
                         .HasForeignKey(de => de.TeamId);
                   });
-
-                  // Feedback Configuration
-                  modelBuilder.Entity<Feedback>(entity =>
-                  {
-                        entity.HasKey(f => f.FeedbackId);
                   // Feedback Configuration
                   modelBuilder.Entity<Feedback>(entity =>
                   {
                         entity.HasKey(f => f.FeedbackId);
 
                         entity.HasOne(f => f.Deck)
-                        .WithMany(deck => deck.Feedbacks)
-                        .HasForeignKey(f => f.DeckId)
-                        .OnDelete(DeleteBehavior.Cascade);
-                        entity.HasOne(f => f.Deck)
-                        .WithMany(deck => deck.Feedbacks)
+                        .WithMany(deck => deck.Feedbacks)   
                         .HasForeignKey(f => f.DeckId)
                         .OnDelete(DeleteBehavior.Cascade);
 
-                        entity.HasOne(f => f.Card)
-                        .WithMany()
-                        .HasForeignKey(f => f.CardId);
-                  });
                         entity.HasOne(f => f.Card)
                         .WithMany()
                         .HasForeignKey(f => f.CardId);
@@ -392,15 +254,7 @@ namespace backend.Data
                   modelBuilder.Entity<Item>(entity =>
                   {
                         entity.HasKey(i => i.ItemsId);
-                  // Item Configuration
-                  modelBuilder.Entity<Item>(entity =>
-                  {
-                        entity.HasKey(i => i.ItemsId);
 
-                        entity.HasOne(i => i.Deck)
-                        .WithMany(deck => deck.Items)
-                        .HasForeignKey(i => i.DeckId)
-                        .OnDelete(DeleteBehavior.Cascade);
                         entity.HasOne(i => i.Deck)
                         .WithMany(deck => deck.Items)
                         .HasForeignKey(i => i.DeckId)
@@ -457,5 +311,5 @@ namespace backend.Data
                   });
 
             }
-    }
+      }
 }

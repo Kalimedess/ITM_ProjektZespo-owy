@@ -146,7 +146,7 @@
 
 
 //---------------------------------------------------------------
-import { reactive, ref, watch, onMounted} from 'vue'
+import { reactive, ref, watch, onMounted, onUnmounted} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
 import GameBoard from '@/components/game/gameBoard.vue'
@@ -156,6 +156,7 @@ import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
 import apiConfig from '@/services/apiConfig'
 import apiServices from '@/services/apiServices'
+import signalrService from '@/services/signalService';
 
 const showingDecisionCards = ref(true);
 const currentPanel = ref('menu')
@@ -216,8 +217,6 @@ const fetchGameDataByToken = async (token) => {
     gameData.value = {
         ...response.data,
         boardConfig: response.data.boardConfig, 
-        teamPosX: parseInt(response.data.teamPositionX, 10),
-        teamPosY: parseInt(response.data.teamPositionY, 10),
     };
 
     formData.Name = gameData.value.boardConfig.name;
@@ -230,10 +229,6 @@ const fetchGameDataByToken = async (token) => {
     formData.Cols = gameData.value.boardConfig.cols;
     formData.CellColor = gameData.value.boardConfig.cellColor;
     formData.BorderColor = gameData.value.boardConfig.borderColor;
-
-    posX.value = gameData.value.teamPosX;
-    posY.value = gameData.value.teamPosY;
-
 
     if (playerMenuRef.value && currentPanel.value === 'menu') {
       playerMenuRef.value.fetchGameLog();
@@ -256,7 +251,8 @@ const fetchGameDataByToken = async (token) => {
       console.warn("Brak konfiguracji rivalBoardConfig dla planszy rywala/rynku. Prawdopodobnie gra offline lub brak planszy rywala.");
     }
 
-
+    fetchPawns();
+    fetchRivalPawns();
     
 
   } catch (err) {
@@ -269,14 +265,6 @@ const fetchGameDataByToken = async (token) => {
     isLoading.value = false;
   }
 };
-
-onMounted(() => {
-  if (props.teamToken) {
-    fetchGameDataByToken(props.teamToken);
-  }
-});
-
-
 
 const handleCardActionCompleted = async (eventPayload) => {
     if (eventPayload.success) {
@@ -369,9 +357,57 @@ const fetchRivalPawns= async () => {
   }
 };
 
-watch(() => {
-  fetchPawns();
-  fetchRivalPawns();
+let isSignalRConnected = false; // Flaga, aby uniknąć wielokrotnej konfiguracji
+
+watch(() => props.teamToken, (newToken) => {
+  if (newToken) {
+    fetchGameDataByToken(newToken);
+  }
+}, { immediate: true });
+
+
+onMounted(async () => {
+    // Czekamy na dane gry, aby mieć gameId
+    watch(gameData, async (newGameData) => {
+        if (newGameData && newGameData.gameId && !isSignalRConnected) {
+            isSignalRConnected = true; 
+            try {
+                await signalrService.start();
+                await signalrService.joinGameRoom(newGameData.gameId);
+                console.log(`SignalR: Połączono i dołączono do pokoju gry ${newGameData.gameId}`);
+
+                signalrService.connection.on("BoardUpdated", async () => {
+                console.log("SignalR: Otrzymano 'BoardUpdated'. Odświeżam WSZYSTKIE dane dla pewności.");
+                
+                if (props.teamToken) {
+                    await fetchGameDataByToken(props.teamToken); 
+                }
+            });
+
+                // Nasłuchuj na aktualizacje historii
+                signalrService.connection.on("HistoryUpdated", () => {
+                    console.log("SignalR: Otrzymano 'HistoryUpdated'. Odświeżam historię.");
+                    if (playerMenuRef.value) {
+                        playerMenuRef.value.fetchGameLog();
+                    }
+                });
+                
+            } catch (err) {
+                console.error("Błąd połączenia SignalR w playerView: ", err);
+            }
+        }
+    }, { immediate: true });
+});
+
+onUnmounted(() => {
+    if (gameData.value && gameData.value.gameId) {
+        console.log(`SignalR: Opuszczanie pokoju gry ${gameData.value.gameId}`);
+        signalrService.leaveGameRoom(gameData.value.gameId);
+        
+        // Ważne: usuwamy listenery, aby uniknąć ich duplikacji przy ponownym wejściu na stronę
+        signalrService.connection.off("BoardUpdated");
+        signalrService.connection.off("HistoryUpdated");
+    }
 });
 
 </script>

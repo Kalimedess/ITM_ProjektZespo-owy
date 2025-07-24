@@ -24,7 +24,11 @@
         </button>
       </div>
 
-      <select v-model="selectedTableId" class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2">
+      <select
+        v-if="!teamId"
+        v-model="selectedTableId"
+        class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-2"
+      >
         <option disabled value="">-- Wybierz stół --</option>
         <option v-for="team in tables" :key="team.teamId" :value="team.teamId">{{ team.teamName }}</option>
       </select>
@@ -85,23 +89,22 @@
         </button>
       </div>
 
-      <!-- Wybór i zatwierdzenie zdarzenia -->
-      <div class="mt-6">
+      <!-- Wybór i zatwierdzenie zdarzenia (tylko w widoku ogólnym) -->
+      <div v-if="!teamId" class="mt-6">
         <label class="block text-lg font-bold mb-2">Wybierz zdarzenie losowe:</label>
 
         <select
-        v-model="selectedPendingEventIndex"
-        class="bg-tertiary text-base border border-gray-500 rounded px-3 py-2 w-full mb-2"
-      >
-        <!-- Nie potrzebujemy tu opcji domyślnej, bo dodaliśmy ją w kodzie -->
-        <option v-for="event in availableEvents" :key="event.eventId" :value="event.eventId">
-          {{ event.shortDesc }}
-        </option>
-      </select>
+          v-model="selectedPendingEventIndex"
+          class="bg-tertiary text-base border border-gray-500 rounded px-3 py-2 w-full mb-2"
+        >
+          <option v-for="event in availableEvents" :key="event.eventId" :value="event.eventId">
+            {{ event.shortDesc }}
+          </option>
+        </select>
 
-      <p v-if="selectedEvent && selectedEvent.eventId" class="text-sm text-center text-gray-300 mt-2 italic mb-4">
-        {{ selectedEvent.longDesc }}
-      </p>
+        <p v-if="selectedEvent && selectedEvent.eventId" class="text-sm text-center text-gray-300 mt-2 italic mb-4">
+          {{ selectedEvent.longDesc }}
+        </p>
 
         <div class="flex justify-center">
           <button
@@ -253,9 +256,15 @@ import apiConfig from '@/services/apiConfig';
 import apiServices from '@/services/apiServices';
 import signalService from '@/services/signalService';
 
+const props = defineProps({
+  gameId: Number,
+  teamId: Number
+});
+
+
 const toast = useToast()
-const route = useRoute();
-const gameId = route.params.gameId;
+const gameId = props.gameId;
+const teamId = computed(() => props.teamId);
 
 const loading = reactive({
   teams: true,
@@ -316,6 +325,11 @@ watch(selectedTableId, (newTeamId) => {
   }
 });
 
+watch(() => props.teamId, async () => {
+  await fetchPendingDecisions();
+  await fetchDecisionHistory();
+});
+
 const fetchDecisionHistory = async () => {
   if (!gameId) {
     toast.error("Brak ID gry w adresie URL.");
@@ -325,29 +339,23 @@ const fetchDecisionHistory = async () => {
   if (!hasLoadedOnce) loadingHistory.value = true;
 
   try {
-    const payload = {
-      gameId: parseInt(gameId, 10),
-      teamId: 0
-    };
-
+    const payload = { gameId: parseInt(gameId, 10) };
     const response = await apiServices.post(apiConfig.player.getLogs, payload);
 
-    decisions.value = response.data.map(log => {
+    let mappedLogs = response.data.map(log => {
       const isEvent = log.gameEventId && !log.teamId;
 
       if (isEvent) {
-        // --- POPRAWKA TUTAJ ---
-        // Znajdź pełny obiekt zdarzenia na podstawie jego ID
         const eventDetails = availableEvents.value.find(e => e.eventId === log.gameEventId);
-        
+
         return {
           isEventNotification: true,
           timestamp: log.timestamp,
-          // Użyj LongDesc ze znalezionego obiektu
-          feedbackDescription: eventDetails ? eventDetails.longDesc : `Aktywowano wydarzenie (ID: ${log.gameEventId})`
+          feedbackDescription: eventDetails
+            ? eventDetails.longDesc
+            : `Aktywowano wydarzenie (ID: ${log.gameEventId})`
         };
       } else {
-        // To jest zwykły log zagrania karty
         return {
           isEventNotification: false,
           cardId: log.cardId,
@@ -361,6 +369,17 @@ const fetchDecisionHistory = async () => {
         };
       }
     });
+
+    // Jeśli jesteśmy w widoku konkretnego stołu — przefiltruj lokalnie
+    if (teamId.value) {
+      const id = parseInt(teamId.value, 10);
+      mappedLogs = mappedLogs.filter(entry =>
+        entry.isEventNotification || entry.tableId === id
+      );
+    }
+
+    decisions.value = mappedLogs;
+
     const versionResponse = await apiServices.get(apiConfig.games.getHistoryVersion(gameId));
     historyVersion.value = versionResponse.data.version;
   } catch (error) {
@@ -500,7 +519,14 @@ const fetchPendingDecisions = async () => {
   try {
     const response = await apiServices.get(apiConfig.games.getPendingLogs(gameId));
 
-    const newMapped = response.data.map(log => ({
+    let data = response.data;
+
+    // 🔒 Filtrowanie lokalne po stronie frontendu
+    if (teamId.value) {
+      data = data.filter(log => log.teamId === parseInt(teamId.value, 10));
+    }
+
+    const newMapped = data.map(log => ({
       logId: log.logId,
       cardId: log.cardId,
       cardTitle: log.cardTitle,
@@ -515,6 +541,8 @@ const fetchPendingDecisions = async () => {
     if (oldSerialized !== newSerialized) {
       pendingDecisions.value = newMapped;
     }
+
+    // wersja nie musi być filtrowana — bo tylko służy do sprawdzania zmian
     const versionResponse = await apiServices.get(apiConfig.games.getPendingVersion(gameId));
     pendingVersion.value = versionResponse.data.version;
   } catch (error) {
@@ -632,32 +660,34 @@ const fetchGameEvents = async () => {
 };
 
 onMounted(async () => {
-    // Pierwsze ładowanie danych
-    fetchDecisionHistory();
-    fetchPendingDecisions();
-    fetchTeams();
-    fetchGameEvents()
+  await fetchDecisionHistory();
+  await fetchPendingDecisions();
+  await fetchGameEvents();
 
-    try {
-        // Uruchomienie połączenia i dołączenie do pokoju
-        await signalService.start();
-        await signalService.joinGameRoom(gameId);
-        console.log("Połączono z SignalR i dołączono do pokoju gry.");
+  try {
+    await signalService.start();
+    await signalService.joinGameRoom(gameId);
+    console.log("Połączono z SignalR i dołączono do pokoju gry.");
 
-        // Nasłuchuj na wiadomości od serwera
-        signalService.connection.on("HistoryUpdated", () => {
-            console.log("Otrzymano powiadomienie: Historia się zmieniła. Odświeżam...");
-            fetchDecisionHistory();
-            fetchTeams();
-        });
-        signalService.connection.on("PendingUpdated", () => {
-            console.log("Otrzymano powiadomienie: Sugestie się zmieniły. Odświeżam...");
-            fetchPendingDecisions();
-        });
+    signalService.connection.on("HistoryUpdated", () => {
+      console.log("Otrzymano powiadomienie: Historia się zmieniła. Odświeżam...");
+      fetchDecisionHistory();
+      fetchTeams();
+    });
+    signalService.connection.on("PendingUpdated", () => {
+      console.log("Otrzymano powiadomienie: Sugestie się zmieniły. Odświeżam...");
+      fetchPendingDecisions();
+    });
+  } catch (err) {
+    console.error("Błąd połączenia SignalR: ", err);
+  }
 
-    } catch (err) {
-        console.error("Błąd połączenia SignalR: ", err);
-    }
+  await fetchTeams(); // <-- bardzo ważne, że przed ustawieniem selectedTableId
+
+  if (teamId.value) {
+    selectedTableId.value = parseInt(teamId.value, 10);
+    await fetchAvailableCardsForTeam();
+  }
 });
 
 onUnmounted(() => {

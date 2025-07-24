@@ -145,8 +145,6 @@ namespace backend.Controllers
             // Mapowanie DECYZJI na DTO
             var decisionCards = decisionCardsInfo.Select((c, index) =>
             {
-            var decisionCards = decisionCardsInfo.Select((c, index) =>
-            {
                 enablersMap.TryGetValue(c.CardId, out var enablersForCard);
                 return new UnifiedCardDto
                 {
@@ -162,8 +160,6 @@ namespace backend.Controllers
             }).ToList();
 
             // Mapowanie PRZEDMIOTÓW na DTO
-            var itemCards = itemCardsInfo.Select((c, index) =>
-            {
             var itemCards = itemCardsInfo.Select((c, index) =>
             {
                 enablersMap.TryGetValue(c.CardId, out var enablersForCard);
@@ -250,7 +246,6 @@ namespace backend.Controllers
                 gameName = team.Game.GameDesc,
                 gameStatus = team.Game.GameStatus?.ToString(),
 
-                isOnline = team.Game.IsOnline,
                 isOnline = team.Game.IsOnline,
 
                 teamId = team.TeamId,
@@ -411,8 +406,8 @@ namespace backend.Controllers
                     FeedbackDescription = gl.Feedback?.LongDescription,
                     Status = gl.Status,
                     Cost = gl.Cost,
-                })
-                .ToListAsync();
+                };
+            });
 
             return Ok(result);
         }
@@ -533,12 +528,7 @@ namespace backend.Controllers
             };
             _context.GameLogs.Add(gameLogEntry);
 
-            
-            await _context.SaveChangesAsync(); // To zapisze log i da GameLogId
-
-            if(gameLogEntry.Status)
-                await AddGameLogSpecsForCard(gameLogEntry);
-                
+            await _context.SaveChangesAsync();
 
             // Przekazujemy zmodyfikowany koszt do metody wykonującej efekty
             var originalCostForEffects = data.Cost; // Zachowujemy oryginalny, na wszelki wypadek
@@ -555,20 +545,6 @@ namespace backend.Controllers
             {
                 // Jeśli akcja została wykonana, odśwież historię
                 await _hubContext.Clients.Group($"game-{gameLogEntry.GameId}").SendAsync("HistoryUpdated");
-            }
-            else
-            {
-                return Ok(new
-                {
-                    message = $"Akcja karty przetworzona.",
-                    feedback = new
-                    {
-                        feedback.FeedbackId,
-                        feedback.LongDescription,
-                        feedback.Status
-                    },
-                    newTeamBudget = team.TeamBud
-                });
             }
             else
             {
@@ -621,7 +597,18 @@ namespace backend.Controllers
                 _context.DecisionEnablers.Remove(specialEnabler);
             }
 
-            // TODO: W przyszłości dodaj tutaj inne efekty, np. ruch pionka
+           GameEvent? activeEvent = null;
+            // Sprawdzamy, czy log był powiązany z eventem (ID zostało zapisane w ProcessCardPlay)
+            if (log.GameEventId.HasValue)
+            {
+                activeEvent = await _context.GameEvents.FindAsync(log.GameEventId.Value);
+            }
+
+            // 4. Wykonaj ruch pionka, przekazując (lub nie) aktywny event
+            if (log.Status == true)
+            {
+                await AddGameLogSpecsForCard(log, activeEvent);
+            }
         }
 
         [HttpGet("game/{gameId}/teams-management")]
@@ -798,10 +785,15 @@ namespace backend.Controllers
 
             await ExecuteCardEffects(logToApprove);
             await _context.SaveChangesAsync();
+
+            var gameId = logToApprove.GameId.ToString();
+
             // Odśwież listę oczekujących (bo jedna sugestia zniknęła)
             await _hubContext.Clients.Group($"game-{logToApprove.GameId}").SendAsync("PendingUpdated");
             // Odśwież historię (bo pojawił się w niej nowy wpis)
             await _hubContext.Clients.Group($"game-{logToApprove.GameId}").SendAsync("HistoryUpdated");
+            // Odśwież planszę
+            await _hubContext.Clients.Group($"game-{gameId}").SendAsync("BoardUpdated");
 
             return Ok(new { message = "Sugestia została zatwierdzona." });
         }
@@ -984,7 +976,7 @@ namespace backend.Controllers
             return Ok(new { version = $"{logCount}-{lastLogDate.Ticks}" });
         }
 
-        private async Task AddGameLogSpecsForCard(GameLog gameLogEntry)
+         private async Task AddGameLogSpecsForCard(GameLog gameLogEntry, GameEvent? activeEvent)
         {
             var cardId = gameLogEntry.CardId;
             var deckId = gameLogEntry.DeckId;
@@ -993,19 +985,45 @@ namespace backend.Controllers
                 .Where(dw => dw.CardId == cardId && dw.DeckId == deckId)
                 .ToListAsync();
 
-            var gameLogSpecs = decisionWeights.Select(dw => new GameLogSpec
+            var gameLogSpecs = decisionWeights.Select(dw => 
             {
-                GameLogId = gameLogEntry.GameLogId,
-                GameProcessId = dw.ProcessId,
-                MoveX = dw.WeightX,
-                MoveY = dw.WeightY,
+                double finalMoveX = dw.WeightX;
+                double finalMoveY = dw.WeightY;
+
+                // --- NOWA LOGIKA BOOSTERÓW Z EVENTU ---
+                if (activeEvent != null)
+                {
+                    // Stosujemy modyfikator tylko jeśli event ma zdefiniowany booster
+                    if (activeEvent.BoosterX.HasValue)
+                    {
+                        finalMoveX = dw.WeightX * (1 + activeEvent.BoosterX.Value);
+                    }
+                    if (activeEvent.BoosterY.HasValue)
+                    {
+                        finalMoveY = dw.WeightY * (1 + activeEvent.BoosterY.Value);
+                    }
+                }
+                // --- KONIEC LOGIKI BOOSTERÓW ---
+
+                return new GameLogSpec
+                {
+                    GameLogId = gameLogEntry.GameLogId,
+                    GameProcessId = dw.ProcessId,
+                    MoveX = (int)finalMoveX,
+                    MoveY = (int)finalMoveY,
+                };
             }).ToList();
 
-            _context.GameLogSpecs.AddRange(gameLogSpecs);
+            if (gameLogSpecs.Any())
+            {
+                _context.GameLogSpecs.AddRange(gameLogSpecs);
+                await _context.SaveChangesAsync(); // Zapisz specyfikacje
+            }
 
-            await _context.SaveChangesAsync(); // To zapisze GameLogSpec
-            _=_playerService.SetGameProcessPos(gameLogEntry.GameId, gameLogEntry.TeamId);
+            // Wywołujemy serwisy do aktualizacji pozycji
+            await _playerService.SetGameProcessPosAsync(gameLogEntry.GameId, gameLogEntry.TeamId.Value);
+            _ = _playerService.SetTeamPosAsync(gameLogEntry.GameId, gameLogEntry.TeamId.Value);
         }
+            }
 
     }
-}

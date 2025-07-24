@@ -84,165 +84,167 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch } from 'vue'
-  import apiConfig from '@/services/apiConfig';
-  import apiServices from '@/services/apiServices';
-  import { useToast } from 'vue-toastification';
+import { ref, computed, watch, watchEffect } from 'vue';
+import apiConfig from '@/services/apiConfig';
+import apiServices from '@/services/apiServices';
+import { useToast } from 'vue-toastification';
 
-  const toast = useToast();
+// --- Reaktywne referencje i stałe ---
+const toast = useToast();
 
-  const decisionCards = ref([]);
-  const itemCards = ref([]);
+const decisionCards = ref([]);
+const itemCards = ref([]);
+const currentIndex = ref(0);
+const loading = ref(true);
+const fetchError = ref(null);
+
+// Definiowanie propsów i emitów
+const props = defineProps({
+  deckId: Number,
+  gameId: Number,
+  teamId: Number,
+  boardId: Number,
+  gameProcessId: Number,
+  currentBudget: {
+    type: Number,
+    default: 0
+  },
+  showingDecisionCards: {
+    type: Boolean,
+    required: true
+  },
+  isOnlineGame: {
+    type: Boolean,
+    default: true
+  },
+  isIndependentTeam: {
+    type: Boolean,
+    default: true
+  }
+});
+
+const emit = defineEmits(['card-action-completed']);
+
+// --- Computed Properties (Właściwości Obliczeniowe) ---
+
+const displayCards = computed(() => {
+  return props.showingDecisionCards ? decisionCards.value : itemCards.value;
+});
+
+// POPRAWKA: Zabezpieczenie przed nieprawidłowym indeksem
+const selectedCard = computed(() => {
+  // Jeśli `displayCards` jest puste lub indeks jest poza zakresem, zwróć null.
+  if (!displayCards.value || currentIndex.value >= displayCards.value.length) {
+    return null;
+  }
+  return displayCards.value[currentIndex.value];
+});
+
+const buttonLabel = computed(() => {
+  return props.isIndependentTeam ? 'Wybierz kartę' : 'Sugeruj kartę';
+});
+
+// --- Metody ---
+
+async function fetchCards() {
+  if (!props.deckId) {
+    loading.value = false;
+    return;
+  }
   
-  const currentIndex = ref(0);
-  const loading = ref(true);
-  const fetchError = ref(null);
+  loading.value = true;
+  fetchError.value = null;
 
-  const cardClicked = ref(false)
-  let holdTimeout = null
-
-  const props = defineProps({
-      deckId: Number,
-      gameId: Number,
-      teamId: Number,
-      boardId: Number,
-      gameProcessId: Number,
-      currentBudget: {
-        type: Number,
-        default: 0
-      },
-      showingDecisionCards: {
-        type: Boolean,
-        required: true
-      },
-      isOnlineGame: {
-        type: Boolean,
-        default: true // Domyślnie pokazuj, jeśli prop nie dotrze
-      },
-      isIndependentTeam: { type: Boolean, default: true }
-  });
-  
-  const emit = defineEmits(['card-action-completed']);
-
-  const buttonLabel = computed(() => {
-    return props.isIndependentTeam ? 'Wybierz kartę' : 'Sugeruj kartę';
-  });
-
-  const displayCards = computed(() => {
-    return props.showingDecisionCards ? decisionCards.value : itemCards.value;
-  });
-
-  async function fetchCards() {
-    if (!props.deckId) {
-      loading.value = false;
-      return;
-    }
-    loading.value = true;
-    fetchError.value = null;
-    try {
-      const response = await apiServices.get(apiConfig.player.getCards(props.deckId), {
+  try {
+    const response = await apiServices.get(apiConfig.player.getCards(props.deckId), {
       params: { gameId: props.gameId, teamId: props.teamId }
     });
+    
+    // Używamy "optional chaining" (?.) i "nullish coalescing" (??) dla zwięzłości
+    decisionCards.value = response.data?.decisionCards ?? [];
+    itemCards.value = response.data?.itemCards ?? [];
 
-      if (response.data && response.data.decisionCards && response.data.itemCards) {
-        decisionCards.value = response.data.decisionCards;
-        itemCards.value = response.data.itemCards;
-        currentIndex.value = 0;
-      } else {
-        decisionCards.value = [];
-        itemCards.value = [];
-        fetchError.value = "Otrzymano nieprawidłowe dane z serwera.";
-      }
-            
-    } catch (error) {
-      decisionCards.value = [];
-      itemCards.value = [];
-      fetchError.value = "Wystąpił błąd podczas pobierania kart.";
-      console.error("[CardCarousel] Błąd pobierania kart:", error);
+  } catch (error) {
+    decisionCards.value = [];
+    itemCards.value = [];
+    fetchError.value = "Wystąpił błąd podczas pobierania kart.";
+    console.error("[CardCarousel] Błąd pobierania kart:", error);
+  } finally {
+    loading.value = false;
+  }
+}
 
-    } finally {
-      loading.value = false;
-    }
-  };
-  
-  const startHold = () => {
-    holdTimeout = setTimeout(() => {
-      cardClicked.value = true;
-    }, 500);
-  };
-
-  const cancelHold = () => {
-    clearTimeout(holdTimeout);
-    cardClicked.value = false;
-  };
-
-  const nextCard = () => {
-    if (displayCards.value.length === 0) return;
-    currentIndex.value = (currentIndex.value + 1) % displayCards.value.length;
-  };
-
-  const prevCard = () => {
-    if (displayCards.value.length === 0) return;
-    currentIndex.value = (currentIndex.value - 1 + displayCards.value.length) % displayCards.value.length;
-  };
-
-  const sendCardSelection = async () => {
+const nextCard = () => {
   if (displayCards.value.length === 0) return;
-  
-  const selectedCardData = displayCards.value[currentIndex.value];
-  if (!selectedCardData) return;
-  
-  const selectedCardEnablers = selectedCardData.enablers && Array.isArray(selectedCardData.enablers) && selectedCardData.enablers.length > 0;
+  currentIndex.value = (currentIndex.value + 1) % displayCards.value.length;
+};
 
-  const propsToSend = {
+const prevCard = () => {
+  if (displayCards.value.length === 0) return;
+  currentIndex.value = (currentIndex.value - 1 + displayCards.value.length) % displayCards.value.length;
+};
+
+// POPRAWKA: Uproszczona i bardziej czytelna metoda
+const sendCardSelection = async () => {
+  // Używamy właściwości computed, która już jest bezpieczna
+  if (!selectedCard.value) {
+    toast.warning("Nie wybrano żadnej karty.");
+    return;
+  }
+
+  const { id: cardId, cost, enablers } = selectedCard.value;
+
+  const hasEnablers = Array.isArray(enablers) && enablers.length > 0;
+  const hasSufficientBudget = props.currentBudget >= cost;
+  
+  // Logika sukcesu jest teraz prostsza
+  const isSuccess = !hasEnablers && hasSufficientBudget;
+
+  const cardPlayData = {
     gameId: props.gameId,
     teamId: props.teamId,
     deckId: props.deckId,
     boardId: props.boardId,
     gameProcessId: props.gameProcessId,
-    cost: selectedCardData.cost
+    cost: cost
   };
+  
+  // Budujemy URL dynamicznie
+  const apiUrl = isSuccess 
+    ? apiConfig.player.playCardSuccess(cardId) 
+    : apiConfig.player.playCardFailure(cardId);
 
   try {
-      let response; // Zmienna do przechowywania odpowiedzi z API
-      
-      // Twoja logika decydująca o sukcesie/porażce pozostaje bez zmian
-      if (!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)) {
-        response = await apiServices.post(apiConfig.player.playCardSuccess(selectedCardData.id), propsToSend);
-      } else {
-        response = await apiServices.post(apiConfig.player.playCardFailure(selectedCardData.id), propsToSend);
-      }
+    const response = await apiServices.post(apiUrl, cardPlayData);
+    
+    toast.success(response.data?.message ?? "Akcja została wykonana.");
+    
+    emit('card-action-completed', { 
+      success: true, 
+      newBudget: response.data.newTeamBudget 
+    });
 
-      // 3. Użyj komunikatu z backendu w toaście
-      if (response.data && response.data.message) {
-        toast.success(response.data.message);
-      } else {
-        toast.success("Akcja została wykonana."); // Fallback, gdyby backend nie zwrócił wiadomości
-      }
-
-      // 4. Przekaż nowe dane (np. budżet) do komponentu nadrzędnego
-      emit('card-action-completed', { 
-        success: true, 
-        newBudget: response.data.newTeamBudget 
-      });
-
-      // 5. Odśwież listę dostępnych kart
-      fetchCards();
+    await fetchCards(); // Poczekaj na odświeżenie kart
 
   } catch (err) {
-      toast.error("Wystąpił błąd podczas komunikacji z serwerem.");
-      console.error("Błąd podczas zagrywania karty:", err);
-      emit('card-action-completed', { success: false });
+    toast.error(err.response?.data?.message ?? "Wystąpił błąd podczas komunikacji z serwerem.");
+    console.error("Błąd podczas zagrywania karty:", err);
+    emit('card-action-completed', { success: false });
   }
 };
-  
-  watch(() => props.showingDecisionCards, () => {
-    currentIndex.value = 0;
-  });
 
-  watch(() => [props.deckId, props.gameId, props.teamId], (newVals) => {
-      if (newVals.every(v => v != null)) {
-          fetchCards();
-      }
-  }, { immediate: true });
+// --- Watchers (Obserwatorzy) ---
+
+// POPRAWKA: Resetuj indeks, gdy zmienia się wyświetlana lista kart
+watch(displayCards, () => {
+  currentIndex.value = 0;
+});
+
+// Użyj watchEffect do pobierania danych na podstawie propsów - to jest OK
+watchEffect(() => {
+  const { deckId, gameId, teamId } = props;
+  if (deckId != null && gameId != null && teamId != null) {
+    fetchCards();
+  }
+});
 </script>
