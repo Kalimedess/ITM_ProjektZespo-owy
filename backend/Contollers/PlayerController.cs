@@ -560,56 +560,54 @@ namespace backend.Controllers
         }
 
         private async Task ExecuteCardEffects(GameLog log)
+{
+    // --- Krok 1: Zastosuj efekty związane z drużyną (np. budżet) ---
+    var trackedTeam = await _context.Teams.FindAsync(log.TeamId);
+    if (trackedTeam == null)
+    {
+        // To nie powinno się zdarzyć, jeśli dane są spójne. Rzuć wyjątek lub zaloguj krytyczny błąd.
+        throw new InvalidOperationException($"Drużyna o ID {log.TeamId} nie istnieje.");
+    }
+    
+    // Odejmij koszt karty od budżetu drużyny.
+    trackedTeam.TeamBud -= (int)(log.Cost ?? 0); // Używamy ?? 0 dla bezpieczeństwa, gdyby koszt był null
+
+    // --- Krok 2: Zaktualizuj status logu, jeśli była to sugestia ---
+    // Logika jest taka sama, ale komentarz wyjaśnia intencję.
+    // Jeśli log był sugestią (IsApproved == false), zatwierdź go.
+    if (log.IsApproved == false)
+    {
+        log.IsApproved = true;
+    }
+
+    // --- Krok 3: Usuń specjalny enabler, jeśli został użyty do zagrania tej karty ---
+    // Zapytanie jest takie samo jak wcześniej.
+    var specialEnabler = await _context.DecisionEnablers.FirstOrDefaultAsync(de =>
+        de.CardId == log.CardId &&
+        de.GameId == log.GameId &&
+        de.TeamId == log.TeamId &&
+        de.EnablerId == null);
+
+    if (specialEnabler != null)
+    {
+        _context.DecisionEnablers.Remove(specialEnabler);
+    }
+    
+    // --- Krok 4: Zastosuj ruchy na planszy, uwzględniając eventy ---
+    // Jeśli zagranie karty zakończyło się sukcesem, dodaj powiązane ruchy.
+    if (log.Status == true)
+    {
+        // Pobierz aktywny event, jeśli log był z nim powiązany
+        GameEvent? activeEvent = null;
+        if (log.GameEventId.HasValue)
         {
-            // Ta metoda wykonuje wszystkie "fizyczne" zmiany w grze
-            var team = await _context.Teams
-                .AsNoTracking() // Używamy AsNoTracking, bo nie zamierzamy modyfikować samej drużyny w tej metodzie
-                .FirstOrDefaultAsync(t => t.TeamId == log.TeamId);
-
-            if (team == null) return; // Zabezpieczenie
-
-            // Pobieramy drużynę jeszcze raz, ale tym razem do śledzenia zmian w budżecie
-            var trackedTeam = await _context.Teams.FindAsync(log.TeamId);
-            if (trackedTeam != null)
-            {
-                // 1. Odejmij bity
-                trackedTeam.TeamBud -= (int)log.Cost;
-            }
-
-            // --- KLUCZOWA POPRAWKA ---
-            // 2. Zmień status IsApproved z 'false' na 'true' TYLKO jeśli log był sugestią.
-            // Jeśli był 'null' (dla gracza niezależnego), zostaw go jako 'null'.
-            if (log.IsApproved == false)
-            {
-                log.IsApproved = true;
-            }
-            // --- KONIEC POPRAWKI ---
-
-            // 3. Sprawdź, czy trzeba usunąć specjalny enabler (jeśli taki był użyty)
-            var specialEnabler = await _context.DecisionEnablers.FirstOrDefaultAsync(de =>
-                de.CardId == log.CardId &&
-                de.GameId == log.GameId &&
-                de.TeamId == log.TeamId &&
-                de.EnablerId == null);
-
-            if (specialEnabler != null)
-            {
-                _context.DecisionEnablers.Remove(specialEnabler);
-            }
-
-           GameEvent? activeEvent = null;
-            // Sprawdzamy, czy log był powiązany z eventem (ID zostało zapisane w ProcessCardPlay)
-            if (log.GameEventId.HasValue)
-            {
-                activeEvent = await _context.GameEvents.FindAsync(log.GameEventId.Value);
-            }
-
-            // 4. Wykonaj ruch pionka, przekazując (lub nie) aktywny event
-            if (log.Status == true)
-            {
-                await AddGameLogSpecsForCard(log, activeEvent);
-            }
+            activeEvent = await _context.GameEvents.FindAsync(log.GameEventId.Value);
         }
+
+        // Wywołaj metodę odpowiedzialną TYLKO za dodanie specyfikacji i ruchów
+        await AddGameLogSpecsForCard(log, activeEvent);
+    }
+}
 
         [HttpGet("game/{gameId}/teams-management")]
         public async Task<ActionResult<IEnumerable<TeamManagementDto>>> GetTeamsForManagement(int gameId)
@@ -794,6 +792,8 @@ namespace backend.Controllers
             await _hubContext.Clients.Group($"game-{logToApprove.GameId}").SendAsync("HistoryUpdated");
             // Odśwież planszę
             await _hubContext.Clients.Group($"game-{gameId}").SendAsync("BoardUpdated");
+
+            await _hubContext.Clients.Group($"game-{gameId}").SendAsync("BoardUpdated", new { teamId = logToApprove.TeamId });
 
             return Ok(new { message = "Sugestia została zatwierdzona." });
         }
@@ -1022,7 +1022,7 @@ namespace backend.Controllers
 
             // Wywołujemy serwisy do aktualizacji pozycji
             await _playerService.SetGameProcessPosAsync(gameLogEntry.GameId, gameLogEntry.TeamId.Value);
-            _ = _playerService.SetTeamPosAsync(gameLogEntry.GameId, gameLogEntry.TeamId.Value);
+            await _playerService.SetTeamPosAsync(gameLogEntry.GameId, gameLogEntry.TeamId.Value);
         }
             }
 

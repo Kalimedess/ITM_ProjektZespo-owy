@@ -185,8 +185,6 @@ const currentPanel = ref('menu')
         BorderColor: '#595959', 
         BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
     });
-    const posX = ref(7);
-    const posY = ref(7);
 
 const props = defineProps({
   teamToken: String // Odbieramy teamToken jako prop dzięki `props: true` w routerze
@@ -283,9 +281,6 @@ const handleBudgetChangeFromMenu = (newBudgetFromMenu) => {
   currentGlobalBudget.value = newBudgetFromMenu;
 };
 
-//funkcja odpowiedzialna za pokazywanie tekstu na kartach
-const isOnline = ref(true)
-
 //funckja pokazujaca aktualną planszę
 const currentBoard = ref('player')
 
@@ -357,60 +352,72 @@ const fetchRivalPawns= async () => {
   }
 };
 
-let isSignalRConnected = false; // Flaga, aby uniknąć wielokrotnej konfiguracji
+const onBoardUpdate = (data) => {
+  console.log("SignalR: Otrzymano 'BoardUpdated'. Odświeżam stan planszy.", data);
+  // Niezależnie od tego, która drużyna się zmieniła, odświeżamy obie listy pionków.
+  // Jest to najprostsze i najbardziej niezawodne podejście.
+  fetchPawns();
+  fetchRivalPawns();
+};
 
-watch(() => props.teamToken, (newToken) => {
-  if (newToken) {
-    fetchGameDataByToken(newToken);
+const onHistoryUpdate = () => {
+  console.log("SignalR: Otrzymano 'HistoryUpdated'. Odświeżam historię.");
+  if (playerMenuRef.value) {
+    playerMenuRef.value.fetchGameLog();
   }
-}, { immediate: true });
+};
 
+// Flaga, aby uniknąć wielokrotnego łączenia się z SignalR przy zmianach propsów
+let isSignalRInitialized = false;
 
-onMounted(async () => {
-    // Czekamy na dane gry, aby mieć gameId
-    watch(gameData, async (newGameData) => {
-        if (newGameData && newGameData.gameId && !isSignalRConnected) {
-            isSignalRConnected = true; 
-            try {
-                await signalrService.start();
-                await signalrService.joinGameRoom(newGameData.gameId);
-                console.log(`SignalR: Połączono i dołączono do pokoju gry ${newGameData.gameId}`);
+// Ten `watch` staje się głównym punktem startowym dla komponentu.
+watch(() => props.teamToken, async (newToken) => {
+  if (!newToken) return;
 
-                signalrService.connection.on("BoardUpdated", async () => {
-                console.log("SignalR: Otrzymano 'BoardUpdated'. Odświeżam WSZYSTKIE dane dla pewności.");
-                
-                if (props.teamToken) {
-                    await fetchGameDataByToken(props.teamToken); 
-                }
-            });
+  // 1. Najpierw pobierz wszystkie dane gry. `await` gwarantuje, że poczekamy na wynik.
+  await fetchGameDataByToken(newToken);
+  
+  // 2. Dopiero gdy dane są dostępne i SignalR nie był jeszcze inicjowany, skonfiguruj go.
+  if (gameData.value?.gameId && !isSignalRInitialized) {
+    isSignalRInitialized = true; // Ustawiamy flagę, aby nie robić tego ponownie
 
-                // Nasłuchuj na aktualizacje historii
-                signalrService.connection.on("HistoryUpdated", () => {
-                    console.log("SignalR: Otrzymano 'HistoryUpdated'. Odświeżam historię.");
-                    if (playerMenuRef.value) {
-                        playerMenuRef.value.fetchGameLog();
-                    }
-                });
-                
-            } catch (err) {
-                console.error("Błąd połączenia SignalR w playerView: ", err);
-            }
-        }
-    }, { immediate: true });
+    try {
+      await signalrService.start();
+      await signalrService.joinGameRoom(gameData.value.gameId.toString()); // Upewnijmy się, że ID jest stringiem
+      console.log(`SignalR: Połączono i dołączono do pokoju gry ${gameData.value.gameId}`);
+
+      // Rejestrujemy nasze funkcje jako listenery
+      signalrService.connection.on("BoardUpdated", onBoardUpdate);
+      signalrService.connection.on("HistoryUpdated", onHistoryUpdate);
+
+    } catch (err) {
+      console.error("Błąd połączenia SignalR w playerView: ", err);
+    }
+  }
+}, { immediate: true }); // `immediate: true` uruchamia ten `watch` od razu po załadowaniu komponentu
+
+// onMounted i onUnmounted pozostają, ale ich logika jest teraz czystsza.
+// `onMounted` może być nawet pusty, ponieważ `watch` z `immediate:true` przejmuje jego rolę.
+onMounted(() => {
+  // Cała logika inicjalizacji jest teraz w `watch`.
+  // Możemy tu zostawić puste lub dodać logikę, która nie zależy od propsów.
+  console.log("PlayerView zamontowany.");
 });
 
 onUnmounted(() => {
-    if (gameData.value && gameData.value.gameId) {
-        console.log(`SignalR: Opuszczanie pokoju gry ${gameData.value.gameId}`);
-        signalrService.leaveGameRoom(gameData.value.gameId);
-        
-        // Ważne: usuwamy listenery, aby uniknąć ich duplikacji przy ponownym wejściu na stronę
-        signalrService.connection.off("BoardUpdated");
-        signalrService.connection.off("HistoryUpdated");
-    }
+  if (gameData.value?.gameId) {
+    console.log(`SignalR: Opuszczanie pokoju gry ${gameData.value.gameId}`);
+    signalrService.leaveGameRoom(gameData.value.gameId.toString());
+    
+    // Usuwamy listenery, używając tych samych referencji do funkcji.
+    // To zapobiega wyciekom pamięci i wielokrotnym wywołaniom.
+    signalrService.connection.off("BoardUpdated", onBoardUpdate);
+    signalrService.connection.off("HistoryUpdated", onHistoryUpdate);
+  }
 });
 
 </script>
+
 <style scoped>
   .fade-slide-enter-active,
   .fade-slide-leave-active {

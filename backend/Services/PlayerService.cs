@@ -166,8 +166,9 @@ namespace backend.Services
             // Krok 4: Zapisz zmiany.
             await _context.SaveChangesAsync();
             _logger.LogInformation("Zaktualizowano średnią ważoną pozycję ({PosX}, {PosY}) dla drużyny {TeamId} w grze {GameId}.", finalAvgX, finalAvgY, teamId, gameId);
-            
+
             await _hubContext.Clients.Group($"game-{gameId}").SendAsync("BoardUpdated");
+            await _hubContext.Clients.Group($"game-{gameId}").SendAsync("BoardUpdated", new { teamId = teamId });
         }
     }
 }
