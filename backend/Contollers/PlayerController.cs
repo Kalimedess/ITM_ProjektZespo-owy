@@ -47,6 +47,7 @@ public class TeamManagementDto
     public int TeamBud { get; set; }
     public int BoardId { get; set; } 
     public int? DeckId { get; set; }
+    public string TeamToken { get; set; }
 }
 
 // DTO do odbierania nowej wartości budżetu
@@ -628,7 +629,8 @@ namespace backend.Controllers
                     TeamName = t.TeamName,
                     TeamBud = t.TeamBud,
                     BoardId = boardId,
-                    DeckId = deckId
+                    DeckId = deckId,
+                    TeamToken = t.TeamToken
                 })
                 .OrderBy(t => t.TeamName)
                 .ToListAsync();

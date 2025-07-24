@@ -20,6 +20,7 @@ import confirmEmailView from '@/views/confirmEmailView.vue'
 import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
 import gameView from '@/views/admin/adminGameView.vue'
+import tableDecisionPanelView from '@/views/game/tableDecisionPanelView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -105,7 +106,7 @@ const router = createRouter({
         {
           path: '/admin/game/:gameId/:teamId',
           name: 'decisionanel',
-          component: decisionPanel,
+          component: tableDecisionPanelView,
           props: true,
           meta: { requiresAuth: true }
         },
