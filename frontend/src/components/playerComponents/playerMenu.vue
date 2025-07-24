@@ -57,16 +57,14 @@
   </div>
 </template>
   
-  <script setup>
-  import apiConfig from '@/services/apiConfig';
-import apiServices from '@/services/apiServices';
+<script setup>
+import apiConfig from '@/services/apiConfig'
+import apiServices from '@/services/apiServices'
+import signalService from '@/services/signalService'
 import { ref, watch, onMounted, onUnmounted } from 'vue'
   
-  const gameLogEntries = ref([]);
-
-  const playerHistoryVersion = ref(null);
-  
-  let intervalId = null;
+const gameLogEntries = ref([])
+const currentBudget = ref(0)
 
 const props = defineProps({
   gameId: {
@@ -75,87 +73,84 @@ const props = defineProps({
   teamId: {
     type: Number
   }
-});
+})
 
-const emit = defineEmits(['budget-changed-in-menu']);
-const currentBudget = ref(0);
-  
-// Funkcja do pobierania logu gry
+const emit = defineEmits(['budget-changed-in-menu'])
+
 const fetchGameLog = async () => {
-    if (!props.gameId || !props.teamId) return;
+  if (!props.gameId || !props.teamId) return
 
-    const propsLog = {
-      gameId: props.gameId,
-      teamId: props.teamId,
-    };
+  const propsLog = {
+    gameId: props.gameId,
+    teamId: props.teamId
+  }
 
-    try {
-        // Używamy nowego, dedykowanego endpointu
-        const response = await apiServices.post(apiConfig.player.getPlayerHistory, propsLog);
+  try {
+    const response = await apiServices.post(apiConfig.player.getPlayerHistory, propsLog)
 
-        if (Array.isArray(response.data)) {
-            gameLogEntries.value = response.data.map(log => {
-                if (log.isEventNotification) {
-                    return {
-                        isEventNotification: true,
-                        timestamp: log.timestamp,
-                        description: log.eventDescription || "Aktywowano nowe wydarzenie."
-                    };
-                } else {
-                    return {
-                        isEventNotification: false,
-                        player: log.teamName || `Drużyna ${props.teamId}`,
-                        choice: log.cardTitle || `Karta ID: ${log.cardId}`,
-                        result: log.status ? 'Pozytywny' : 'Negatywny',
-                        description: log.feedbackDescription || `Koszt: ${log.cost}`,
-                        eventApplied: log.gameEventId != null
-                    };
-                }
-            });
+    if (Array.isArray(response.data)) {
+      gameLogEntries.value = response.data.map(log => {
+        if (log.isEventNotification) {
+          return {
+            isEventNotification: true,
+            timestamp: log.timestamp,
+            description: log.eventDescription || "Aktywowano nowe wydarzenie."
+          }
+        } else {
+          return {
+            isEventNotification: false,
+            player: log.teamName || `Drużyna ${props.teamId}`,
+            choice: log.cardTitle || `Karta ID: ${log.cardId}`,
+            result: log.status ? 'Pozytywny' : 'Negatywny',
+            description: log.feedbackDescription || `Koszt: ${log.cost}`,
+            eventApplied: log.gameEventId != null
+          }
         }
-      const versionResponse = await apiServices.get(apiConfig.player.getPlayerHistoryVersion(props.gameId, props.teamId));
-      playerHistoryVersion.value = versionResponse.data.version;  
-    } catch (error) {
-        console.error("Błąd podczas pobierania historii gracza:", error);
+      })
     }
+  } catch (error) {
+    console.error("Błąd podczas pobierania historii gracza:", error)
+  }
 }
-
-const checkPlayerHistoryForUpdates = async () => {
-    if (!props.gameId || !props.teamId) return;
-    try {
-        const response = await apiServices.get(apiConfig.player.getPlayerHistoryVersion(props.gameId, props.teamId));
-        if (response.data.version !== playerHistoryVersion.value) {
-            await fetchGameLog();
-            await fetchTeamBud(); // Dobrze jest odświeżyć budżet razem z historią
-        }
-    } catch (error) { 
-      console.error("Błąd przy sprawdzaniu aktualizacji",error);
-    }
-};
 
 const fetchTeamBud = async () => {
-  const response = await apiServices.get(apiConfig.player.getCurrency, {params: {teamId: props.teamId }});
-
-  currentBudget.value = response.data.teamBud;
-  emit('budget-changed-in-menu', response.data.teamBud);
+  try {
+    const response = await apiServices.get(apiConfig.player.getCurrency, {
+      params: { teamId: props.teamId }
+    })
+    currentBudget.value = response.data.teamBud
+    emit('budget-changed-in-menu', response.data.teamBud)
+  } catch (error) {
+    console.error("Błąd podczas pobierania budżetu drużyny:", error)
+  }
 }
 
- defineExpose({ fetchGameLog, fetchTeamBud});
-
-let playerIntervalId = null;
+defineExpose({ fetchGameLog, fetchTeamBud })
 
 watch(() => [props.gameId, props.teamId], () => {
-    if(props.gameId && props.teamId) {
-        fetchGameLog();
-        fetchTeamBud();
-    }
-}, { immediate: true });
+  if (props.gameId && props.teamId) {
+    fetchGameLog()
+    fetchTeamBud()
+  }
+}, { immediate: true })
 
- onMounted(() => {
-    playerIntervalId = setInterval(checkPlayerHistoryForUpdates, 3000);
-});
+onMounted(async () => {
+  try {
+    await signalService.start()
+    await signalService.joinGameRoom(props.gameId)
+    console.log("Połączono z SignalR (player panel)")
 
-  onUnmounted(() => {
-      clearInterval(intervalId);
-  });
+    signalService.connection.on("HistoryUpdated", async () => {
+      console.log("Historia zaktualizowana – odświeżam dane...")
+      await fetchGameLog()
+      await fetchTeamBud()
+    })
+  } catch (err) {
+    console.error("Błąd połączenia SignalR w panelu gracza:", err)
+  }
+})
+
+onUnmounted(() => {
+  signalService.leaveGameRoom(props.gameId)
+})
 </script>

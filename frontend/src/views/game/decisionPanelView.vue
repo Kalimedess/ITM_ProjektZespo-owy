@@ -648,6 +648,7 @@ onMounted(async () => {
         signalService.connection.on("HistoryUpdated", () => {
             console.log("Otrzymano powiadomienie: Historia się zmieniła. Odświeżam...");
             fetchDecisionHistory();
+            fetchTeams();
         });
         signalService.connection.on("PendingUpdated", () => {
             console.log("Otrzymano powiadomienie: Sugestie się zmieniły. Odświeżam...");
