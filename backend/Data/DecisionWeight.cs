@@ -11,7 +11,7 @@ namespace backend.Data
         public Deck Deck { get; set; } = null!;
         public int WeightX { get; set; }
         public int WeightY { get; set; }
-        public int BoosterX { get; set; }
-        public int BoosterY { get; set; }
+        public double BoosterX { get; set; }
+        public double BoosterY { get; set; }
     }
 }

@@ -146,7 +146,7 @@
 
 
 //---------------------------------------------------------------
-import { reactive, ref, watch, onMounted} from 'vue'
+import { reactive, ref, watch, onMounted, onUnmounted} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
 import GameBoard from '@/components/game/gameBoard.vue'
@@ -156,6 +156,7 @@ import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
 import apiConfig from '@/services/apiConfig'
 import apiServices from '@/services/apiServices'
+import signalrService from '@/services/signalService';
 
 const showingDecisionCards = ref(true);
 const currentPanel = ref('menu')
@@ -184,8 +185,6 @@ const currentPanel = ref('menu')
         BorderColor: '#595959', 
         BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
     });
-    const posX = ref(7);
-    const posY = ref(7);
 
 const props = defineProps({
   teamToken: String // Odbieramy teamToken jako prop dzięki `props: true` w routerze
@@ -216,8 +215,6 @@ const fetchGameDataByToken = async (token) => {
     gameData.value = {
         ...response.data,
         boardConfig: response.data.boardConfig, 
-        teamPosX: parseInt(response.data.teamPositionX, 10),
-        teamPosY: parseInt(response.data.teamPositionY, 10),
     };
 
     formData.Name = gameData.value.boardConfig.name;
@@ -230,10 +227,6 @@ const fetchGameDataByToken = async (token) => {
     formData.Cols = gameData.value.boardConfig.cols;
     formData.CellColor = gameData.value.boardConfig.cellColor;
     formData.BorderColor = gameData.value.boardConfig.borderColor;
-
-    posX.value = gameData.value.teamPosX;
-    posY.value = gameData.value.teamPosY;
-
 
     if (playerMenuRef.value && currentPanel.value === 'menu') {
       playerMenuRef.value.fetchGameLog();
@@ -256,7 +249,8 @@ const fetchGameDataByToken = async (token) => {
       console.warn("Brak konfiguracji rivalBoardConfig dla planszy rywala/rynku. Prawdopodobnie gra offline lub brak planszy rywala.");
     }
 
-
+    fetchPawns();
+    fetchRivalPawns();
     
 
   } catch (err) {
@@ -269,14 +263,6 @@ const fetchGameDataByToken = async (token) => {
     isLoading.value = false;
   }
 };
-
-onMounted(() => {
-  if (props.teamToken) {
-    fetchGameDataByToken(props.teamToken);
-  }
-});
-
-
 
 const handleCardActionCompleted = async (eventPayload) => {
     if (eventPayload.success) {
@@ -294,9 +280,6 @@ const handleCardActionCompleted = async (eventPayload) => {
 const handleBudgetChangeFromMenu = (newBudgetFromMenu) => {
   currentGlobalBudget.value = newBudgetFromMenu;
 };
-
-//funkcja odpowiedzialna za pokazywanie tekstu na kartach
-const isOnline = ref(true)
 
 //funckja pokazujaca aktualną planszę
 const currentBoard = ref('player')
@@ -344,37 +327,102 @@ const fetchPawns= async () => {
   }
 };
 
-const fetchRivalPawns= async () => {
-  try {
-   const response = await apiServices.get(apiConfig.player.getRivalPawns, {
-  params: {
-    gameId: gameData.value.gameId,
-    boardId: gameData.value.rivalBoardConfig.boardId
+const fetchRivalPawns = async () => {
+  const game = gameData.value;
+  if (!game || !game.rivalBoardConfig) {
+    console.warn("Brak gameData lub rivalBoardConfig");
+    return;
   }
-});
 
-    enemypawns.value = response.data
-      .map(p => ({
-        id: p.teamId,
-        x: Number(p.posX),
-        y: Number(p.posY),
-        color: p.teamColor,
-        name: p.teamName
+  try {
+    const response = await apiServices.get(apiConfig.player.getRivalPawns, {
+      params: {
+        gameId: game.gameId,
+        boardId: game.rivalBoardConfig.boardId
+      }
+    });
 
-      }));
-      console.log(enemypawns.value)
+    enemypawns.value = response.data.map(p => ({
+      id: p.teamId,
+      x: Number(p.posX),
+      y: Number(p.posY),
+      color: p.teamColor,
+      name: p.teamName
+    }));
+
+    console.log("ENEMY PAWNS:", enemypawns.value);
 
   } catch (err) {
-    console.error("Błąd pobierania pionków:", err);
+    console.error("Błąd pobierania pionków rynku:", err);
   }
 };
 
-watch(() => {
+const onBoardUpdate = (data) => {
+  console.log("SignalR: Otrzymano 'BoardUpdated'. Odświeżam stan planszy.", data);
+  // Niezależnie od tego, która drużyna się zmieniła, odświeżamy obie listy pionków.
+  // Jest to najprostsze i najbardziej niezawodne podejście.
   fetchPawns();
   fetchRivalPawns();
+};
+
+const onHistoryUpdate = () => {
+  console.log("SignalR: Otrzymano 'HistoryUpdated'. Odświeżam historię.");
+  if (playerMenuRef.value) {
+    playerMenuRef.value.fetchGameLog();
+  }
+};
+
+// Flaga, aby uniknąć wielokrotnego łączenia się z SignalR przy zmianach propsów
+let isSignalRInitialized = false;
+
+// Ten `watch` staje się głównym punktem startowym dla komponentu.
+watch(() => props.teamToken, async (newToken) => {
+  if (!newToken) return;
+
+  // 1. Najpierw pobierz wszystkie dane gry. `await` gwarantuje, że poczekamy na wynik.
+  await fetchGameDataByToken(newToken);
+  
+  // 2. Dopiero gdy dane są dostępne i SignalR nie był jeszcze inicjowany, skonfiguruj go.
+  if (gameData.value?.gameId && !isSignalRInitialized) {
+    isSignalRInitialized = true; // Ustawiamy flagę, aby nie robić tego ponownie
+
+    try {
+      await signalrService.start();
+      await signalrService.joinGameRoom(gameData.value.gameId.toString()); // Upewnijmy się, że ID jest stringiem
+      console.log(`SignalR: Połączono i dołączono do pokoju gry ${gameData.value.gameId}`);
+
+      // Rejestrujemy nasze funkcje jako listenery
+      signalrService.connection.on("BoardUpdated", onBoardUpdate);
+      signalrService.connection.on("HistoryUpdated", onHistoryUpdate);
+
+    } catch (err) {
+      console.error("Błąd połączenia SignalR w playerView: ", err);
+    }
+  }
+}, { immediate: true }); // `immediate: true` uruchamia ten `watch` od razu po załadowaniu komponentu
+
+// onMounted i onUnmounted pozostają, ale ich logika jest teraz czystsza.
+// `onMounted` może być nawet pusty, ponieważ `watch` z `immediate:true` przejmuje jego rolę.
+onMounted(() => {
+  // Cała logika inicjalizacji jest teraz w `watch`.
+  // Możemy tu zostawić puste lub dodać logikę, która nie zależy od propsów.
+  console.log("PlayerView zamontowany.");
+});
+
+onUnmounted(() => {
+  if (gameData.value?.gameId) {
+    console.log(`SignalR: Opuszczanie pokoju gry ${gameData.value.gameId}`);
+    signalrService.leaveGameRoom(gameData.value.gameId.toString());
+    
+    // Usuwamy listenery, używając tych samych referencji do funkcji.
+    // To zapobiega wyciekom pamięci i wielokrotnym wywołaniom.
+    signalrService.connection.off("BoardUpdated", onBoardUpdate);
+    signalrService.connection.off("HistoryUpdated", onHistoryUpdate);
+  }
 });
 
 </script>
+
 <style scoped>
   .fade-slide-enter-active,
   .fade-slide-leave-active {

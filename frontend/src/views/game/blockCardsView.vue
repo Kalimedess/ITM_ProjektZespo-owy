@@ -83,6 +83,7 @@ const fetchDecisionCards = async () => {
   loading.cards = true;
   try {
     const response = await apiService.get(apiConfig.games.getDecisionCards(gameId));
+    response.data.sort((a, b) => a.cardId - b.cardId);
     decisionCards.value = response.data;
   } catch (error) {
     toast.error("Nie udało się pobrać listy kart decyzji.");

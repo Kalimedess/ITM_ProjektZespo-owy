@@ -56,7 +56,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         {
             OnRedirectToLogin = context =>
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+       
+       builder.Services.AddSignalR();         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return Task.CompletedTask;
             },
             OnRedirectToAccessDenied = context =>
@@ -68,6 +69,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -78,9 +80,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapHub<GameHub>("/gameHub");
 
 
-using (var scope = app.Services.CreateScope()) {
+
+using (var scope = app.Services.CreateScope())
+{
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     DbInitializer.Initialize(context);

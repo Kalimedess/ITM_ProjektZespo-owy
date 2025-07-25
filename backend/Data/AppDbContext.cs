@@ -28,6 +28,7 @@ namespace backend.Data
         public DbSet<Process> Processes { get; set; }
         public DbSet<GameProcess> GameProcesses { get; set; }
         public DbSet<GameLogSpec> GameLogSpecs { get; set; }
+        public DbSet<GameEvent> GameEvents { get; set; }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
@@ -84,7 +85,6 @@ namespace backend.Data
                         entity.Property(g => g.GameStatus)
                         .HasConversion<string>()
                         .IsRequired(false);
-
                         // Foreign Keys
                         entity.HasOne(g => g.User)
                         .WithMany()
@@ -130,10 +130,15 @@ namespace backend.Data
                   {
                         entity.HasKey(t => t.TeamId);
                         entity.Property(t => t.TeamId).ValueGeneratedOnAdd();
+
                         entity.HasMany(t => t.GameProcesses)
                             .WithOne(p => p.Team)
                             .HasForeignKey(p => p.TeamId)
                             .OnDelete(DeleteBehavior.Cascade);
+
+                        entity.HasOne(t => t.GameEvent)
+                        .WithMany(ge => ge.Teams)
+                        .HasForeignKey(t => t.GameEventId);    
                   });
 
                   // GameBoard Configuration
@@ -178,6 +183,10 @@ namespace backend.Data
                         entity.HasOne(gl => gl.Board)
                         .WithMany()
                         .HasForeignKey(gl => gl.BoardId);
+
+                        entity.HasOne(gl => gl.GameEvent)
+                        .WithMany(ge => ge.GameLogs)
+                        .HasForeignKey(gl => gl.GameEventId);
                   });
 
                   // Decision Configuration
@@ -194,7 +203,6 @@ namespace backend.Data
                         .WithMany()
                         .HasForeignKey(d => d.CardId);
                   });
-
                   // DecisionWeight Configuration
                   modelBuilder.Entity<DecisionWeight>(entity =>
                   {
@@ -227,14 +235,13 @@ namespace backend.Data
                         .WithMany()
                         .HasForeignKey(de => de.TeamId);
                   });
-
                   // Feedback Configuration
                   modelBuilder.Entity<Feedback>(entity =>
                   {
                         entity.HasKey(f => f.FeedbackId);
 
                         entity.HasOne(f => f.Deck)
-                        .WithMany(deck => deck.Feedbacks)
+                        .WithMany(deck => deck.Feedbacks)   
                         .HasForeignKey(f => f.DeckId)
                         .OnDelete(DeleteBehavior.Cascade);
 
@@ -293,6 +300,16 @@ namespace backend.Data
                               .OnDelete(DeleteBehavior.SetNull);
                   });
 
+                  // GameEvent Configuration
+                  modelBuilder.Entity<GameEvent>(entity =>
+                  {
+                        entity.HasKey(e => e.GameEventId);
+
+                        entity.HasOne(e => e.User)
+                        .WithMany() 
+                        .HasForeignKey(e => e.UserId);
+                  });
+
             }
-    }
+      }
 }

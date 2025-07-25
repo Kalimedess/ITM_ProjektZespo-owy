@@ -27,7 +27,7 @@ namespace backend.Initializers
             var dbSetProps = typeof(AppDbContext).GetProperties()
                 .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>)).ToList();
 
-            var sheetOrder = new[] { "Users", "Boards", "Decks", "Processes", "Cards", "Decisions", "Items", "Feedbacks", "DecisionWeights", "DecisionEnablers" };
+            var sheetOrder = new[] { "Users", "Boards", "Decks", "Processes", "GameEvents", "Cards", "Decisions", "Items", "Feedbacks", "DecisionWeights", "DecisionEnablers" };
 
             Console.WriteLine("Rozpoczęto inicjalizację danych z pliku Excel...");
 
