@@ -43,7 +43,8 @@ const endpoints = {
     getGameEvents: '/player/game-events',
     applyEvent: (gameId) => `/player/game/${gameId}/apply-event`,   
     getHistoryVersion: (gameId) => `/player/game/${gameId}/history-version`,
-    getPendingVersion: (gameId) => `/player/game/${gameId}/pending-version`           
+    getPendingVersion: (gameId) => `/player/game/${gameId}/pending-version`,
+    getGameData: `/player/gameRivalBoard`           
   },
   boards: {
     create: '/board/add',

@@ -141,11 +141,13 @@
           :key="index"
           class="mb-2" 
         >
+          <!-- Specjalny wygląd dla powiadomienia o evencie -->
           <div v-if="entry.isEventNotification" class="border border-blue-500 rounded p-3 bg-blue-900/50 text-center">
             <h3 class="font-bold text-lg text-blue-300">Nowe Wydarzenie</h3>
             <p class="text-white mt-1">{{ entry.feedbackDescription }}</p>
             <p class="text-xs text-gray-400 mt-2">Aktywowano: {{ formatDate(entry.timestamp) }}</p>
           </div>
+
           <div v-else class="border border-gray-600 rounded p-3 bg-secondary relative">
             <div v-if="entry.eventAppliedId" class="absolute top-1 right-2 px-2 py-0.5 bg-purple-600 text-white text-xs font-bold rounded-full">
               EVENT
@@ -323,15 +325,18 @@ const fetchAvailableCardsAndItems = async () => {
 const fetchDecisionHistory = async (isUpdate = false) => {
   if (!isUpdate) loading.history = true;
   try {
-    const response = await apiServices.post(apiConfig.player.getLogs, { gameId: Number(props.gameId) });
+    const historyResponse= await apiServices.post(apiConfig.player.getPlayerHistory, { gameId: props.gameId, teamId: props.teamId });
     
-    const mappedLogs = response.data
-      .filter(log => log.teamId === Number(props.teamId) || (!log.teamId && log.gameEventId))
-      .map(log => {
-        const isEvent = log.gameEventId && !log.teamId;
-        if (isEvent) {
-          return {};
-        }
+    let mappedLogs = historyResponse.data.map(log => {
+    // Przetwarzanie historii
+    if (Array.isArray(historyResponse.data)) {
+        if (log.isEventNotification) {
+          return {
+            isEventNotification: true,
+            feedbackDescription: log.eventDescription || "Aktywowano nowe wydarzenie.",
+            timestamp: log.timestamp,
+        };
+      }
         return {
           isEventNotification: false,
           cardId: log.cardId,
@@ -341,9 +346,10 @@ const fetchDecisionHistory = async (isUpdate = false) => {
           timestamp: log.timestamp,
           feedbackDescription: log.feedbackDescription,
           result: log.status ? 'Pozytywny' : 'Negatywny',
-          eventAppliedId: log.gameEventId
+          eventAppliedId: log.gameEventId,
         };
-      });
+      }
+    });
 
     decisions.value = mappedLogs;
     historyVersion.value = (await apiServices.get(apiConfig.games.getHistoryVersion(props.gameId))).data.version;

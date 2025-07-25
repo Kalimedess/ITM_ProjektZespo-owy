@@ -194,7 +194,6 @@ namespace backend.Controllers
             if (string.IsNullOrWhiteSpace(teamToken) || teamToken.Length != 6)
             {
                 return BadRequest(new { message = "Nieprawidłowy format tokena drużyny." });
-                return BadRequest(new { message = "Nieprawidłowy format tokena drużyny." });
             }
 
             var team = await _context.Teams
@@ -226,10 +225,6 @@ namespace backend.Controllers
                 return BadRequest(new { message = "Ta gra została już zakończona." });
             }
 
-            var gameBoardState = await _context.GameBoards
-                .AsNoTracking()
-                .FirstOrDefaultAsync(gb => gb.GameId == team.GameId && gb.TeamId == team.TeamId);
-
             if (team.Game.Deck == null)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Błąd konfiguracji gry: Brak danych talii." });
@@ -254,9 +249,6 @@ namespace backend.Controllers
                 teamColor = team.TeamColor,
 
                 isIndependent = team.IsIndependent,
-
-                // teamPositionX = gameBoardState?.PozX ?? 0,
-                // teamPositionY = gameBoardState?.PozY ?? 0,
 
                 deckId = team.Game.DeckId,
                 deckName = team.Game.Deck.DeckName,
@@ -299,6 +291,46 @@ namespace backend.Controllers
             return Ok(sessionData);
         }
 
+        [HttpGet("gameRivalBoard")]
+        public async Task<IActionResult> GetGameRivalBoardData(int gameId)
+        {
+
+            var game = await _context.Games
+                .AsNoTracking()
+                .Include(g => g.RivalBoard) // Dołączamy tylko to, co potrzebne
+                .FirstOrDefaultAsync(g => g.GameId == gameId);
+
+            // Sprawdź, czy gra o podanym ID w ogóle istnieje.
+            if (game == null)
+            {
+                return NotFound(new { message = $"Gra o ID {gameId} nie została znaleziona." });
+            }
+
+            // Stwórz obiekt odpowiedzi DOKŁADNIE taki, jakiego potrzebujesz.
+            var sessionData = new
+            {
+                gameId = game.GameId,
+                gameName = game.GameDesc,
+                gameStatus = game.GameStatus?.ToString(),
+
+                rivalBoardConfig = game.RivalBoard != null ? new
+                {
+                    boardId = game.RivalBoard.BoardId,
+                    Name = game.RivalBoard.Name,
+                    LabelsUp = game.RivalBoard.LabelsUp?.Split(';', StringSplitOptions.RemoveEmptyEntries),
+                    LabelsRight = game.RivalBoard.LabelsRight?.Split(';', StringSplitOptions.RemoveEmptyEntries),
+                    DescriptionDown = game.RivalBoard.DescriptionDown,
+                    DescriptionLeft = game.RivalBoard.DescriptionLeft,
+                    Rows = game.RivalBoard.Rows,
+                    Cols = game.RivalBoard.Cols,
+                    CellColor = game.RivalBoard.CellColor,
+                    BorderColor = game.RivalBoard.BorderColor,
+                    BorderColors = game.RivalBoard.BorderColors?.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                } : null
+            };
+
+            return Ok(sessionData);
+        }
 
         [HttpGet("team-board")]
         public async Task<IActionResult> GetTeamBoardData([FromQuery] int gameId, [FromQuery] int teamId, [FromQuery] int boardId)
