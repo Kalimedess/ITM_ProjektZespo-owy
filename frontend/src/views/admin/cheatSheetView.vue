@@ -2,14 +2,45 @@
   <div class="w-full h-full flex-1 flex flex-col justify-center items-center text-center text-white">
     <h1 class="m-8 font-nasalization text-7xl">Drzewo decyzji</h1>
 
-    <!-- Obrazek drzewa decyzji -->
-    <img
-      :src="drzewko"
-      :style="{ width: imageWidth, maxWidth: '100%' }"
-      class="w-100 border-2 border-lgray-accent p-2 overflow-hidden rounded-md transition-all duration-300 cursor-pointer"
-      alt="Drzewo decyzji"
-      @click="toggleImageSize"
-    />
+    <!--Wrapper img i overlay-->
+    <div
+    ref="imageWrapper"
+    class="relative inline-block"
+    @click="toggleImageSize"
+    >
+      <!-- Obrazek drzewa decyzji -->
+      <img
+        :src="drzewko"
+        :style="{ width: imageWidth, maxWidth: '100%' }"
+        class="block w-100 border-2 border-lgray-accent p-2 overflow-hidden rounded-md transition-all duration-300 cursor-pointer"
+        alt="Drzewo decyzji"
+      />
+      <!--Overlay z pozycjami-->
+      <div
+      v-for="point in points"
+      :key="point.id"
+      class="absolute flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer"
+      :style="{
+        width: `${pointSize * 1.8}em`,
+        height: `${pointSize * 1.8}em`,
+        background: 'white',
+        border: `0.15em solid ${point.team === 1 ? 'red' : 'blue'}`,
+        left: `${point.x * 100}%`,
+        top: `${point.y * 100}%`,
+        transform: 'translate(-50%, -50%)'
+      }"
+    >
+      <div
+        class="rounded-full"
+        :style="{
+          width: `${pointSize}em`,
+          height: `${pointSize}em`,
+          background: point.team === 1 ? 'red' : 'blue'
+        }"
+      ></div>
+    </div>
+
+    </div>
 
     <!-- Panel z wyborem PDF i przyciskami -->
     <div class="mt-4 mb-4 flex gap-4 items-center">
@@ -90,11 +121,27 @@ const pdfWindows = ref([])
 // Rozmiar obrazka
 const isZoomed = ref(false)
 const imageWidth = ref('300px')
+const imageWidthInt = ref(300)
+const imageHeightInt = ref(621)
+const pointSize = ref(0.5)
+const points = ref([
+  { id: 1, team: 1, x: 2, y: 1 },
+  { id: 2, team: 1, x: 0, y: 0 },
+  { id: 3, team: 2, x: 0.5, y: 0.5 },
+  { id: 4, team: 2, x: 0.8, y: 0.8 },
+  ])
 function toggleImageSize() {
   isZoomed.value = !isZoomed.value
   imageWidth.value = isZoomed.value ? '800px' : '300px'
+  imageWidthInt.value = isZoomed.value ? 800 : 300
+  imageHeightInt.value = isZoomed.value ? 1656 : 621
+  pointSize.value = isZoomed.value ? 2 : 0.5
 }
 
+  
+function separateOverlaidPoints(){
+
+}
 // Obsługa PDF
 function openPDF() {
   pdfWindows.value.push({})
