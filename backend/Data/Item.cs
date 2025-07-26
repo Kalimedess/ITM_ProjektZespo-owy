@@ -16,6 +16,6 @@ namespace backend.Data
         public string HardwareLongDesc { get; set; } = string.Empty;
         
         public double ItemsBaseCost { get; set; }
-        public int ItemsCostWeight { get; set; }
+        public double ItemsCostWeight { get; set; }
     }
 }

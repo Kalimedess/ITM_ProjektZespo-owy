@@ -214,7 +214,7 @@ watch(selectedDeck, async (deckId) => {
     }
 
     try {
-        const response = await apiService.get(apiConfig.admin.deck.decisions, {deckId: selectedDeck.value});
+        const response = await apiService.get(apiConfig.admin.deck.decisions, {params: {deckId: selectedDeck.value}});
         cardsData.splice(0, cardsData.length, ...response.data);
     } catch (error) {
         console.error("Błąd przy pobieraniu kart z talii:", error);

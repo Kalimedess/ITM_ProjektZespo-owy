@@ -12,7 +12,8 @@ namespace backend.Data
         public string Password { get; set; } = string.Empty;
         public bool EmailConfirmed { get; set; } = false;
         [MaxLength(50)]
-        public string? ConfirmationToken { get; set; }
+        public string? LinkToken { get; set; }
+        public DateTime? TokenExpireDate { get; set; }
         public int LicensesOwned { get; set; }
         public int LicensesUsed { get; set; }
 

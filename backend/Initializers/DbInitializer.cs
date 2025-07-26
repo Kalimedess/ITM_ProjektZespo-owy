@@ -17,93 +17,101 @@ namespace backend.Initializers
         private static void LoadData(AppDbContext context)
         {
             var filePath = Path.Combine(AppContext.BaseDirectory, "Initializers", "DigitalWars_InicjalizacjaBazyDanych.xlsx");
-            if (!File.Exists(filePath)) return;
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("Plik inicjalizacyjny Excela nie został znaleziony.");
+                return;
+            }
 
             using var workbook = new XLWorkbook(filePath);
-            var dbSetProps = typeof(AppDbContext).GetProperties().Where(p => p.PropertyType.Name.StartsWith("DbSet")).ToList();
-            var sheetOrder = new[] { "Users", "Boards", "Decks", "GameProcess", "Cards", "Decisions", "Items", "Feedbacks", "DecisionWeights", "DecisionEnablers" };
-            var trackedCards = new Dictionary<int, Card>();
+            var dbSetProps = typeof(AppDbContext).GetProperties()
+                .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>)).ToList();
 
-            foreach (var name in sheetOrder)
+            var sheetOrder = new[] { "Users", "Boards", "Decks", "Processes", "GameEvents", "Cards", "Decisions", "Items", "Feedbacks", "DecisionWeights", "DecisionEnablers" };
+
+            Console.WriteLine("Rozpoczęto inicjalizację danych z pliku Excel...");
+
+            foreach (var sheetName in sheetOrder)
             {
-                var sheet = workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-                if (sheet == null) continue;
+                Console.WriteLine($"Przetwarzanie arkusza: {sheetName}...");
+                var sheet = workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
+                if (sheet == null)
+                {
+                    Console.WriteLine($"Arkusz '{sheetName}' nie został znaleziony. Pomijanie.");
+                    continue;
+                }
 
                 var dbSetProp = dbSetProps.FirstOrDefault(p => p.Name.Equals(sheet.Name, StringComparison.OrdinalIgnoreCase));
                 if (dbSetProp == null) continue;
 
+                // --- POCZĄTEK POPRAWKI ---
                 var entityType = dbSetProp.PropertyType.GenericTypeArguments[0];
-                var dbSet = dbSetProp.GetValue(context);
-                var pk = GetPrimaryKey(context, entityType);
+                var dbSetObject = dbSetProp.GetValue(context)!;
+                var queryableSet = (IQueryable<object>)dbSetObject;
+
+                if (queryableSet.Any())
+                {
+                    Console.WriteLine($"Dane dla '{sheetName}' już istnieją w bazie. Pomijanie.");
+                    continue;
+                }
+                // --- KONIEC POPRAWKI ---
+
+                var pkProp = GetPrimaryKey(context, entityType);
                 var props = entityType.GetProperties().Where(p => p.CanWrite).ToList();
-                var map = sheet.Row(1).CellsUsed().ToDictionary(c => c.GetString().Trim(), c => c.Address.ColumnNumber);
+                var columnMap = sheet.Row(1).CellsUsed().ToDictionary(c => c.GetString().Trim(), c => c.Address.ColumnNumber);
 
                 foreach (var row in sheet.RowsUsed().Skip(1))
                 {
                     if (row.IsEmpty()) continue;
                     var instance = Activator.CreateInstance(entityType)!;
-                    var hasData = false;
-                    object? pkVal = null;
 
-                    if (pk != null && map.TryGetValue(pk.Name, out var pkCol))
+                    // Logika wczytywania wierszy (bez zmian)
+                    if (pkProp != null && columnMap.TryGetValue(pkProp.Name, out var pkCol))
                     {
-                        pkVal = ConvertValue(row.Cell(pkCol).GetString(), pk.PropertyType, row.Cell(pkCol).DataType, name);
-                        if (pkVal == null || IsDefault(pkVal)) continue;
-                        pk.SetValue(instance, pkVal);
-                        hasData = true;
+                        var pkStringValue = row.Cell(pkCol).GetString();
+                        var primaryKeyValue = ConvertValue(pkStringValue, pkProp.PropertyType, row.Cell(pkCol).DataType);
+                        if (primaryKeyValue == null || IsDefault(primaryKeyValue)) continue;
+                        pkProp.SetValue(instance, primaryKeyValue);
                     }
 
-                    foreach (var prop in props.Where(p => p != pk))
+                    foreach (var prop in props.Where(p => p != pkProp))
                     {
-                        if (!map.TryGetValue(prop.Name, out var col)) continue;
-                        var val = ConvertValue(row.Cell(col).GetString(), prop.PropertyType, row.Cell(col).DataType, name);
+                        if (!columnMap.TryGetValue(prop.Name, out var col)) continue;
+                        var val = ConvertValue(row.Cell(col).GetString(), prop.PropertyType, row.Cell(col).DataType);
                         if (val == null) continue;
-                        
-                        if (sheet.Name.Equals("Users", StringComparison.OrdinalIgnoreCase) && prop.Name == "Password" && val is string password)
+
+                        if (sheetName.Equals("Users", StringComparison.OrdinalIgnoreCase) && prop.Name == "Password" && val is string password)
                         {
                             val = BCrypt.Net.BCrypt.HashPassword(password);
                         }
-                        
                         prop.SetValue(instance, val);
-                        hasData = true;
                     }
+                    context.Add(instance);
+                }
 
-                    if (!hasData || Exists(context, dbSet, entityType, pk, pkVal)) continue;
-
-                    if (entityType == typeof(DecisionEnabler) && instance is DecisionEnabler de)
-                    {
-                        if (!trackedCards.ContainsKey(de.CardId))
-                        {
-                            continue;
-                        }
-
-                        if (de.EnablerId.HasValue && !trackedCards.ContainsKey(de.EnablerId.Value))
-                        {
-                            continue;
-                        }
-
-                    }
-
-                    if (entityType == typeof(DecisionWeight) && instance is DecisionWeight dw)
-                    {
-                        if (!trackedCards.ContainsKey(dw.CardId)) continue;
-                    }
-
-                    dbSetProp.PropertyType.GetMethod("Add")?.Invoke(dbSet, new[] { instance });
-
-                    if (entityType == typeof(Card) && pkVal is int id && !trackedCards.ContainsKey(id))
-                        trackedCards[id] = instance as Card;
+                try
+                {
+                    context.SaveChanges();
+                    Console.WriteLine($"Pomyślnie zapisano dane z arkusza '{sheetName}'.");
+                }
+                catch (DbUpdateException ex)
+                {
+                    Console.WriteLine($"BŁĄD KRYTYCZNY podczas zapisywania danych z arkusza '{sheetName}': {ex.InnerException?.Message ?? ex.Message}");
+                    throw;
                 }
             }
-
-            try { context.SaveChanges(); }
-            catch (Exception ex) { Console.WriteLine("Błąd zapisu: " + ex.Message); }
         }
 
-        private static object? ConvertValue(string val, Type target, XLDataType type, string sheet)
+        private static object? ConvertValue(string val, Type target, XLDataType type)
         {
             if (string.IsNullOrWhiteSpace(val)) return null;
             target = Nullable.GetUnderlyingType(target) ?? target;
+
+            if (target == typeof(byte[]) && val.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                var imagePath = Path.Combine(AppContext.BaseDirectory, "Initializers", val);
+                return File.Exists(imagePath) ? File.ReadAllBytes(imagePath) : null;
+            }
 
             return target switch
             {
@@ -122,10 +130,6 @@ namespace backend.Initializers
                     ? DateTime.FromOADate(double.Parse(val, CultureInfo.InvariantCulture))
                     : DateTime.TryParse(val, out var dt) ? dt : null,
                 Type t when t.IsEnum => Enum.TryParse(t, val, true, out var enumVal) ? enumVal : Enum.GetValues(t).GetValue(0),
-                Type t when t == typeof(byte[]) && sheet == "Feedbacks" =>
-                    File.Exists(Path.Combine(AppContext.BaseDirectory, "Initializers", val))
-                        ? File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Initializers", val))
-                        : null,
                 _ => null
             };
         }

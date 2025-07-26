@@ -43,8 +43,9 @@ namespace backend.Migrations
                     Password = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     EmailConfirmed = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    ConfirmationToken = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                    LinkToken = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    TokenExpireDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     LicensesOwned = table.Column<int>(type: "int", nullable: false),
                     LicensesUsed = table.Column<int>(type: "int", nullable: false)
                 },
@@ -114,6 +115,34 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "GameEvents",
+                columns: table => new
+                {
+                    GameEventId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    EventShortDesc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EventLongDesc = table.Column<string>(type: "TEXT", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserId = table.Column<int>(type: "int", nullable: true),
+                    TurnTime = table.Column<int>(type: "int", nullable: false),
+                    DecisionCostWeight = table.Column<double>(type: "double", nullable: true),
+                    ItemsCostWeight = table.Column<double>(type: "double", nullable: true),
+                    BoosterX = table.Column<double>(type: "double", nullable: true),
+                    BoosterY = table.Column<double>(type: "double", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GameEvents", x => x.GameEventId);
+                    table.ForeignKey(
+                        name: "FK_GameEvents_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Decisions",
                 columns: table => new
                 {
@@ -126,7 +155,7 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DeckId = table.Column<int>(type: "int", nullable: false),
                     DecisionBaseCost = table.Column<double>(type: "double", nullable: false),
-                    DecisionCostWeight = table.Column<int>(type: "int", nullable: false)
+                    DecisionCostWeight = table.Column<double>(type: "double", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -139,44 +168,6 @@ namespace backend.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Decisions_Decks_DeckId",
-                        column: x => x.DeckId,
-                        principalTable: "Decks",
-                        principalColumn: "DeckId",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "DecisionWeights",
-                columns: table => new
-                {
-                    DecisionWeightId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CardId = table.Column<int>(type: "int", nullable: false),
-                    DeckId = table.Column<int>(type: "int", nullable: false),
-                    WeightX = table.Column<int>(type: "int", nullable: false),
-                    WeightY = table.Column<int>(type: "int", nullable: false),
-                    BoardId = table.Column<int>(type: "int", nullable: false),
-                    BoosterX = table.Column<int>(type: "int", nullable: false),
-                    BoosterY = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DecisionWeights", x => x.DecisionWeightId);
-                    table.ForeignKey(
-                        name: "FK_DecisionWeights_Boards_BoardId",
-                        column: x => x.BoardId,
-                        principalTable: "Boards",
-                        principalColumn: "BoardId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DecisionWeights_Cards_CardId",
-                        column: x => x.CardId,
-                        principalTable: "Cards",
-                        principalColumn: "CardId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DecisionWeights_Decks_DeckId",
                         column: x => x.DeckId,
                         principalTable: "Decks",
                         principalColumn: "DeckId",
@@ -274,7 +265,7 @@ namespace backend.Migrations
                     HardwareLongDesc = table.Column<string>(type: "TEXT", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ItemsBaseCost = table.Column<double>(type: "double", nullable: false),
-                    ItemsCostWeight = table.Column<int>(type: "int", nullable: false)
+                    ItemsCostWeight = table.Column<double>(type: "double", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -287,6 +278,33 @@ namespace backend.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Items_Decks_DeckId",
+                        column: x => x.DeckId,
+                        principalTable: "Decks",
+                        principalColumn: "DeckId",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Processes",
+                columns: table => new
+                {
+                    ProcessId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ProcessDesc = table.Column<string>(type: "varchar(25)", maxLength: 25, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ProcessLongDesc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ProcessColor = table.Column<string>(type: "varchar(7)", maxLength: 7, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ProcessWeight = table.Column<double>(type: "double", nullable: false),
+                    DeckId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Processes", x => x.ProcessId);
+                    table.ForeignKey(
+                        name: "FK_Processes_Decks_DeckId",
                         column: x => x.DeckId,
                         principalTable: "Decks",
                         principalColumn: "DeckId",
@@ -308,16 +326,61 @@ namespace backend.Migrations
                     TeamBud = table.Column<int>(type: "int", nullable: false),
                     TeamToken = table.Column<string>(type: "varchar(6)", maxLength: 6, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    GameEventId = table.Column<int>(type: "int", nullable: true),
+                    TurnsLeft = table.Column<int>(type: "int", nullable: true),
                     IsIndependent = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Teams", x => x.TeamId);
                     table.ForeignKey(
+                        name: "FK_Teams_GameEvents_GameEventId",
+                        column: x => x.GameEventId,
+                        principalTable: "GameEvents",
+                        principalColumn: "GameEventId");
+                    table.ForeignKey(
                         name: "FK_Teams_Games_GameId",
                         column: x => x.GameId,
                         principalTable: "Games",
                         principalColumn: "GameId",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "DecisionWeights",
+                columns: table => new
+                {
+                    DecisionWeightId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CardId = table.Column<int>(type: "int", nullable: false),
+                    ProcessId = table.Column<int>(type: "int", nullable: false),
+                    DeckId = table.Column<int>(type: "int", nullable: false),
+                    WeightX = table.Column<int>(type: "int", nullable: false),
+                    WeightY = table.Column<int>(type: "int", nullable: false),
+                    BoosterX = table.Column<double>(type: "double", nullable: false),
+                    BoosterY = table.Column<double>(type: "double", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DecisionWeights", x => x.DecisionWeightId);
+                    table.ForeignKey(
+                        name: "FK_DecisionWeights_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "CardId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DecisionWeights_Decks_DeckId",
+                        column: x => x.DeckId,
+                        principalTable: "Decks",
+                        principalColumn: "DeckId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DecisionWeights_Processes_ProcessId",
+                        column: x => x.ProcessId,
+                        principalTable: "Processes",
+                        principalColumn: "ProcessId",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -361,29 +424,92 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "GameProcess",
+                name: "GameLogs",
+                columns: table => new
+                {
+                    GameLogId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Data = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: true),
+                    GameId = table.Column<int>(type: "int", nullable: false),
+                    GameEventId = table.Column<int>(type: "int", nullable: true),
+                    CardId = table.Column<int>(type: "int", nullable: true),
+                    DeckId = table.Column<int>(type: "int", nullable: true),
+                    BoardId = table.Column<int>(type: "int", nullable: true),
+                    FeedbackId = table.Column<int>(type: "int", nullable: true),
+                    Cost = table.Column<double>(type: "double", nullable: true),
+                    Status = table.Column<bool>(type: "tinyint(1)", nullable: true),
+                    IsApproved = table.Column<bool>(type: "tinyint(1)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GameLogs", x => x.GameLogId);
+                    table.ForeignKey(
+                        name: "FK_GameLogs_Boards_BoardId",
+                        column: x => x.BoardId,
+                        principalTable: "Boards",
+                        principalColumn: "BoardId");
+                    table.ForeignKey(
+                        name: "FK_GameLogs_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "CardId");
+                    table.ForeignKey(
+                        name: "FK_GameLogs_Decks_DeckId",
+                        column: x => x.DeckId,
+                        principalTable: "Decks",
+                        principalColumn: "DeckId");
+                    table.ForeignKey(
+                        name: "FK_GameLogs_Feedbacks_FeedbackId",
+                        column: x => x.FeedbackId,
+                        principalTable: "Feedbacks",
+                        principalColumn: "FeedbackId");
+                    table.ForeignKey(
+                        name: "FK_GameLogs_GameEvents_GameEventId",
+                        column: x => x.GameEventId,
+                        principalTable: "GameEvents",
+                        principalColumn: "GameEventId");
+                    table.ForeignKey(
+                        name: "FK_GameLogs_Games_GameId",
+                        column: x => x.GameId,
+                        principalTable: "Games",
+                        principalColumn: "GameId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GameLogs_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "TeamId");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "GameProcesses",
                 columns: table => new
                 {
                     GameProcessId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ProcessDesc = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ProcessLongDesc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ProcessId = table.Column<int>(type: "int", nullable: false),
                     GameId = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameProcess", x => x.GameProcessId);
+                    table.PrimaryKey("PK_GameProcesses", x => x.GameProcessId);
                     table.ForeignKey(
-                        name: "FK_GameProcess_Games_GameId",
+                        name: "FK_GameProcesses_Games_GameId",
                         column: x => x.GameId,
                         principalTable: "Games",
                         principalColumn: "GameId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GameProcess_Teams_TeamId",
+                        name: "FK_GameProcesses_Processes_ProcessId",
+                        column: x => x.ProcessId,
+                        principalTable: "Processes",
+                        principalColumn: "ProcessId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_GameProcesses_Teams_TeamId",
                         column: x => x.TeamId,
                         principalTable: "Teams",
                         principalColumn: "TeamId",
@@ -400,8 +526,8 @@ namespace backend.Migrations
                     TeamId = table.Column<int>(type: "int", nullable: false),
                     GameId = table.Column<int>(type: "int", nullable: false),
                     GameProcessId = table.Column<int>(type: "int", nullable: true),
-                    PozX = table.Column<int>(type: "int", nullable: false),
-                    PozY = table.Column<int>(type: "int", nullable: false),
+                    PozX = table.Column<double>(type: "double", nullable: false),
+                    PozY = table.Column<double>(type: "double", nullable: false),
                     BoardId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -414,9 +540,9 @@ namespace backend.Migrations
                         principalColumn: "BoardId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GameBoards_GameProcess_GameProcessId",
+                        name: "FK_GameBoards_GameProcesses_GameProcessId",
                         column: x => x.GameProcessId,
-                        principalTable: "GameProcess",
+                        principalTable: "GameProcesses",
                         principalColumn: "GameProcessId");
                     table.ForeignKey(
                         name: "FK_GameBoards_Games_GameId",
@@ -434,67 +560,31 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "GameLogs",
+                name: "GameLogSpecs",
                 columns: table => new
                 {
-                    GameLogId = table.Column<int>(type: "int", nullable: false)
+                    GameLogSpecId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Data = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    TeamId = table.Column<int>(type: "int", nullable: false),
-                    GameId = table.Column<int>(type: "int", nullable: false),
-                    CardId = table.Column<int>(type: "int", nullable: false),
-                    DeckId = table.Column<int>(type: "int", nullable: false),
-                    BoardId = table.Column<int>(type: "int", nullable: false),
+                    GameLogId = table.Column<int>(type: "int", nullable: false),
                     GameProcessId = table.Column<int>(type: "int", nullable: true),
-                    FeedbackId = table.Column<int>(type: "int", nullable: true),
-                    Cost = table.Column<double>(type: "double", nullable: false),
-                    Status = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     MoveX = table.Column<int>(type: "int", nullable: false),
                     MoveY = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameLogs", x => x.GameLogId);
+                    table.PrimaryKey("PK_GameLogSpecs", x => x.GameLogSpecId);
                     table.ForeignKey(
-                        name: "FK_GameLogs_Boards_BoardId",
-                        column: x => x.BoardId,
-                        principalTable: "Boards",
-                        principalColumn: "BoardId",
+                        name: "FK_GameLogSpecs_GameLogs_GameLogId",
+                        column: x => x.GameLogId,
+                        principalTable: "GameLogs",
+                        principalColumn: "GameLogId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GameLogs_Cards_CardId",
-                        column: x => x.CardId,
-                        principalTable: "Cards",
-                        principalColumn: "CardId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GameLogs_Decks_DeckId",
-                        column: x => x.DeckId,
-                        principalTable: "Decks",
-                        principalColumn: "DeckId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GameLogs_Feedbacks_FeedbackId",
-                        column: x => x.FeedbackId,
-                        principalTable: "Feedbacks",
-                        principalColumn: "FeedbackId");
-                    table.ForeignKey(
-                        name: "FK_GameLogs_GameProcess_GameProcessId",
+                        name: "FK_GameLogSpecs_GameProcesses_GameProcessId",
                         column: x => x.GameProcessId,
-                        principalTable: "GameProcess",
-                        principalColumn: "GameProcessId");
-                    table.ForeignKey(
-                        name: "FK_GameLogs_Games_GameId",
-                        column: x => x.GameId,
-                        principalTable: "Games",
-                        principalColumn: "GameId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GameLogs_Teams_TeamId",
-                        column: x => x.TeamId,
-                        principalTable: "Teams",
-                        principalColumn: "TeamId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalTable: "GameProcesses",
+                        principalColumn: "GameProcessId",
+                        onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -534,11 +624,6 @@ namespace backend.Migrations
                 column: "DeckId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DecisionWeights_BoardId",
-                table: "DecisionWeights",
-                column: "BoardId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_DecisionWeights_CardId",
                 table: "DecisionWeights",
                 column: "CardId");
@@ -547,6 +632,11 @@ namespace backend.Migrations
                 name: "IX_DecisionWeights_DeckId",
                 table: "DecisionWeights",
                 column: "DeckId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DecisionWeights_ProcessId",
+                table: "DecisionWeights",
+                column: "ProcessId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Decks_UserId",
@@ -584,6 +674,11 @@ namespace backend.Migrations
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GameEvents_UserId",
+                table: "GameEvents",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GameLogs_BoardId",
                 table: "GameLogs",
                 column: "BoardId");
@@ -604,14 +699,14 @@ namespace backend.Migrations
                 column: "FeedbackId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GameLogs_GameEventId",
+                table: "GameLogs",
+                column: "GameEventId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GameLogs_GameId",
                 table: "GameLogs",
                 column: "GameId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GameLogs_GameProcessId",
-                table: "GameLogs",
-                column: "GameProcessId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GameLogs_TeamId",
@@ -619,13 +714,28 @@ namespace backend.Migrations
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GameProcess_GameId",
-                table: "GameProcess",
+                name: "IX_GameLogSpecs_GameLogId",
+                table: "GameLogSpecs",
+                column: "GameLogId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GameLogSpecs_GameProcessId",
+                table: "GameLogSpecs",
+                column: "GameProcessId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GameProcesses_GameId",
+                table: "GameProcesses",
                 column: "GameId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GameProcess_TeamId",
-                table: "GameProcess",
+                name: "IX_GameProcesses_ProcessId",
+                table: "GameProcesses",
+                column: "ProcessId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GameProcesses_TeamId",
+                table: "GameProcesses",
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
@@ -659,6 +769,16 @@ namespace backend.Migrations
                 column: "DeckId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Processes_DeckId",
+                table: "Processes",
+                column: "DeckId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Teams_GameEventId",
+                table: "Teams",
+                column: "GameEventId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Teams_GameId",
                 table: "Teams",
                 column: "GameId");
@@ -680,22 +800,31 @@ namespace backend.Migrations
                 name: "GameBoards");
 
             migrationBuilder.DropTable(
-                name: "GameLogs");
+                name: "GameLogSpecs");
 
             migrationBuilder.DropTable(
                 name: "Items");
 
             migrationBuilder.DropTable(
+                name: "GameLogs");
+
+            migrationBuilder.DropTable(
+                name: "GameProcesses");
+
+            migrationBuilder.DropTable(
                 name: "Feedbacks");
 
             migrationBuilder.DropTable(
-                name: "GameProcess");
+                name: "Processes");
+
+            migrationBuilder.DropTable(
+                name: "Teams");
 
             migrationBuilder.DropTable(
                 name: "Cards");
 
             migrationBuilder.DropTable(
-                name: "Teams");
+                name: "GameEvents");
 
             migrationBuilder.DropTable(
                 name: "Games");

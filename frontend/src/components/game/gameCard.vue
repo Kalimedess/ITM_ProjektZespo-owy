@@ -1,7 +1,7 @@
 <template>
   <div class="w-full border-2 rounded-md bg-tertiary p-4 flex flex-col gap-4 text-white hover:transform hover:-translate-y-2 transition-all duration-300"
        :style="{borderColor: props.color}"
-       @dblclick="router.push('/admin/game')">
+       @dblclick="router.push(`/admin/game/market/${game.id}`)">
       <div class="flex flex-row items-center justify-between">
         <div class="flex items-center min-w-0 flex-1 mr-2 overflow-hidden">
       <font-awesome-icon :icon="faGamepad" class="h-5 mr-2 flex-shrink-0"
@@ -61,7 +61,8 @@
       required: true
     }
   });
-
+// 
+//
   const emit = defineEmits(['update-status']);
 
   const requestStatusChange = (gameId, newStatus) => {
