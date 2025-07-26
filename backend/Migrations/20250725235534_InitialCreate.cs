@@ -21,7 +21,7 @@ namespace backend.Migrations
                 {
                     CardId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CardType = table.Column<string>(type: "ENUM('Decision', 'Item')", nullable: false)
+                    CardType = table.Column<string>(type: "ENUM('Decision', 'Software', 'Hardware')", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>

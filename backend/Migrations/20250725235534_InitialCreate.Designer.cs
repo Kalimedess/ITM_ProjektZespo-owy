@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250724091240_InitialCreate")]
+    [Migration("20250725235534_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -96,7 +96,7 @@ namespace backend.Migrations
 
                     b.Property<string>("CardType")
                         .IsRequired()
-                        .HasColumnType("ENUM('Decision', 'Item')");
+                        .HasColumnType("ENUM('Decision', 'Software', 'Hardware')");
 
                     b.HasKey("CardId");
 

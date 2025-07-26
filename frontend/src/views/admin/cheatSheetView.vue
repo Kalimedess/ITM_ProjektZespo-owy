@@ -96,8 +96,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import drzewko from '@/assets/viewPNGs/DrzewoDecyzji.png'
+import apiService from '@/services/apiServices'
+import apiConfig from '@/services/apiConfig'
 
 // Lista dostępnych PDF-ów
 const availablePDFs = [
@@ -117,6 +119,18 @@ const availablePDFs = [
 
 const selectedPDF = ref(availablePDFs[0].path)
 const pdfWindows = ref([])
+
+const props = defineProps({
+  gameId: {
+    Number,
+    default: 1
+  },
+  teamId: {
+    Number,
+  },
+
+})
+
 
 // Rozmiar obrazka
 const isZoomed = ref(false)
@@ -142,6 +156,19 @@ function toggleImageSize() {
 function separateOverlaidPoints(){
 
 }
+
+const enablersMap = async () => {
+  const result = await apiService.get(apiConfig.games.getEnablersMap);
+
+  console.log("Dane enablerów:", result);
+} 
+
+const teamEntry = async () => {
+
+  const result = await apiService.get(apiConfig.games.getTeamEntry, {params: { gameId: props.gameId, teamId: props.teamId}});
+
+  console.log("Dane dla drużyny:", result);
+} 
 // Obsługa PDF
 function openPDF() {
   pdfWindows.value.push({})
@@ -154,4 +181,10 @@ function closePDF(index) {
 function openPDFInNewTab() {
   window.open(selectedPDF.value, '_blank')
 }
+
+onMounted(async () => {
+  await enablersMap();
+  await teamEntry();
+
+});
 </script>

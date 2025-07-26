@@ -93,7 +93,7 @@ namespace backend.Migrations
 
                     b.Property<string>("CardType")
                         .IsRequired()
-                        .HasColumnType("ENUM('Decision', 'Item')");
+                        .HasColumnType("ENUM('Decision', 'Software', 'Hardware')");
 
                     b.HasKey("CardId");
 
