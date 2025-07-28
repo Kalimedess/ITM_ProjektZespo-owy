@@ -116,7 +116,7 @@
                         :class="isSideBarOpen ? '': 'justify-center' "
                     >
                         <font-awesome-icon :icon="faFilePdf" class="h-4 text-accent"/>
-                         <span v-if="isSideBarOpen">Eksport gry do PDF</span>
+                         <span v-if="isSideBarOpen">Generowanie gry do PDF</span>
                     </RouterLink>
                 </li>
             </ul>
