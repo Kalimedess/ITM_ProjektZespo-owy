@@ -21,11 +21,12 @@
                 </div>
             </div>
 
-            <div v-for="message in messages" :key="message.id"
-            :class="message.isUser ? 'flex justify-end' : 'flex justify-start' ">
-                <div class="text-white rounded-2xl px-4 py-2 max-w-xs break-words"
-                :class="message.isUser ? 'bg-accent rounded-br-md' : 
-                'bg-gray-600 rounded-bl-md' ">
+            <div v-for="message in messages" :key="message.id" 
+                class="mb-3"
+                :class="message.isUser ? 'flex justify-end' : 'flex justify-start'">
+                <div class="text-white rounded-2xl px-4 py-3 max-w-sm whitespace-pre-wrap leading-relaxed"
+                    :class="message.isUser ? 'bg-accent rounded-br-md' : 'bg-gray-600 rounded-bl-md'"
+                    style="word-break: break-all; overflow-wrap: anywhere; hyphens: auto;">
                     {{ message.text }}
                 </div>
             </div>
