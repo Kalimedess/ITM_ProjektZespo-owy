@@ -164,8 +164,8 @@ namespace backend.Data
                   {
                         entity.HasKey(gl => gl.GameLogId);
 
-                        entity.HasOne(gl => gl.Team)
-                        .WithMany()
+                        entity.HasOne(t => t.Team)
+                        .WithMany(gl => gl.GameLogs)
                         .HasForeignKey(gl => gl.TeamId);
 
                         entity.HasOne(gl => gl.Card)

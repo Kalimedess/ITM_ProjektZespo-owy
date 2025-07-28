@@ -99,6 +99,7 @@ namespace backend.Controllers
                     .Select(group => new
                     {
                         TeamId = group.Key,
+                        TeamColor = group.First().Team.TeamColor,
                         CardId = group.OrderByDescending(g => g.Data).First().CardId
                     })
                     .ToListAsync();
