@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(config => {
 export default {
   // GET request
   get(endpoint, params = {}) {
-    return apiClient.get(endpoint, { params });
+    return apiClient.get(endpoint, params );
   },
 
   // POST request

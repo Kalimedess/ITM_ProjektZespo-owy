@@ -2,66 +2,72 @@
   <div class="w-full max-w-xl mx-auto mt-10">
     <div v-if="loading" class="text-center text-white">Ładowanie kart...</div>
     <div v-else-if="fetchError" class="text-center text-red-500">Błąd ładowania kart: {{ fetchError }}</div>
-    <div v-else-if="!cards || cards.length === 0" class="text-center text-white">Brak dostępnych kart.</div>
-    <div v-else-if="cards[currentIndex]" class="relative"></div>
-    <div class="relative">
+    
+    <div v-else-if="!displayCards || displayCards.length === 0" class="text-center text-white">Brak dostępnych kart w tej kategorii.</div>
+
+    <div v-else class="relative">
       
+      <!-- Wskaźniki (lista rozwijana) -->
+      <div class="flex flex-wrap justify-center gap-2 mt-6">
+        <select
+          v-model="currentIndex"
+          class="w-full py-5 border rounded-t-2xl text-center"
+        >
+          <option
+            v-for="(card, index) in displayCards"
+            :key="card.id"
+            :value="index"
+          >
+            <!-- ZMIANA: Wyświetlanie prawdziwego ID karty zamiast indeksu -->
+            {{ card.id }}: {{ card.title }}
+          </option>
+        </select>
+      </div>
+
       <div
         @mousedown="startHold"
         @mouseup="cancelHold"
         @mouseleave="cancelHold"
         :class="[
-          'w-full h-64 bg-gradient-to-br from-lime-400 via-lime-500 to-lime-600 rounded-2xl shadow-2xl text-white transition-transform duration-200 ease-in-out',
-          cardClicked ? 'scale-105' : 'scale-100'
+          'w-full h-full bg-gradient-to-br from-transparent to-transparent rounded-b-2xl shadow-2xl text-white'
         ]"
+        style="--tw-gradient-from: #5DBB63; --tw-gradient-to: #607D3B;"
       >
         <div class="flex h-full">
           <!-- Lewy przycisk -->
           <button
             @click.stop="prevCard"
-            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-l-2xl transition"
+            class="w-12 flex items-center justify-center py-5 hover:bg-black/20 rounded-bl-2xl transition"
             aria-label="Poprzednia karta"
-            :disabled="cards.length <= 1"
+            :disabled="displayCards.length <= 1"
           >
             <p><</p>
           </button>
 
           <!-- Środek karty -->
-          <div class="flex-1 flex flex-col items-center justify-center px-6 text-center">
-            <h2 class="text-2xl font-bold mb-2">
-              {{ cards[currentIndex]?.title }}
+          <div class="flex-1 flex flex-col items-center justify-center px-6 text-center py-5">
+            <h2 class="text-3xl font-bold mb-2">
+              {{ displayCards[currentIndex]?.title }}
             </h2>
-            <p class="text-base text-white/90 italic">
-              {{ cards[currentIndex]?.description }}
+            
+            <!-- ZMIANA: Opis jest teraz renderowany warunkowo -->
+            <p v-if="props.isOnlineGame" class="text-l text-white/90 font-bold">
+              {{ displayCards[currentIndex]?.description }}
             </p>
-            <p class="text-xs mt-2">ID: {{ cards[currentIndex]?.id }}</p>
+            
+            <p class="text-xs mt-2">ID: {{ displayCards[currentIndex]?.id }}</p>
           </div>
 
           <!-- Prawy przycisk -->
           <button
             @click.stop="nextCard"
-            class="w-12 flex items-center justify-center hover:bg-black/20 rounded-r-2xl transition"
+            class="w-12 flex items-center justify-center py-5 hover:bg-black/20 rounded-br-2xl transition"
             aria-label="Następna karta"
-            :disabled="cards.length <= 1"
+            :disabled="displayCards.length <= 1"
           >
             <p>></p>
           </button>
         </div>
-      </div>
-
-      <!-- Wskaźniki (zawijane) -->
-      <div class="flex flex-wrap justify-center gap-2 mt-6">
-        <button
-          v-for="(card) in cards"
-          :key="card.id"
-          @click="goToCardByDisplayOrder(card.displayOrder)"
-          class="w-8 h-8 text-sm font-medium rounded-full flex items-center justify-center transition-all duration-300 border-2"
-          :class="card.displayOrder === cards[currentIndex].displayOrder
-            ? 'bg-primary text-white border-white scale-110'
-            : 'bg-gray-200 text-gray-700 border-gray-400 hover:bg-gray-300'"
-        >
-          {{ card.id}}
-        </button>
       </div>
 
       <!-- Przyciski akcji -->
@@ -70,7 +76,7 @@
           @click="sendCardSelection"
           class="bg-black text-white px-6 py-2 rounded-full shadow-md hover:bg-gray-800 transition-colors duration-200"
         >
-          Wybierz kartę
+          {{ buttonLabel }}
         </button>
       </div>
     </div>
@@ -78,150 +84,167 @@
 </template>
 
 <script setup>
-  import apiConfig from '@/services/apiConfig';
+import { ref, computed, watch, watchEffect } from 'vue';
+import apiConfig from '@/services/apiConfig';
 import apiServices from '@/services/apiServices';
-import { ref, computed, watch} from 'vue'
+import { useToast } from 'vue-toastification';
 
+// --- Reaktywne referencje i stałe ---
+const toast = useToast();
 
-  const cards = ref([]);
-  const currentIndex = ref(0);
-  const loading = ref(true);
-  const fetchError = ref(null);
+const decisionCards = ref([]);
+const itemCards = ref([]);
+const currentIndex = ref(0);
+const loading = ref(true);
+const fetchError = ref(null);
 
-  const cardClicked = ref(false)
-  let holdTimeout = null
+// Definiowanie propsów i emitów
+const props = defineProps({
+  deckId: Number,
+  gameId: Number,
+  teamId: Number,
+  boardId: Number,
+  gameProcessId: Number,
+  currentBudget: {
+    type: Number,
+    default: 0
+  },
+  showingDecisionCards: {
+    type: Boolean,
+    required: true
+  },
+  isOnlineGame: {
+    type: Boolean,
+    default: true
+  },
+  isIndependentTeam: {
+    type: Boolean,
+    default: true
+  }
+});
 
-  const props = defineProps({
-      deckId: {
-          type: Number
-      },
-      gameId: {
-          type: Number
-        },
-        teamId: {
-          type: Number
-        },
-        boardId: {
-            type: Number
-        },
-        gameProcessId: {
-            type: Number
-        },
-        currentBudget: {
-          type: Number,
-          default: 0
-        }
+const emit = defineEmits(['card-action-completed']);
 
-  });
+// --- Computed Properties (Właściwości Obliczeniowe) ---
+
+const displayCards = computed(() => {
+  return props.showingDecisionCards ? decisionCards.value : itemCards.value;
+});
+
+// POPRAWKA: Zabezpieczenie przed nieprawidłowym indeksem
+const selectedCard = computed(() => {
+  // Jeśli `displayCards` jest puste lub indeks jest poza zakresem, zwróć null.
+  if (!displayCards.value || currentIndex.value >= displayCards.value.length) {
+    return null;
+  }
+  return displayCards.value[currentIndex.value];
+});
+
+const buttonLabel = computed(() => {
+  return props.isIndependentTeam ? 'Wybierz kartę' : 'Sugeruj kartę';
+});
+
+// --- Metody ---
+
+async function fetchCards() {
+  if (!props.deckId) {
+    loading.value = false;
+    return;
+  }
   
-  const emit = defineEmits(['card-action-completed']);
+  loading.value = true;
+  fetchError.value = null;
 
-  const deckIdToFetch = computed(() => props.deckId);
+  try {
+    const response = await apiServices.get(apiConfig.player.getCards(props.deckId), {
+      params: { gameId: props.gameId, teamId: props.teamId }
+    });
+    
+    // Używamy "optional chaining" (?.) i "nullish coalescing" (??) dla zwięzłości
+    decisionCards.value = response.data?.decisionCards ?? [];
+    itemCards.value = response.data?.itemCards ?? [];
+
+  } catch (error) {
+    decisionCards.value = [];
+    itemCards.value = [];
+    fetchError.value = "Wystąpił błąd podczas pobierania kart.";
+    console.error("[CardCarousel] Błąd pobierania kart:", error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+const nextCard = () => {
+  if (displayCards.value.length === 0) return;
+  currentIndex.value = (currentIndex.value + 1) % displayCards.value.length;
+};
+
+const prevCard = () => {
+  if (displayCards.value.length === 0) return;
+  currentIndex.value = (currentIndex.value - 1 + displayCards.value.length) % displayCards.value.length;
+};
+
+// POPRAWKA: Uproszczona i bardziej czytelna metoda
+const sendCardSelection = async () => {
+  // Używamy właściwości computed, która już jest bezpieczna
+  if (!selectedCard.value) {
+    toast.warning("Nie wybrano żadnej karty.");
+    return;
+  }
+
+  const { id: cardId, cost, enablers } = selectedCard.value;
+
+  const hasEnablers = Array.isArray(enablers) && enablers.length > 0;
+  const hasSufficientBudget = props.currentBudget >= cost;
   
-  async function fetchCards() {
-    if (!deckIdToFetch.value) {
-      console.log("ID talii nie jest określone.");
-      loading.value = false;
-      return;
-    }
-    loading.value = true;
-    fetchError.value = null;
-    try {
-      const response = await apiServices.get(apiConfig.player.getCards(deckIdToFetch.value), {
-        params: { gameId: props.gameId, teamId: props.teamId }
-      });
+  // Logika sukcesu jest teraz prostsza
+  const isSuccess = !hasEnablers && hasSufficientBudget;
 
-      if (response && response.data && Array.isArray(response.data)) {
-        const sortedCards = response.data.sort((a, b) => a.displayOrder - b.displayOrder);
-        cards.value = sortedCards;
-
-        if (cards.value.length > 0) {
-          currentIndex.value = 0;
-        } else {
-          currentIndex.value = 0; 
-        }
-      } else {
-        cards.value = [];
-        currentIndex.value = 0;
-      }
-      
-      //console.log("Pobrane dane:", JSON.stringify(cards.value, null, 2));
-            
-    } catch (error) {
-      cards.value = [];
-      currentIndex.value = 0;
-      console.error("[CardCarousel] Błąd pobierania kart:", error.response?.data || error.message, error);
-
-    } finally {
-      loading.value = false;
-    }
+  const cardPlayData = {
+    gameId: props.gameId,
+    teamId: props.teamId,
+    deckId: props.deckId,
+    boardId: props.boardId,
+    gameProcessId: props.gameProcessId,
+    cost: cost
   };
+  
+  // Budujemy URL dynamicznie
+  const apiUrl = isSuccess 
+    ? apiConfig.player.playCardSuccess(cardId) 
+    : apiConfig.player.playCardFailure(cardId);
 
- 
+  try {
+    const response = await apiServices.post(apiUrl, cardPlayData);
+    
+    toast.success(response.data?.message ?? "Akcja została wykonana.");
+    
+    emit('card-action-completed', { 
+      success: true, 
+      newBudget: response.data.newTeamBudget 
+    });
 
-  const startHold = () => {
-    holdTimeout = setTimeout(() => {
-      cardClicked.value = true;
-    }, 500);
-  };
+    await fetchCards(); // Poczekaj na odświeżenie kart
 
-  const cancelHold = () => {
-    clearTimeout(holdTimeout);
-    cardClicked.value = false;
-  };
+  } catch (err) {
+    toast.error(err.response?.data?.message ?? "Wystąpił błąd podczas komunikacji z serwerem.");
+    console.error("Błąd podczas zagrywania karty:", err);
+    emit('card-action-completed', { success: false });
+  }
+};
 
-  const nextCard = () => {
-    if (cards.value.length === 0) return;
-    currentIndex.value = (currentIndex.value + 1) % cards.value.length;
-  };
+// --- Watchers (Obserwatorzy) ---
 
-  const prevCard = () => {
-    if (cards.value.length === 0) return;
-    currentIndex.value = (currentIndex.value - 1 + cards.value.length) % cards.value.length;
-  };
+// POPRAWKA: Resetuj indeks, gdy zmienia się wyświetlana lista kart
+watch(displayCards, () => {
+  currentIndex.value = 0;
+});
 
-  const goToCardByDisplayOrder = (displayOrder) => {
-    const targetIndex = cards.value.findIndex(card => card.displayOrder === displayOrder);
-    if (targetIndex !== -1) {
-      currentIndex.value = targetIndex;
-    }
-  };
-
-  const sendCardSelection = async () => {
-    if (cards.value.length > 0) {
-      const selectedCardData = cards.value[currentIndex.value];
-      const selectedCardEnablers = selectedCardData.enablers && Array.isArray(selectedCardData.enablers) && selectedCardData.enablers.length > 0;
-
-      const propsToSend = {
-        gameId: props.gameId,
-        teamId: props.teamId,
-        deckId: props.deckId,
-        boardId: props.boardId,
-        gameProcessId: props.gameProcessId,
-        cost: selectedCardData.cost
-
-    };
-
-      if(!selectedCardEnablers && !(props.currentBudget - propsToSend.cost < 0)){
-        const response = await apiServices.post(apiConfig.player.playCardSuccess(selectedCardData.id), propsToSend)
-        console.log(response)
-      } else {
-        await apiServices.post(apiConfig.player.playCardFailure(selectedCardData.id), propsToSend)
-      }
-
-      emit('card-action-completed', { 
-        success: true
-      },
-        fetchCards());
-      // Tutaj logika wysyłania wybranej karty (np. emit zdarzenia, wywołanie API)
-      // np. emit('card-selected', selectedCardData.id); // Wysyłaj oryginalne ID karty
-    }
-  };
-
- watch(() => props.deckId, (newDeckId, oldDeckId) => {
-      if (newDeckId && newDeckId !== oldDeckId) {
-          fetchCards();
-      }
-  }, { immediate: true });
-
+// Użyj watchEffect do pobierania danych na podstawie propsów - to jest OK
+watchEffect(() => {
+  const { deckId, gameId, teamId } = props;
+  if (deckId != null && gameId != null && teamId != null) {
+    fetchCards();
+  }
+});
 </script>

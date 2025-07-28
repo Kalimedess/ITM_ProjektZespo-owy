@@ -17,6 +17,6 @@ namespace backend.Data
         public Deck Deck { get; set; } = null!;
 
         public double DecisionBaseCost { get; set; }
-        public int DecisionCostWeight { get; set; }
+        public double DecisionCostWeight { get; set; }
     }
 }

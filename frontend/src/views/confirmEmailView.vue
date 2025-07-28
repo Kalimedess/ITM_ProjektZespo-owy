@@ -96,9 +96,10 @@ const handleReturnToLogin = () => {
 };
 
 onMounted(async () => {
-  
-  const route = useRoute();
-  const token = route.query.token;    
+
+  const token = router.currentRoute.value.params.token;    
+
+  console.log("Token", token);
   if (token) {
     try {
       const response = await apiService.get(apiConfig.auth.confirmEmail(token));

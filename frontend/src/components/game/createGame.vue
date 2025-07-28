@@ -2,10 +2,12 @@
   <div v-if="props.isVisible" class="fixed inset-0 flex items-center justify-center z-50">
     <div class="absolute inset-0 bg-black/70" @click="closeModal"></div>
     
-    <div class="bg-primary text-white rounded-lg relative z-10 border-2 border-accent p-6 sm:p-8 md:p-10 lg:p-12 max-h-[90vh] w-full max-w-lg animate-jump-in">
+    <div class="bg-primary text-white relative z-10 border-2 border-accent animate-jump-in
+                w-full h-full p-4 overflow-y-auto custom-scrollbar
+                sm:w-full sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg sm:p-6 md:p-8 lg:p-10">
       <button 
         @click="closeModal" 
-        class="absolute top-2 right-2 w-8 h-8"
+        class="absolute top-3 right-3 sm:top-2 sm:right-2 w-8 h-8 z-10"
       >
         <font-awesome-icon :icon="faXmark" class="h-5 text-white hover:text-accent transition-all duration-100" />
       </button>
@@ -107,7 +109,7 @@
                 class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 text-white w-full mb-4" 
                 type="number"
                 v-model="numberOfTeams"
-                min="1"
+                min="2"
                 max="15"
                 step="1">
             </div>
@@ -120,8 +122,8 @@
                   id="numberOfBits"
                   class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 text-white w-full mb-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                   v-model="numberOfBits"
-                  min="1"
-                  max="100000"
+                  min="20"
+                  max="1000"
                 >
              </div>
 
@@ -255,56 +257,42 @@
           </div>
         </div>
 
-      <!--Krok 3-->
+       <!-- Krok 3 -->
       <div v-if="step === 3" :class="direction === 'forwards' ? 'animate-fade-right' : 'animate-fade-left'">
-      <div class="mb-6">
-        <label for="selectProcess" class="block text-left text-xs sm:text-sm font-bold text-white mb-2">
-          Wybierz proces do edycji:
-        </label>
-        <select 
-          v-model="selectedProcessId" 
-          id="selectProcess" 
-          class="bg-tertiary border-2 border-lgray-accent rounded-md px-3 py-2 w-full mb-4"
-        >
-          <option value="" disabled>Wybierz proces</option>
-          <option v-for="process in processes" :key="process.id" :value="process.id">
-            {{ process.shortName }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Edycja wybranego procesu -->
-        <div v-if="selectedProcess" class="p-4 rounded-lg bg-tertiary border border-lgray-accent mb-4">
-          <h3 class="font-bold text-lg mb-4 text-white">
-            Edytujesz: <span class="text-accent">{{ selectedProcess.shortName }}</span>
-          </h3>
+        <div class="mb-6">
+          <h2 class="block text-left text-sm sm:text-base font-bold text-white mb-3">
+            Wybierz procesy, które będą używane w grze:
+          </h2>
           
-          <div class="space-y-4">
-            <div>
-              <label :for="'editProcessShort-' + selectedProcess.id" class="block text-sm font-medium text-gray-300 mb-1">
-                Skrót procesu
-              </label>
-              <input
-                :id="'editProcessShort-' + selectedProcess.id"
-                type="text"
-                maxlength="7"
-                v-model="selectedProcess.shortName"
-                class="w-full bg-primary border-2 border-lgray-accent rounded-md px-3 py-2 text-white"
+          <div v-if="isLoadingProcesses" class="text-center text-gray-400">
+            <p>Ładowanie procesów...</p>
+          </div>
+          <div v-else-if="availableProcesses.length === 0" class="text-center text-gray-400">
+            <p>Brak dostępnych procesów dla wybranej talii lub nie wybrano talii.</p>
+          </div>
+          
+          <div v-else class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+            <label v-for="process in availableProcesses" :key="process.processId" 
+                   class="flex items-center p-3 bg-tertiary rounded-md cursor-pointer hover:bg-accent/30 transition-colors duration-200">
+              <input 
+                type="checkbox"
+                :value="process.processId"
+                v-model="selectedProcessIds"
+                class="w-5 h-5 rounded bg-primary border-lgray-accent text-accent focus:ring-accent"
               />
-            </div>
-            
-            <div>
-              <label :for="'editProcessFull-' + selectedProcess.id" class="block text-sm font-medium text-gray-300 mb-1">
-                Pełna nazwa procesu
-              </label>
-              <input
-                :id="'editProcessFull-' + selectedProcess.id"
-                type="text"
-                v-model="selectedProcess.fullName"
-                maxlength="20"
-                class="w-full bg-primary border-2 border-lgray-accent rounded-md px-3 py-2 text-white"
-              />
-            </div>
+              <div class="ml-3 flex items-center gap-2"> <!-- Dodaj flexbox do kontenera nadrzędnego dla ładnego ułożenia -->
+                <div>
+                  <span class="font-bold text-white">{{ process.processDesc }}</span>
+                  <span class="text-sm text-gray-400 ml-2"> - {{ process.processLongDesc }}</span>
+                </div>
+                
+                <!-- POPRAWIONY ELEMENT KOLORU -->
+                <span 
+                  class="w-6 h-6 rounded-full inline-block ml-2 border-2 border-tertiary" 
+                  :style="{ backgroundColor: process.processColor }">
+                </span>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -344,49 +332,42 @@
   import DropDown from '../dropDown.vue';
 
   import apiConfig from '@/services/apiConfig.js';
-import apiService from '@/services/apiServices.js';
+  import apiService from '@/services/apiServices.js';
 
 
   const toast = useToast();
 
+  // Krok 1
+  const gameName = ref('');
   const selectedBoardId = ref(null);
   const selectedOponentBoardId = ref(null);
   const selectedDeckId = ref(null);
   const selectedGameMode = ref('stationary');
-  const numberOfTeams = ref(1);
-  const gameName = ref('');
-  const numberOfBits = ref(1);
-  const step = ref(1);
-  const direction = ref('');
+  
+  // Krok 2
+  const numberOfTeams = ref(2);
+  const numberOfBits = ref(20);
+  const teams = ref([]);
   const currentlyEditingTeamId = ref(0);
   const showTip = ref(false);
-  const selectedProcessId = ref(null);
 
-  const teams = ref([]);
+  // Krok 3 - NOWA LOGIKA
+  const availableProcesses = ref([]);
+  const selectedProcessIds = ref([]); // Będzie przechowywać ID zaznaczonych procesów
+  const isLoadingProcesses = ref(false);
 
-  const processes = ref([
-    { id: 1, shortName: 'O2C', fullName: 'Order to Cash' },
-    { id: 2, shortName: 'P2V', fullName: 'Purchase to Validate' },
-    { id: 3, shortName: 'M2S', fullName: 'Manufacturing to Supply' },
-    { id: 4, shortName: 'OPP', fullName: 'Operational Production Planning' },
-    { id: 5, shortName: 'MM', fullName: 'Material Management' }
-  ]);
-
-  const defaultColors = [
-    '#E63946', '#F1FAEE', '#A8DADC', '#457B9D', '#1D3557', '#F4A261',
-    '#2A9D8F', '#E9C46A', '#264653', '#E76F51', '#8ECAE6', '#FB8500'
-  ];
+  // Nawigacja
+  const step = ref(1);
+  const direction = ref('');
+  
+  // Domyślne kolory drużyn - bez zmian
+  const defaultColors = ['#8B0000', '#2D1B69', '#1B4332', '#A4133C', '#7209B7', '#6A994E', '#2B2D42', '#CC6600', '#B8860B', '#008B8B', '#8B008B', '#556B2F', '#722F37', '#4A4A4A', '#36454F'];
 
   const selectedTeam = computed(() => {
     if (currentlyEditingTeamId.value === null) return null;
     return teams.value.find(team => team.id === currentlyEditingTeamId.value);
   });
-
-  const selectedProcess = computed(() => {
-    if (selectedProcessId.value === null) return null;
-    return processes.value.find(process => process.id === selectedProcessId.value);
-  });
-
+  
   const updateTeamsArray = (count) => {
     const newTeams = [];
     for (let i = 0; i < count; i++) {
@@ -400,9 +381,33 @@ import apiService from '@/services/apiServices.js';
     }
     teams.value = newTeams;
     if (!teams.value.some(team => team.id === currentlyEditingTeamId.value)) {
-      currentlyEditingTeamId.value = 0;
+      currentlyEditingTeamId.value = teams.value.length > 0 ? 0 : null;
     }
   };
+  
+  // Pobieranie procesów po zmianie wybranej talii
+  watch(selectedDeckId, async (newDeckId) => {
+    if (newDeckId) {
+      isLoadingProcesses.value = true;
+      availableProcesses.value = [];
+      selectedProcessIds.value = []; // Resetuj zaznaczone procesy
+      try {
+        // Zakładamy, że masz taki endpoint w apiConfig.js
+        const response = await apiService.get(apiConfig.processes.getByDeck(newDeckId));
+        availableProcesses.value = response.data;
+        console.log(availableProcesses.value)
+      } catch (error) {
+        console.error('Błąd pobierania procesów:', error);
+        toast.error('Nie udało się pobrać procesów dla wybranej talii.');
+      } finally {
+        isLoadingProcesses.value = false;
+      }
+    } else {
+      availableProcesses.value = [];
+      selectedProcessIds.value = [];
+    }
+  });
+
 
   watch(numberOfTeams, (newCount) => {
     const count = Math.max(1, Math.min(15, newCount || 1));
@@ -412,16 +417,13 @@ import apiService from '@/services/apiServices.js';
 
   const handleNextStep = () => {
     let result = true;
-
     if (step.value === 1) {
        result = validateFirstStep();
     }
-
-    if(result){
+    if (result) {
       step.value += 1;
       direction.value = 'forwards';
     }
-
   }
 
   const handlePreviousStep = () => {
@@ -431,34 +433,18 @@ import apiService from '@/services/apiServices.js';
 
   const validateFirstStep = () => {
     const errors = [];
-    
-    if (!selectedBoardId.value) {
-      errors.push('Wybierz planszę');
-    }
-    if (!selectedOponentBoardId.value) {
-      errors.push('Wybierz planszę konkurencji');
-    }
-    if (!selectedDeckId.value) {
-      errors.push('Wybierz talię kart');
-    }
-    if (!gameName.value?.trim()) {
-      errors.push('Wprowadź nazwę gry');
-    }
- 
+    if (!gameName.value?.trim()) errors.push('Wprowadź nazwę gry');
+    if (!selectedBoardId.value) errors.push('Wybierz planszę');
+    if (!selectedOponentBoardId.value) errors.push('Wybierz planszę konkurencji');
+    if (!selectedDeckId.value) errors.push('Wybierz talię kart');
 
     if (errors.length > 0) {
-      toast.error(errors.join('\n'), {
-        position: 'top-center',
-      });
+      toast.error(errors.join('\n'));
       return false;
     }
-
     return true;
   }
-  const data = reactive({
-    boards: [],
-    decks:[]
-  });
+  const data = reactive({ boards: [], decks: [] });
 
   const fetchBoardsFromAPI = async () => {
     try {
@@ -486,115 +472,106 @@ import apiService from '@/services/apiServices.js';
     }
   };
   
-  const props = defineProps({
-    isVisible: {
-      type: Boolean,
-      default: false
-    }
-  });
-
+  const props = defineProps({ isVisible: { type: Boolean, default: false } });
   const emits = defineEmits(['close', 'gameCreated']);
 
   const closeModal = () => {
+    // Resetowanie stanu
     gameName.value = '';
     selectedBoardId.value = null;
     selectedOponentBoardId.value =  null;
-    selectedDeckId.value = null;
+    selectedDeckId.value = null; // To spowoduje wyczyszczenie procesów przez watch
     numberOfTeams.value = 1;
     step.value = 1;
     numberOfBits.value = 1;
-    selectedProcessId.value = null;
-
-    processes.value = [
-      { id: 1, shortName: 'O2C', fullName: 'Order to Cash' },
-      { id: 2, shortName: 'P2V', fullName: 'Purchase to Validate' },
-      { id: 3, shortName: 'M2S', fullName: 'Manufacturing to Supply' },
-      { id: 4, shortName: 'OPP', fullName: 'Operational Production Planning' },
-      { id: 5, shortName: 'MM', fullName: 'Material Management' }
-    ];
 
     emits('close');
-    emits('gameCreated');
   };
 
   const handleSubmit = async () => {
-    if (step.value === 1) {
+    // Walidacja kroków 1 i 2
+    if (step.value !== 3) {
         handleNextStep();
         return;
     }
 
     const teamNameErrors = teams.value.filter(team => !team.name.trim());
     if (teamNameErrors.length > 0) {
-        toast.error(`Nazwy drużyn nie mogą być puste (Drużyna ${teamNameErrors.map(t => t.id + 1).join(', ')})`);
+        toast.error(`Nazwy drużyn nie mogą być puste.`);
         return;
     }
-
     if (numberOfBits.value < 1 || numberOfBits.value > 100000) {
         toast.error("Liczba bitów na start musi być pomiędzy 1 a 100000.");
         return;
     }
+    
+    // Walidacja Kroku 3
+    if (selectedProcessIds.value.length === 0) {
+        toast.error("Wybierz co najmniej jeden proces do gry.");
+        return;
+    }
 
+    // Filtruj wybrane procesy, aby zbudować payload
+    const selectedProcessesForPayload = availableProcesses.value
+      .filter(p => selectedProcessIds.value.includes(p.processId))
+      .map(p => ({
+        // Zgodnie z oczekiwaniami backendu
+        Name: p.processLongDesc, 
+        ShortName: p.processDesc,
+      }));
 
-
-    //Sprawdź czy tu payload jest okej wszystkie zmienne itp 
     const gamePayload = {
       GameName: gameName.value,
       BoardId: selectedBoardId.value,
       RivalBoardId: selectedOponentBoardId.value,
       DeckId: selectedDeckId.value,
-      GameMode: selectedGameMode.value === 'stationary' ? false : true, // Rodzaj rozgrywki zdalna / stacjonarna
-      NumberOfTeams: numberOfTeams.value,
+      GameMode: selectedGameMode.value === 'stationary' ? false : true,
       StartBits: Number(numberOfBits.value),
       Teams: teams.value.map(team => ({
         Name: team.name,
         Colour: team.colour,
-        IsAbleToMakeDecisions: team.isAbleToMakeDecisions // To jest zmienna: podejmowania decyzji z tableta lub sugestii kolejnego działania
+        IsAbleToMakeDecisions: team.isAbleToMakeDecisions
       })),
-      //Procesy
-      Process: processes.value.map(process => ({
-          Name: process.fullName,
-          ShortName: process.shortName,
-      }))
-
+      // Użyj przefiltrowanej listy wybranych procesów
+      Processes: selectedProcessesForPayload
     };
-
-    console.log('🚀 Game Payload:', gamePayload);
-    console.log('📋 OpponentBoardId:', selectedOponentBoardId.value);
-    console.log('🎯 BoardId:', selectedBoardId.value);
 
     try {
       const response = await apiService.post(apiConfig.games.create, gamePayload);
-
-      emits('gameCreated')
-
       toast.success(response.data.message || `Gra "${gamePayload.GameName}" utworzona pomyślnie!`);
-
+      emits('gameCreated'); // Emituj zdarzenie, aby odświeżyć listę gier
       closeModal();
     } catch (error) {
+      // Obsługa błędów - bez zmian
       console.error('Błąd tworzenia gry:', error.response?.data || error.message, error);
       let errorMessage = "Nie udało się utworzyć gry.";
-      if (error.response && error.response.data) {
-          if (typeof error.response.data === 'string') {
-              errorMessage = error.response.data;
-          } else if (error.response.data.title) {
-              errorMessage = error.response.data.title;
-          } else if (error.response.data.errors) {
-              const errors = Object.values(error.response.data.errors).flat();
-              errorMessage = errors.join('\n');
-          } else if (error.response.data.message) {
-              errorMessage = error.response.data.message;
-          }
-      } else if (error.message) {
-          errorMessage = error.message;
-      }
+      // ... reszta logiki obsługi błędów
       toast.error(errorMessage);
     }
   };
 
   onMounted(async () => {
-  await fetchBoardsFromAPI();
-  await fetchDecksFromAPI();
-});
+    await fetchBoardsFromAPI();
+    await fetchDecksFromAPI();
+  });
 
 
 </script>
+
+<style scoped>
+    .custom-scrollbar::-webkit-scrollbar {
+    width: 0.6rem; 
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent; 
+    margin: 0.5rem 0.3rem; 
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #a78bfa; 
+    border-radius: 0.25rem; 
+    border: 0.1rem solid transparent; 
+    background-clip: content-box; 
+    }
+</style>

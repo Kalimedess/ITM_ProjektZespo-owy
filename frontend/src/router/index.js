@@ -13,13 +13,14 @@ import editItems from '@/views/admin/editItems.vue'
 import decisionHistoryView from '@/views/game/gameDecisionHistoryView.vue'
 import testBoard from '@/views/testBoard.vue'
 import editBitsView from '@/views/game/editBitsView.vue'
-
+import decisionPanel from '@/views/game/decisionPanelView.vue'
+import blockCards from '@/views/game/blockCardsView.vue'
 import resetPasswordView from '@/views/resetPasswordView.vue'
 import confirmEmailView from '@/views/confirmEmailView.vue'
-
 import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
-
+import gameView from '@/views/admin/adminGameView.vue'
+import tableDecisionPanelView from '@/views/game/tableDecisionPanelView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -84,19 +85,52 @@ const router = createRouter({
     },
     {
       path: '/admin/game',
+      name: 'admin-game-dashboard',
       component: adminGameDashboardView,
       meta: { requiresAuth: true },
       children: [
         {
-          path: '',
-          name: 'admin-game-statistics',
-          component: gameStatistics,
+          path: ':gameId',
+          name: 'table-view',
+          component: gameView,
+          props: true,
+          meta: { requiresAuth: true }
         },
         {
-          path: 'editbits',
+          path: '/admin/game/market/:gameId',
+          name: 'decision-panel',
+          component: decisionPanel,
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/admin/game/:gameId/:teamId',
+          name: 'decisionanel',
+          component: tableDecisionPanelView,
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/admin/game/:gameId/statistics',
+          name: 'admin-game-statistics',
+          component: gameStatistics,
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/admin/game/:gameId/editbits',
           name: 'edit-bits',
           component: editBitsView,
-        }
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/admin/game/:gameId/blockcards',
+          name: 'block-cards',
+          component: blockCards,
+          props: true,
+          meta: { requiresAuth: true }
+        },
 
       ]
     },

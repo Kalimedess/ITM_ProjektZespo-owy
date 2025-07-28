@@ -1,110 +1,152 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-primary">
-    <!-- Górny pasek -->
+  <div class="flex flex-col h-screen bg-primary relative overflow-hidden">
     <PlayerNavbar
-      :team-name="gameData?.teamName" 
+      :team-name="gameData?.teamName"
       :nav-bg-color="gameData?.teamColor"
     />
 
-    <!-- Główna zawartość -->
-    <div class="flex flex-1 mt-2">
-      
-      <!-- Lewa kolumna: wybór kart -->
-      <div class="flex-1 ml-4 mr-2 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4">
-        <RouterView />
-        <QuestionBox />
-        <Suspense>
-      <template #default>
-        <CardCarousel
-        ref="cardCarouselRef"
-          v-if="gameData && gameData.deckId" 
-          :deck-id="gameData.deckId" 
-          :team-id="gameData.teamId"
-          :game-id="gameData.gameId"
-          :board-id="gameData.boardConfig?.boardId"
-          :current-budget="currentGlobalBudget"
-          @card-action-completed="handleCardActionCompleted"
-          
-        />
-      </template>
-      <template #fallback>
-        <div>Ładowanie karuzeli kart... (Fallback ze Suspense)</div>
-      </template>
-    </Suspense>
-      </div>
+    <div class="flex flex-1 flex-row relative overflow-hidden">
+      <!-- Lewy panel -->
+      <Transition name="fade-slide" appear>
+        <div
+          v-if="leftOpen"
+          class="absolute left-0 top-0 w-1/2 h-full bg-secondary border-r border-gray-400 shadow-lg z-40 overflow-auto p-4 transition-all duration-500 ease-in-out"
+        >
+          <RouterView />
+          <QuestionBox />
 
-      <!-- Prawa kolumna: decyzje -->
-      <div class="flex-1 ml-4 bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 w-1/3 mr-4 flex flex-col space-y-4">
-        <!-- Przyciski przełączania paneli -->
-        <div class="flex justify-center space-x-2">
+                    <!-- 2. Dodajemy przyciski przełączające -->
+          <div class="flex justify-center space-x-2 my-4">
+              <button
+                  @click="showingDecisionCards = true"
+                  :class="showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-white text-black'"
+                  class="px-5 py-2 rounded-md border font-semibold"
+              >
+                  Decyzje
+              </button>
+              <button
+                  @click="showingDecisionCards = false"
+                  :class="!showingDecisionCards ? 'bg-blue-600 text-white' : 'bg-white text-black'"
+                  class="px-5 py-2 rounded-md border font-semibold"
+              >
+                  Przedmioty
+              </button>
+          </div>
+
+          <Suspense>
+              <template #default>
+                  <CardCarousel
+                      ref="cardCarouselRef"
+                      v-if="gameData && gameData.deckId" 
+                      :deck-id="gameData.deckId" 
+                      :team-id="gameData.teamId"
+                      :game-id="gameData.gameId"
+                      :board-id="gameData.boardConfig?.boardId"
+                      :current-budget="currentGlobalBudget"
+                    
+                      :showing-decision-cards="showingDecisionCards"
+
+                      :is-online-game="gameData?.isOnline"
+                      :is-independent-team="gameData?.isIndependent"
+
+                      @card-action-completed="handleCardActionCompleted"
+                  />
+              </template>
+              <template #fallback>
+                  <div>Ładowanie karuzeli kart...</div>
+              </template>
+          </Suspense>
+        </div>
+      </Transition>
+
+      <!-- Plansza -->
+      <div
+        class="transition-all duration-300 h-full bg-secondary border-2 border-lgray-accent rounded-md shadow-sm text-center p-4 pb-10 z-30"
+        :class="[
+          leftOpen ? 'w-1/2 ml-auto' : '',
+          rightOpen ? 'w-1/2 mr-auto' : '',
+          (!leftOpen && !rightOpen) ? 'w-1/2 mx-auto' : ''
+        ]"
+      >
+        <div class="flex justify-center">
           <button
-            @click="currentPanel = 'menu'"
-            :class="currentPanel === 'menu' ? 'bg-black text-white' : 'bg-white text-black'"
-            class="px-4 py-1 rounded-md border"
-          >
-            Menu
-          </button>
-          <button
-            @click="currentPanel = 'gameboard'"
-            :class="currentPanel === 'gameboard' ? 'bg-black text-white' : 'bg-white text-black'"
+            @click="currentBoard = 'player'"
+            :class="currentBoard === 'player' ? 'bg-black text-white' : 'bg-white text-black'"
             class="px-4 py-1 rounded-md border"
           >
             Twoja plansza
           </button>
           <button
-            @click="currentPanel = 'panel2'"
-            :class="currentPanel === 'panel2' ? 'bg-black text-white' : 'bg-white text-black'"
+            @click="currentBoard = 'market'"
+            :class="currentBoard === 'market' ? 'bg-black text-white' : 'bg-white text-black'"
             class="px-4 py-1 rounded-md border"
           >
-            Plansza Rywali
+            Plansza rynku
           </button>
         </div>
 
+        <div class="flex justify-between items-center">
+          <!-- Lewy przycisk -->
+          <button
+            @click="showLeftPanel"
+            class="bg-gray-800 text-white px-4 py-2 rounded-md"
+          >
+            Panel kart
+          </button>
+
+          <!-- Prawy przycisk -->
+          <button
+            @click="showRightPanel"
+            class="bg-gray-800 text-white px-4 py-2 rounded-md"
+          >
+            Panel decyzji
+          </button>
+        </div>
+        <!-- Zamienić pawnCount na liczbe graczy w danym stole -->
+        <!-- Zamienić pawnPositions na pozycje pionkow w grze (w testgameboard jest lokiga dzielenia pionków na grid wiec podajemy 1,1 albo 1,2) -->
+        <GameBoard
+          v-if="currentBoard === 'player'"
+          :config="formData"
+          :gameMode="true"
+          :pawns="pawns"
+        />
+        <GameBoard
+          v-if="currentBoard === 'market'"
+          :config="enemyformData"
+          :gameMode="true"
+          :pawns="enemypawns"
+        />
+      </div>
+
+      <!-- Prawy panel -->
+      <div
+        v-if="rightOpen"
+        class="absolute right-0 top-0 w-1/2 h-full bg-secondary border-l border-gray-400 shadow-lg z-40 overflow-auto p-4"
+      >
         <PlayerMenu 
-         ref="playerMenuRef"
-            v-if="currentPanel === 'menu' && gameData"
-            :game-id="gameData?.gameId"
-            :team-id="gameData?.teamId"
+          ref="playerMenuRef"
+          v-if="currentPanel === 'menu' && gameData"
+          :game-id="gameData?.gameId"
+          :team-id="gameData?.teamId"
           @budget-changed-in-menu="handleBudgetChangeFromMenu"
         />
-        <GameBoard v-else-if="currentPanel === 'gameboard'"
-        :config="formData"
-        :gameMode="true"
-        :posX="posX"
-        :posY="posY"
-        :pawnColor="gameData?.teamColor" />
       </div>
-
     </div>
 
-    <!--Ikona chatu-->
-        <div class=" bg-tertiary flex justify-center items-center px-2 py-2 fixed bottom-4 left-8 h-12 w-12 z-10  
-        rounded-full border cursor-pointer  border-lgray-accent text-white transition-all duration-300 ease-in-out
-        hover:shadow-lg hover:shadow-accent/60 hover:border-accent hover:text-accent hover:scale-110 hover:-translate-y-2"
-        @click="showChat = true">
-            <font-awesome-icon :icon="faCommentDots" class="h-8"/>
-        </div>
-
-        <!--Chat-->
-        <div v-if="showChat" class="fixed inset-0 z-50 bg-black bg-opacity-50 lg:flex lg:items-center lg:justify-start lg:pl-4">
-            <Chat
-                class="
-                    h-full w-full
-                    lg:h-3/4 lg:w-1/5 lg:max-w-2xl
-                "
-                @close-chat="showChat = false"
-            />
-      </div>
-
     <!-- Stopka -->
-    <div class="mt-2">
-      <Footer/>
+    <div class="mt-auto">
+      <Footer />
     </div>
   </div>
 </template>
 
+
+
 <script setup>
-import { reactive, ref, watch} from 'vue'
+
+
+//---------------------------------------------------------------
+import { reactive, ref, watch, onMounted, onUnmounted} from 'vue'
 import PlayerNavbar from '@/components/navbars/playerNavbar.vue'
 import QuestionBox from '@/components/playerComponents/questionBox.vue'
 import GameBoard from '@/components/game/gameBoard.vue'
@@ -112,15 +154,11 @@ import Footer from '@/components/footers/adminFooter.vue'
 import CardCarousel from '@/components/playerComponents/CardCarousel.vue'
 import PlayerMenu from '@/components/playerComponents/playerMenu.vue'
 import { RouterView } from 'vue-router'
-import apiServices from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
-import { faCommentDots } from '@fortawesome/free-regular-svg-icons';
+import apiServices from '@/services/apiServices'
+import signalrService from '@/services/signalService';
 
-import Chat from '@/components/game/chat.vue'
-
-//Zmienna czy wyświetlać chat czy nie
-const showChat = ref(false);
-
+const showingDecisionCards = ref(true);
 const currentPanel = ref('menu')
 
     const formData = reactive({
@@ -135,9 +173,18 @@ const currentPanel = ref('menu')
         BorderColor: '#595959', 
         BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
     });
-
-    const posX = ref(7);
-    const posY = ref(7);
+    const enemyformData = reactive({
+        Name: 'Plansza podstawowa', 
+        LabelsUp: ['Podstawowa kordynacja', 'Standaryzacja procesów', 'Zintegrowane działania', 'Pełna integracja strategiczna'], 
+        LabelsRight: ['Nowicjusz', 'Naśladowca', 'Innowator', 'Lider cyfrowy'], 
+        DescriptionDown: 'Poziom integracji wew/zew', 
+        DescriptionLeft: 'Zawansowanie Cyfrowe', 
+        Rows: 8,
+        Cols: 8,
+        CellColor: '#fefae0', 
+        BorderColor: '#595959', 
+        BorderColors: ['#008000', '#FFFF00', '#FFA500', '#FF0000']
+    });
 
 const props = defineProps({
   teamToken: String // Odbieramy teamToken jako prop dzięki `props: true` w routerze
@@ -162,12 +209,12 @@ const fetchGameDataByToken = async (token) => {
   gameData.value = null;
   try {
     const response = await apiServices.get(apiConfig.player.getTeamInfo(token));
+    console.log("Dane z backendu (team info):", response.data);
+
 
     gameData.value = {
         ...response.data,
         boardConfig: response.data.boardConfig, 
-        teamPosX: parseInt(response.data.teamPositionX, 10),
-        teamPosY: parseInt(response.data.teamPositionY, 10),
     };
 
     formData.Name = gameData.value.boardConfig.name;
@@ -181,14 +228,29 @@ const fetchGameDataByToken = async (token) => {
     formData.CellColor = gameData.value.boardConfig.cellColor;
     formData.BorderColor = gameData.value.boardConfig.borderColor;
 
-    posX.value = gameData.value.teamPosX;
-    posY.value = gameData.value.teamPosY;
-
-
     if (playerMenuRef.value && currentPanel.value === 'menu') {
       playerMenuRef.value.fetchGameLog();
     }
 
+
+    if (gameData.value.rivalBoardConfig) {
+      enemyformData.Name = gameData.value.rivalBoardConfig.name;
+      enemyformData.LabelsUp = gameData.value.rivalBoardConfig.labelsUp;
+      enemyformData.LabelsRight = gameData.value.rivalBoardConfig.labelsRight;
+      enemyformData.BorderColors = gameData.value.rivalBoardConfig.borderColors;
+      enemyformData.DescriptionDown = gameData.value.rivalBoardConfig.descriptionDown;
+      enemyformData.DescriptionLeft = gameData.value.rivalBoardConfig.descriptionLeft;
+      enemyformData.Rows = gameData.value.rivalBoardConfig.rows;
+      enemyformData.Cols = gameData.value.rivalBoardConfig.cols;
+      enemyformData.CellColor = gameData.value.rivalBoardConfig.cellColor;
+      enemyformData.BorderColor = gameData.value.rivalBoardConfig.borderColor;
+    } else 
+    {
+      console.warn("Brak konfiguracji rivalBoardConfig dla planszy rywala/rynku. Prawdopodobnie gra offline lub brak planszy rywala.");
+    }
+
+    fetchPawns();
+    fetchRivalPawns();
     
 
   } catch (err) {
@@ -202,12 +264,6 @@ const fetchGameDataByToken = async (token) => {
   }
 };
 
-watch(() => props.teamToken, (newToken) => {
-  if (newToken) {
-    fetchGameDataByToken(newToken);
-  }
-}, { immediate: true });
-
 const handleCardActionCompleted = async (eventPayload) => {
     if (eventPayload.success) {
       if (playerMenuRef.value && currentPanel.value === 'menu') {
@@ -216,6 +272,8 @@ const handleCardActionCompleted = async (eventPayload) => {
       } else {
         console.warn("PlayerView: Nie można wywołać fetchGameLog - PlayerMenu nie jest dostępne lub aktywne.");
       }
+      fetchPawns();
+      fetchRivalPawns();
   }
 }
 
@@ -223,4 +281,159 @@ const handleBudgetChangeFromMenu = (newBudgetFromMenu) => {
   currentGlobalBudget.value = newBudgetFromMenu;
 };
 
+//funckja pokazujaca aktualną planszę
+const currentBoard = ref('player')
+
+//logika rozsuwania paneli
+
+const leftOpen = ref(false)
+const rightOpen = ref(true)
+
+function showLeftPanel() {
+  rightOpen.value = false
+  leftOpen.value = true
+}
+
+function showRightPanel() {
+  leftOpen.value = false
+  rightOpen.value = true
+}
+
+const pawns = ref([]);
+const enemypawns = ref([]);
+
+const fetchPawns= async () => {
+  try {
+   const response = await apiServices.get(apiConfig.player.getPawns, {
+  params: {
+    gameId: gameData.value.gameId,
+    teamId: gameData.value.teamId,
+    boardId: gameData.value.boardConfig.boardId
+  }
+});
+
+    pawns.value = response.data
+      .map(p => ({
+        id: p.gpId,
+        x: Number(p.posX),
+        y: Number(p.posY),
+        color: p.color,
+        name: p.name
+      }));
+      console.log(pawns.value)
+
+  } catch (err) {
+    console.error("Błąd pobierania pionków:", err);
+  }
+};
+
+const fetchRivalPawns = async () => {
+  const game = gameData.value;
+  if (!game || !game.rivalBoardConfig) {
+    console.warn("Brak gameData lub rivalBoardConfig");
+    return;
+  }
+
+  try {
+    const response = await apiServices.get(apiConfig.player.getRivalPawns, {
+      params: {
+        gameId: game.gameId,
+        boardId: game.rivalBoardConfig.boardId
+      }
+    });
+
+    enemypawns.value = response.data.map(p => ({
+      id: p.teamId,
+      x: Number(p.posX),
+      y: Number(p.posY),
+      color: p.teamColor,
+      name: p.teamName
+    }));
+
+    console.log("ENEMY PAWNS:", enemypawns.value);
+
+  } catch (err) {
+    console.error("Błąd pobierania pionków rynku:", err);
+  }
+};
+
+const onBoardUpdate = (data) => {
+  console.log("SignalR: Otrzymano 'BoardUpdated'. Odświeżam stan planszy.", data);
+  // Niezależnie od tego, która drużyna się zmieniła, odświeżamy obie listy pionków.
+  // Jest to najprostsze i najbardziej niezawodne podejście.
+  fetchPawns();
+  fetchRivalPawns();
+};
+
+const onHistoryUpdate = () => {
+  console.log("SignalR: Otrzymano 'HistoryUpdated'. Odświeżam historię.");
+  if (playerMenuRef.value) {
+    playerMenuRef.value.fetchGameLog();
+  }
+};
+
+// Flaga, aby uniknąć wielokrotnego łączenia się z SignalR przy zmianach propsów
+let isSignalRInitialized = false;
+
+// Ten `watch` staje się głównym punktem startowym dla komponentu.
+watch(() => props.teamToken, async (newToken) => {
+  if (!newToken) return;
+
+  // 1. Najpierw pobierz wszystkie dane gry. `await` gwarantuje, że poczekamy na wynik.
+  await fetchGameDataByToken(newToken);
+  
+  // 2. Dopiero gdy dane są dostępne i SignalR nie był jeszcze inicjowany, skonfiguruj go.
+  if (gameData.value?.gameId && !isSignalRInitialized) {
+    isSignalRInitialized = true; // Ustawiamy flagę, aby nie robić tego ponownie
+
+    try {
+      await signalrService.start();
+      await signalrService.joinGameRoom(gameData.value.gameId.toString()); // Upewnijmy się, że ID jest stringiem
+      console.log(`SignalR: Połączono i dołączono do pokoju gry ${gameData.value.gameId}`);
+
+      // Rejestrujemy nasze funkcje jako listenery
+      signalrService.connection.on("BoardUpdated", onBoardUpdate);
+      signalrService.connection.on("HistoryUpdated", onHistoryUpdate);
+
+    } catch (err) {
+      console.error("Błąd połączenia SignalR w playerView: ", err);
+    }
+  }
+}, { immediate: true }); // `immediate: true` uruchamia ten `watch` od razu po załadowaniu komponentu
+
+// onMounted i onUnmounted pozostają, ale ich logika jest teraz czystsza.
+// `onMounted` może być nawet pusty, ponieważ `watch` z `immediate:true` przejmuje jego rolę.
+onMounted(() => {
+  // Cała logika inicjalizacji jest teraz w `watch`.
+  // Możemy tu zostawić puste lub dodać logikę, która nie zależy od propsów.
+  console.log("PlayerView zamontowany.");
+});
+
+onUnmounted(() => {
+  if (gameData.value?.gameId) {
+    console.log(`SignalR: Opuszczanie pokoju gry ${gameData.value.gameId}`);
+    signalrService.leaveGameRoom(gameData.value.gameId.toString());
+    
+    // Usuwamy listenery, używając tych samych referencji do funkcji.
+    // To zapobiega wyciekom pamięci i wielokrotnym wywołaniom.
+    signalrService.connection.off("BoardUpdated", onBoardUpdate);
+    signalrService.connection.off("HistoryUpdated", onHistoryUpdate);
+  }
+});
+
 </script>
+
+<style scoped>
+  .fade-slide-enter-active,
+  .fade-slide-leave-active {
+    transition: all 0.5s ease;
+  }
+  .fade-slide-enter-from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  .fade-slide-leave-to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+</style>
