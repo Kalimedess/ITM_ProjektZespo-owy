@@ -12,11 +12,12 @@ const route = useRoute()
 const selectedStat = computed(() => route.query.stat || 'positions')
 
 const teamPositions = [
-  { name: "Drużyna A", position: 8 },
-  { name: "Drużyna B", position: 6 },
-  { name: "Drużyna C", position: 2 },
-  { name: "Drużyna D", position: 5 },
-  { name: "Drużyna E", position: 7 }
+  { name: 'Drużyna A', position: 1 },
+  { name: 'Drużyna B', position: 2 },
+  { name: 'Drużyna C', position: 3 },
+  { name: 'Drużyna D', position: 4 },
+  { name: 'Drużyna E', position: 5 },
+  { name: 'Drużyna F', position: 6 }
 ]
 
 const avgBitsUsageByTeam = [
@@ -33,11 +34,16 @@ const decisionSuccessByTeam = [
 ]
 
 const teamProgress = [
-  { round: 1, "Drużyna A": 2, "Drużyna B": 3, "Drużyna C": 1, "Drużyna D": 4, "Drużyna E": 5 },
-  { round: 2, "Drużyna A": 3, "Drużyna B": 2, "Drużyna C": 1, "Drużyna D": 5, "Drużyna E": 4 },
-  { round: 3, "Drużyna A": 2, "Drużyna B": 4, "Drużyna C": 3, "Drużyna D": 5, "Drużyna E": 1 },
-  { round: 4, "Drużyna A": 1, "Drużyna B": 3, "Drużyna C": 2, "Drużyna D": 4, "Drużyna E": 5 },
-  { round: 5, "Drużyna A": 4, "Drużyna B": 2, "Drużyna C": 1, "Drużyna D": 5, "Drużyna E": 3 }
+  { round: 1, 'Drużyna A': 5, 'Drużyna B': 4, 'Drużyna C': 2, 'Drużyna D': 6, 'Drużyna E': 1, 'Drużyna F': 3 },
+  { round: 2, 'Drużyna A': 4, 'Drużyna B': 3, 'Drużyna C': 1, 'Drużyna D': 5, 'Drużyna E': 2, 'Drużyna F': 6 },
+  { round: 3, 'Drużyna A': 2, 'Drużyna B': 1, 'Drużyna C': 3, 'Drużyna D': 6, 'Drużyna E': 4, 'Drużyna F': 5 },
+  { round: 4, 'Drużyna A': 1, 'Drużyna B': 2, 'Drużyna C': 4, 'Drużyna D': 5, 'Drużyna E': 3, 'Drużyna F': 6 },
+  { round: 5, 'Drużyna A': 2, 'Drużyna B': 1, 'Drużyna C': 5, 'Drużyna D': 4, 'Drużyna E': 3, 'Drużyna F': 6 },
+  { round: 6, 'Drużyna A': 3, 'Drużyna B': 2, 'Drużyna C': 1, 'Drużyna D': 4, 'Drużyna E': 6, 'Drużyna F': 5 },
+  { round: 7, 'Drużyna A': 4, 'Drużyna B': 3, 'Drużyna C': 2, 'Drużyna D': 5, 'Drużyna E': 1, 'Drużyna F': 6 },
+  { round: 8, 'Drużyna A': 5, 'Drużyna B': 4, 'Drużyna C': 3, 'Drużyna D': 1, 'Drużyna E': 2, 'Drużyna F': 6 },
+  { round: 9, 'Drużyna A': 6, 'Drużyna B': 5, 'Drużyna C': 2, 'Drużyna D': 1, 'Drużyna E': 3, 'Drużyna F': 4 },
+  { round: 10,'Drużyna A': 5, 'Drużyna B': 6, 'Drużyna C': 1, 'Drużyna D': 2, 'Drużyna E': 3, 'Drużyna F': 4 }
 ]
 </script>
 

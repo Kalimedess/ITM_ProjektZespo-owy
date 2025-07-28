@@ -1,5 +1,5 @@
 <template>
-  <div ref="chart" class="w-full h-96"></div>
+  <div ref="chart" class="w-full h-[600px] flex items-center justify-center"></div>
 </template>
 
 <script setup>
@@ -15,91 +15,184 @@ const props = defineProps({
 
 const chart = ref(null)
 
-
 const drawChart = () => {
-  const margin = { top: 20, right: 30, bottom: 40, left: 40 }
-  const width = chart.value.clientWidth - margin.left - margin.right
-  const height = chart.value.clientHeight - margin.top - margin.bottom
-
-
   d3.select(chart.value).selectAll('*').remove()
-
+  
+  const svgWidth = 1000
+  const svgHeight = 700
+  const podiumWidth = 250
+  const podiumHeight = 320
+  const spacing = 80
+  const topOffset = 100
+  const depth = 20
+  
+  const sorted = [...props.data].sort((a, b) => a.position - b.position)
+  const [first, second, third, ...others] = sorted
+  
   const svg = d3
     .select(chart.value)
     .append('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom+40)
-    .append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`)
-
-  const x = d3
-    .scaleBand()
-    .domain(props.data.map((d) => d.name))
-    .range([0, width])
-    .padding(0.2)
-
-  const y = d3.scaleLinear().domain([0, 30]).range([height, 0])
-
-
-  svg
-    .append('g')
-    .call(d3.axisLeft(y))
-    .selectAll('text')
-    .style('fill', '#ffffff') // etykiety osi Y
-
-  svg
-    .append('g')
-    .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(x))
-    .selectAll('text')
-    .attr('transform', 'rotate(-40)')
-    .style('text-anchor', 'end')
-    .style('fill', '#ffffff') // etykiety osi X
+    .attr('width', svgWidth)
+    .attr('height', svgHeight)
+  
+  const centerX = svgWidth / 2
+  
+  const render3DBox = (x, y, width, height, baseColor) => {
+    // Front
+    svg.append('rect')
+      .attr('x', x)
+      .attr('y', y)
+      .attr('width', width)
+      .attr('height', height)
+      .attr('fill', baseColor)
+      .attr('stroke', '#ffffff')
+      .attr('stroke-width', 2)
+    
+    // Right side
+    svg.append('polygon')
+      .attr('points', `
+        ${x + width},${y}
+        ${x + width + depth},${y - depth}
+        ${x + width + depth},${y + height - depth}
+        ${x + width},${y + height}
+      `)
+      .attr('fill', d3.color(baseColor).darker(0.7))
+      .attr('stroke', '#ffffff')
+      .attr('stroke-width', 1)
+    
+    // Top side
+    svg.append('polygon')
+      .attr('points', `
+        ${x},${y}
+        ${x + width},${y}
+        ${x + width + depth},${y - depth}
+        ${x + depth},${y - depth}
+      `)
+      .attr('fill', d3.color(baseColor).brighter(0.5))
+      .attr('stroke', '#ffffff')
+      .attr('stroke-width', 1)
+  }
+  
+  // 2nd place
+  const secondX = centerX - podiumWidth - podiumWidth / 2
+  const secondY = topOffset + 100
+  render3DBox(secondX, secondY, podiumWidth, podiumHeight - 100, 'silver')
   
   svg.append('text')
+    .attr('x', secondX + podiumWidth / 2)
+    .attr('y', secondY - 35)
     .attr('text-anchor', 'middle')
-    .attr('transform', `translate(${-30}, ${height / 2}) rotate(-90)`)
-    .text('Pozycja')
-    .style('fill', '#ffffff')
-    .style('font-size', '14px')
-
+    .attr('font-size', '22px')
+    .attr('font-weight', 'bold')
+    .attr('fill', '#ffffff')
+    .attr('stroke', '#000000')
+    .attr('stroke-width', 0.5)
+    .text(`${second?.name || 'N/A'}`)
+  
+  // Medal dla 2. miejsca
+  svg.append('circle')
+    .attr('cx', secondX + podiumWidth / 2)
+    .attr('cy', secondY + 30)
+    .attr('r', 15)
+    .attr('fill', 'silver')
+    .attr('stroke', '#ffffff')
+    .attr('stroke-width', 2)
+  
   svg.append('text')
+    .attr('x', secondX + podiumWidth / 2)
+    .attr('y', secondY + 35)
     .attr('text-anchor', 'middle')
-    .attr('x', width / 2)
-    .attr('y', height + 60)
-    .text('Drużyna')
-    .style('fill', '#ffffff')
-    .style('font-size', '14px')
-
-  // Linie osi
-  svg.selectAll('path').style('stroke', '#ffffff') // linie osi
-  svg.selectAll('line').style('stroke', '#888888') // linie pomocnicze
-
-  // Słupki
-  svg
-    .selectAll('rect')
-    .data(props.data)
+    .attr('font-size', '14px')
+    .attr('font-weight', 'bold')
+    .attr('fill', '#000000')
+    .text('2')
+  
+  // 1st place
+  const firstX = centerX - podiumWidth / 2
+  const firstY = topOffset
+  render3DBox(firstX, firstY, podiumWidth, podiumHeight, 'gold')
+  
+  svg.append('text')
+    .attr('x', firstX + podiumWidth / 2)
+    .attr('y', firstY - 35)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '24px')
+    .attr('font-weight', 'bold')
+    .attr('fill', '#ffffff')
+    .attr('stroke', '#000000')
+    .attr('stroke-width', 0.5)
+    .text(`${first?.name || 'N/A'}`)
+  
+  // Medal dla 1. miejsca
+  svg.append('circle')
+    .attr('cx', firstX + podiumWidth / 2)
+    .attr('cy', firstY + 30)
+    .attr('r', 18)
+    .attr('fill', 'gold')
+    .attr('stroke', '#ffffff')
+    .attr('stroke-width', 2)
+  
+  svg.append('text')
+    .attr('x', firstX + podiumWidth / 2)
+    .attr('y', firstY + 36)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '16px')
+    .attr('font-weight', 'bold')
+    .attr('fill', '#000000')
+    .text('1')
+  
+  // 3rd place
+  const thirdX = centerX + podiumWidth / 2
+  const thirdY = topOffset + 160
+  render3DBox(thirdX, thirdY, podiumWidth, podiumHeight - 160, '#cd7f32')
+  
+  svg.append('text')
+    .attr('x', thirdX + podiumWidth / 2)
+    .attr('y', thirdY - 35)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '22px')
+    .attr('font-weight', 'bold')
+    .attr('fill', '#ffffff')
+    .attr('stroke', '#000000')
+    .attr('stroke-width', 0.5)
+    .text(`${third?.name || 'N/A'}`)
+  
+  // Medal dla 3. miejsca
+  svg.append('circle')
+    .attr('cx', thirdX + podiumWidth / 2)
+    .attr('cy', thirdY + 30)
+    .attr('r', 15)
+    .attr('fill', '#cd7f32')
+    .attr('stroke', '#ffffff')
+    .attr('stroke-width', 2)
+  
+  svg.append('text')
+    .attr('x', thirdX + podiumWidth / 2)
+    .attr('y', thirdY + 35)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '14px')
+    .attr('font-weight', 'bold')
+    .attr('fill', '#ffffff')
+    .text('3')
+  
+  //  Pozostałe miejsca
+  const othersStartY = topOffset + podiumHeight + 80
+  
+  svg.selectAll('.others')
+    .data(others)
     .enter()
-    .append('rect')
-    .attr('x', (d) => x(d.name))
-    .attr('y', (d) => y(d.position))
-    .attr('width', x.bandwidth())
-    .attr('height', (d) => height - y(d.position))
-    .attr('fill', '#a855f7') 
+    .append('text')
+    .attr('x', secondX)
+    .attr('y', (d, i) => othersStartY + i * 32)
+    .attr('text-anchor', 'start') 
+    .attr('fill', '#ffffff')
+    .attr('font-size', '22px')
+    .attr('font-weight', 'bold')
+    .attr('stroke', '#000000')
+    .attr('stroke-width', 0.3)
+    .text((d) => `${d.position}. ${d.name}`)
 }
 
-onMounted(() => {
-  nextTick(() => {
-    drawChart()
-  })
-})
-
-watch(
-  () => props.data,
-  () => {
-    drawChart()
-  },
-  { deep: true }
-)
+onMounted(() => nextTick(drawChart))
+watch(() => props.data, () => drawChart(), { deep: true })
 </script>
-
