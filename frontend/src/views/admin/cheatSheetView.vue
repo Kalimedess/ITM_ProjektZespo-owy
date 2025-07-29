@@ -7,7 +7,7 @@
       <div
         @click="toggleZoom"
         :class="[
-          'border-2 border-lgray-accent p-2 rounded-md bg-gray-800 transition-all duration-500 cursor-pointer',
+          'relative border-2 border-lgray-accent p-2 rounded-md bg-gray-800 transition-all duration-500 cursor-pointer',
           isZoomed ? 'w-[80%]' : 'w-[50%]'
         ]"
       >
@@ -20,6 +20,16 @@
         <div v-else class="flex items-center justify-center h-[60vh]">
           <p>Ładowanie danych drzewa...</p>
         </div>
+        <!--Overlay pozycji-->
+        <rect
+        v-for="(team) in positionedTeamEntry"
+        :key="team.teamId"
+        class="absolute z-10 text-white bg-black px-3 py-3 rounded shadow"
+        :style="{
+          left: coordinates[team.cardId].x + 325 + 'px',
+          top: coordinates[team.cardId].y + 130 + 'px'
+        }"
+      />
       </div>
 
       <!-- Legenda -->
@@ -77,7 +87,11 @@ import apiService from '@/services/apiServices'
 import apiConfig from '@/services/apiConfig'
 import * as dagre from 'dagre' 
 import { edgeColors as edgeColorsConfig } from '@/assets/treeLayout.js'; 
+import { computed } from 'vue'
 
+const positionedTeamEntry = computed(() =>
+  teamEntry.value.filter(team => coordinates.value[team.cardId])
+)
 
 const isZoomed = ref(false);
 function toggleZoom() {
@@ -91,6 +105,10 @@ const tresholdData = ref(2);
 // --- Dane dla drzewa ---
 const nodes = ref([])
 const edges = ref([])
+
+const coordinates = ref({})
+
+const teamEntry = ref([]);
 
 // Lista dostępnych PDF-ów
 const availablePDFs = [
@@ -140,6 +158,8 @@ function determineNodeType(nodeId, inDegree, outDegree, threshold = tresholdData
 }
 
 const dynamicEdgeColors = ref({});
+
+const nodeById = ref({});
 
 
 const selectedPDF = ref(availablePDFs.length > 0 ? availablePDFs[0].path : '')
@@ -207,6 +227,7 @@ function processTreeDataWithDagre(enablersMap) {
         saturation.value, 
         lightness.value
     );
+    nodeById.value = {id};
   });
   
   dynamicEdgeColors.value = edgeColorsResult;
@@ -224,9 +245,16 @@ function processTreeDataWithDagre(enablersMap) {
       type: node.type // <-- Przekazujemy typ określony przez dagre
     };
   });
-  
+
   nodes.value = finalNodes;
   edges.value = processedEdges;
+  
+  const coordinatesMap = ref({});
+
+  coordinatesMap.value = Object.fromEntries(
+    finalNodes.map(n => [n.id, { x: n.x, y: n.y }])
+  );
+  coordinates.value = coordinatesMap.value;
 }
 
 // Pobieranie danych
@@ -245,11 +273,12 @@ const fetchTeamEntry = async () => {
   try {
     const result = await apiService.get(apiConfig.games.getTeamEntry, {params: { gameId: props.gameId, teamId: props.teamId}});
     console.log("Dane dla drużyny:", result);
-    // Tutaj w przyszłości możesz użyć tych danych do podświetlenia zagranych kart
+
+    teamEntry.value = result.data;
   } catch (error) {
     console.error("Błąd podczas pobierania danych drużyny:", error);
   }
-} 
+}
  
 // Obsługa PDF
 function openPDF() {
@@ -263,6 +292,9 @@ function closePDF(index) {
 function openPDFInNewTab() {
   window.open(selectedPDF.value, '_blank')
 }
+
+
+
 
 onMounted(async () => {
   fetchTeamEntry();
