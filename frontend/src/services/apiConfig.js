@@ -23,6 +23,10 @@ const endpoints = {
     games: {
       getGames: (gameId) => `adminpanel/games/${gameId}`,
       getTeams: (gameId) => `adminpanel/teams/by-game/${gameId}`
+    },
+    export: {
+      cards: `admin/exportCards`,
+      boards: `admin/exportBoards`
     }
   },
   games: {
