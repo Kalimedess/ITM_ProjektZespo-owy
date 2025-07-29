@@ -108,13 +108,24 @@
                          <span v-if="isSideBarOpen">Ściąga mistrza gry</span>
                     </RouterLink>
                 </li>
+
+                <li class="border-2 border-lgray-accent rounded-md hover:border-accent transition-colors duration-300 cursor-pointer">
+                    <RouterLink 
+                        to="/admin/exportToPDF"
+                        class="flex items-center gap-4 px-4 py-3 rounded-md"
+                        :class="isSideBarOpen ? '': 'justify-center' "
+                    >
+                        <font-awesome-icon :icon="faFilePdf" class="h-4 text-accent"/>
+                         <span v-if="isSideBarOpen">Generowanie gry do PDF</span>
+                    </RouterLink>
+                </li>
             </ul>
         </nav>
     </aside>
 </template>
 
 <script setup>
-    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFileSignature,faHouse,faArrowLeft,faArrowRight,faChessBoard,faMicrochip} from '@fortawesome/free-solid-svg-icons'
+    import {faArrowDown,faArrowUp,faGamepad,faChartLine,faPenToSquare,faFile,faFilePdf,faArrowLeft,faArrowRight,faChessBoard,faMicrochip} from '@fortawesome/free-solid-svg-icons'
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
 

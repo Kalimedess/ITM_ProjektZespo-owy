@@ -38,5 +38,16 @@ export default {
   // DELETE request
   delete(endpoint) {
     return apiClient.delete(endpoint);
+  },
+  getFile(endpoint, params = {}) {
+    return apiClient.get(endpoint, {
+      params: params,
+      responseType: 'blob' // Kluczowy element
+    });
+  },
+    postForFile(endpoint, data = {}) {
+    return apiClient.post(endpoint, data, {
+      responseType: 'blob' // Kluczowy element
+    });
   }
 };

@@ -3,7 +3,10 @@ using backend.Data;
 using backend.Services;
 using backend.Initializers;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +24,8 @@ if (!string.IsNullOrEmpty(frontendUrl))
             policy.WithOrigins(frontendUrl)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials();
+                  .AllowCredentials()
+                  .WithExposedHeaders("Content-Disposition");
         });
     });
 }
